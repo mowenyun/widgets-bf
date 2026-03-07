@@ -12,6 +12,12 @@
     "referer": ""
   },
   {
+    "id": "ec",
+    "name": "ec Forward Widgets",
+    "url": "https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd",
+    "referer": ""
+  },
+  {
     "id": "huangxd",
     "name": "huangxd Widgets",
     "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd",
