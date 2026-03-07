@@ -9,27 +9,12 @@
 
 ## 目录
 
-- `sources.json`：外部源配置
+- `sources.json`：来源配置
 - `subscriptions/`：聚合订阅文件
 - `synced/`：同步下来的外部 js
 - `custom/`：你自己上传的 js
 
 ## 当前来源
-
-### TI (`TI`)
-- 来源：`https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd`
-- Widgets：`2`
-- 成功镜像 js：`2`
-
-### ec Forward Widgets (`ec`)
-- 来源：`https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd`
-- Widgets：`14`
-- 成功镜像 js：`12`
-
-### huangxd Widgets (`huangxd`)
-- 来源：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
-- Widgets：`8`
-- 成功镜像 js：`8`
 
 ### custom
 - 来源：`https://github.com/mowenyun/widgets-bf/tree/main/custom`
@@ -37,8 +22,8 @@
 
 ## 统计
 
-- 聚合原地址版总数：`25`
-- 聚合镜像版总数：`25`
+- 聚合原地址版总数：`1`
+- 聚合镜像版总数：`1`
 
 ## 使用说明
 
