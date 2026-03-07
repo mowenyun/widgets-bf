@@ -1,21 +1,10 @@
 [
   {
     "id": "vvebo",
+    "type": "fwd",
     "name": "Vvebo Forward Widgets",
     "url": "https://assets.vvebo.vip/scripts/forward-widgets.fwd",
     "referer": "https://assets.vvebo.vip/"
-  },
-{
-    "id": "TI",
-    "name": "TI",
-    "url": "https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd",
-    "referer": ""
-  },
-  {
-    "id": "ec",
-    "name": "ec Forward Widgets",
-    "url": "https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd",
-    "referer": ""
   },
   {
     "id": "huangxd",
@@ -33,4 +22,3 @@
     "path": "Widgets"
   }
 ]
-
