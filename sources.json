@@ -5,6 +5,12 @@
     "url": "https://assets.vvebo.vip/scripts/forward-widgets.fwd",
     "referer": "https://assets.vvebo.vip/"
   },
+{
+    "id": "TI",
+    "name": "TI",
+    "url": "https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd",
+    "referer": ""
+  },
   {
     "id": "huangxd",
     "name": "huangxd Widgets",
