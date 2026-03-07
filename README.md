@@ -38,12 +38,12 @@
 
 ### custom
 - 来源：`https://github.com/mowenyun/widgets-bf/tree/main/custom`
-- Widgets：`2`
+- Widgets：`0`
 
 ## 统计
 
-- 聚合原地址版总数：`30`
-- 聚合镜像版总数：`30`
+- 聚合原地址版总数：`28`
+- 聚合镜像版总数：`28`
 
 ## 使用说明
 
