@@ -255,6 +255,15 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/rrmj.js"
     },
     {
+      "id": "custom.Hanime1",
+      "title": "Hanime1",
+      "description": "[source:custom] Custom widget: Hanime1",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "mowenyun",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/custom/Hanime1.js"
+    },
+    {
       "id": "custom.danmu-universe",
       "title": "danmu-universe",
       "description": "[source:custom] Custom widget: danmu-universe",
