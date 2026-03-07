@@ -33,7 +33,7 @@
 
 ### 2kuai ForwardWidgets (`2kuai`)
 - 来源：`https://github.com/2kuai/ForwardWidgets/tree/main/Widgets`
-- Widgets：`4`
+- Widgets：`2`
 - 成功镜像 js：`4`
 
 ### custom
@@ -42,8 +42,8 @@
 
 ## 统计
 
-- 聚合原地址版总数：`24`
-- 聚合镜像版总数：`24`
+- 聚合原地址版总数：`22`
+- 聚合镜像版总数：`22`
 
 ## 使用说明
 
