@@ -65,12 +65,54 @@ def build_headers(referer=""):
     return headers
 
 
-def normalize_widget(widget, source_id, source_name):
+def parse_version(version):
+    """
+    把版本号转成可比较的元组。
+    例如:
+    1.15.6 -> (1, 15, 6)
+    2.0 -> (2, 0)
+    1.0.0-beta -> (1, 0, 0)
+    """
+    if version is None:
+        return (0,)
+
+    s = str(version).strip()
+    if not s:
+        return (0,)
+
+    parts = re.findall(r'\d+', s)
+    if not parts:
+        return (0,)
+
+    return tuple(int(x) for x in parts)
+
+
+def compare_versions(v1, v2):
+    """
+    return:
+      1  => v1 > v2
+      0  => v1 == v2
+     -1  => v1 < v2
+    """
+    a = parse_version(v1)
+    b = parse_version(v2)
+
+    max_len = max(len(a), len(b))
+    a = a + (0,) * (max_len - len(a))
+    b = b + (0,) * (max_len - len(b))
+
+    if a > b:
+        return 1
+    if a < b:
+        return -1
+    return 0
+
+
+def normalize_widget(widget, source_name):
     w = copy.deepcopy(widget)
 
     original_id = w.get("id") or w.get("title") or "unknown"
-    safe_id = str(original_id).strip().replace(" ", "_")
-    w["id"] = f"{source_id}.{safe_id}"
+    w["id"] = str(original_id).strip()
 
     desc = w.get("description", "")
     prefix = f"[source:{source_name}] "
@@ -81,6 +123,10 @@ def normalize_widget(widget, source_id, source_name):
 
 
 def extract_widget_metadata(js_text):
+    """
+    尝试从 JS 中提取 WidgetMetadata = {...}
+    这是宽松提取，不保证处理所有复杂 JS。
+    """
     m = re.search(r'WidgetMetadata\s*=\s*\{', js_text)
     if not m:
         return None
@@ -128,7 +174,7 @@ def extract_widget_metadata(js_text):
         return None
 
 
-def build_widget_from_metadata_or_fallback(source_id, source_name, js_filename, local_path, metadata, default_author="unknown"):
+def build_widget_from_metadata_or_fallback(source_name, js_filename, local_path, metadata, default_author="unknown"):
     widget_name = os.path.splitext(js_filename)[0]
     raw_url = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
 
@@ -138,11 +184,8 @@ def build_widget_from_metadata_or_fallback(source_id, source_name, js_filename, 
         if not desc.startswith("[source:"):
             desc = f"[source:{source_name}] " + desc
 
-        original_id = metadata.get("id") or widget_name
-        safe_id = str(original_id).strip().replace(" ", "_")
-
         return {
-            "id": f"{source_id}.{safe_id}",
+            "id": str(metadata.get("id") or widget_name).strip(),
             "title": title,
             "description": desc,
             "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
@@ -152,7 +195,7 @@ def build_widget_from_metadata_or_fallback(source_id, source_name, js_filename, 
         }
 
     return {
-        "id": f"{source_id}.{widget_name}",
+        "id": widget_name,
         "title": widget_name,
         "description": f"[source:{source_name}] Auto generated from GitHub directory",
         "requiredVersion": "0.0.1",
@@ -185,7 +228,7 @@ def process_fwd_source(source):
         if not isinstance(widget, dict):
             continue
 
-        origin_widget = normalize_widget(widget, source_id, source_name)
+        origin_widget = normalize_widget(widget, source_name)
         mirror_widget = copy.deepcopy(origin_widget)
 
         url = widget.get("url")
@@ -274,7 +317,6 @@ def process_github_dir_source(source):
             print("Failed to parse metadata:", filename, e)
 
         mirror_widget = build_widget_from_metadata_or_fallback(
-            source_id=source_id,
             source_name=source_name,
             js_filename=filename,
             local_path=local_path,
@@ -323,7 +365,7 @@ def build_custom_widget_from_file(filename):
 
     if metadata and isinstance(metadata, dict):
         return {
-            "id": metadata.get("id") or f"custom.{widget_name}",
+            "id": str(metadata.get("id") or widget_name).strip(),
             "title": metadata.get("title") or widget_name,
             "description": metadata.get("description") or f"[source:custom] Custom widget: {widget_name}",
             "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
@@ -333,7 +375,7 @@ def build_custom_widget_from_file(filename):
         }
 
     return {
-        "id": f"custom.{widget_name}",
+        "id": widget_name,
         "title": widget_name,
         "description": f"[source:custom] Custom widget: {widget_name}",
         "requiredVersion": "0.0.1",
@@ -353,6 +395,41 @@ def load_custom_widgets():
         widgets.append(build_custom_widget_from_file(filename))
 
     return widgets
+
+
+def pick_higher_version_widget(old_widget, new_widget):
+    """
+    同 id 冲突时保留 version 更高的。
+    如果 version 相同，则优先保留 new_widget。
+    """
+    old_v = old_widget.get("version", "0")
+    new_v = new_widget.get("version", "0")
+    cmp_result = compare_versions(new_v, old_v)
+
+    if cmp_result >= 0:
+        return new_widget
+    return old_widget
+
+
+def dedupe_widgets_by_id_keep_highest_version(widgets):
+    """
+    按 id 去重，保留 version 更高的。
+    """
+    result = {}
+    order = []
+
+    for widget in widgets:
+        widget_id = str(widget.get("id", "")).strip()
+        if not widget_id:
+            continue
+
+        if widget_id not in result:
+            result[widget_id] = widget
+            order.append(widget_id)
+        else:
+            result[widget_id] = pick_higher_version_widget(result[widget_id], widget)
+
+    return [result[k] for k in order]
 
 
 def write_aggregated_subscriptions(origin_widgets, mirror_widgets):
@@ -457,6 +534,10 @@ def main():
     custom_widgets = load_custom_widgets()
     all_origin_widgets.extend(custom_widgets)
     all_mirror_widgets.extend(custom_widgets)
+
+    # 按 id 去重，保留版本更高的
+    all_origin_widgets = dedupe_widgets_by_id_keep_highest_version(all_origin_widgets)
+    all_mirror_widgets = dedupe_widgets_by_id_keep_highest_version(all_mirror_widgets)
 
     write_aggregated_subscriptions(all_origin_widgets, all_mirror_widgets)
     generate_readme(results, all_origin_widgets, all_mirror_widgets, len(custom_widgets))
