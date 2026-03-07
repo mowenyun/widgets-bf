@@ -16,6 +16,16 @@
 
 ## 当前来源
 
+### TI (`TI`)
+- 来源：`https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd`
+- Widgets：`2`
+- 成功镜像 js：`2`
+
+### ec Forward Widgets (`ec`)
+- 来源：`https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd`
+- Widgets：`14`
+- 成功镜像 js：`12`
+
 ### huangxd Widgets (`huangxd`)
 - 来源：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
 - Widgets：`8`
@@ -27,8 +37,8 @@
 
 ## 统计
 
-- 聚合原地址版总数：`9`
-- 聚合镜像版总数：`9`
+- 聚合原地址版总数：`25`
+- 聚合镜像版总数：`25`
 
 ## 使用说明
 
