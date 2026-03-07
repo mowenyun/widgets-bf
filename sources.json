@@ -19,9 +19,20 @@
   },
   {
     "id": "huangxd",
+    "type": "fwd",
     "name": "huangxd Widgets",
     "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd",
     "referer": ""
+  },
+  {
+    "id": "2kuai",
+    "type": "github_dir",
+    "name": "2kuai ForwardWidgets",
+    "repo": "2kuai/ForwardWidgets",
+    "branch": "main",
+    "path": "Widgets"
   }
+]
+
 ]
 
