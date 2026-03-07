@@ -199,6 +199,24 @@
       "version": "0.0.1",
       "author": "Discount Code：VEUS",
       "url": "https://gist.githubusercontent.com/MrRegret/61a5cbf0637b95a0d800994a51860fb2/raw"
+    },
+    {
+      "id": "vod_stream",
+      "title": "VOD Stream",
+      "description": "获取聚合VOD影片资源",
+      "requiredVersion": "0.0.1",
+      "version": "1.2.1",
+      "author": "两块",
+      "url": "https://raw.githubusercontent.com/2kuai/ForwardWidgets/main/Widgets/VodStream.js"
+    },
+    {
+      "id": "hanime1_me_style",
+      "title": "页码",
+      "description": "页码",
+      "requiredVersion": "0.0.2",
+      "version": "6.2.0",
+      "author": "skywazzle",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/custom/Hanime1.js"
     }
   ]
 }
