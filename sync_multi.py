@@ -93,51 +93,44 @@ def compare_versions(v1, v2):
 
 
 def extract_widget_metadata(js_text):
-    m = re.search(r'WidgetMetadata\s*=\s*\{', js_text)
-    if not m:
+    """
+    宽松提取 WidgetMetadata 中的关键字段，不要求整个对象可 JSON.parse。
+    只提取：
+    - id
+    - title
+    - description
+    - author
+    - version
+    - requiredVersion
+    """
+
+    if "WidgetMetadata" not in js_text:
         return None
 
-    start = m.end() - 1
-    depth = 0
-    in_str = None
-    escape = False
-
-    for i in range(start, len(js_text)):
-        ch = js_text[i]
-
-        if in_str:
-            if escape:
-                escape = False
-            elif ch == "\\":
-                escape = True
-            elif ch == in_str:
-                in_str = None
-            continue
-
-        if ch in ("'", '"'):
-            in_str = ch
-            continue
-
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                obj_text = js_text[start:i + 1]
-                break
-    else:
+    def extract_string_field(field_name):
+        patterns = [
+            rf'{field_name}\s*:\s*"([^"]*)"',
+            rf"{field_name}\s*:\s*'([^']*)'",
+        ]
+        for pattern in patterns:
+            m = re.search(pattern, js_text)
+            if m:
+                return m.group(1).strip()
         return None
 
-    candidate = obj_text
-    candidate = re.sub(r",\s*}", "}", candidate)
-    candidate = re.sub(r",\s*]", "]", candidate)
-    candidate = re.sub(r'([{\s,])([A-Za-z_][A-Za-z0-9_]*)\s*:', r'\1"\2":', candidate)
-    candidate = re.sub(r"'", '"', candidate)
+    metadata = {
+        "id": extract_string_field("id"),
+        "title": extract_string_field("title"),
+        "description": extract_string_field("description"),
+        "author": extract_string_field("author"),
+        "version": extract_string_field("version"),
+        "requiredVersion": extract_string_field("requiredVersion"),
+    }
 
-    try:
-        return json.loads(candidate)
-    except Exception:
-        return None
+    if metadata["id"] and metadata["title"]:
+        return metadata
+
+    return None
 
 
 def build_widget_from_metadata(js_filename, local_path, metadata):
@@ -155,7 +148,17 @@ def build_widget_from_metadata(js_filename, local_path, metadata):
     }
 
 
-def process_fwd_source(source):
+def add_skip(skipped_items, source_id, source_name, filename, reason):
+    skipped_items.append({
+        "source_id": source_id,
+        "source_name": source_name,
+        "filename": filename,
+        "reason": reason
+    })
+    print(f"SKIP -> [{source_name}] {filename}: {reason}")
+
+
+def process_fwd_source(source, skipped_items):
     source_id = source["id"]
     source_name = source.get("name", source_id)
     source_url = source["url"]
@@ -176,6 +179,7 @@ def process_fwd_source(source):
 
     for widget in data.get("widgets", []):
         if not isinstance(widget, dict):
+            add_skip(skipped_items, source_id, source_name, "(unknown widget)", "widget 不是对象(dict)")
             continue
 
         origin_widget = copy.deepcopy(widget)
@@ -194,6 +198,8 @@ def process_fwd_source(source):
                 except Exception as e:
                     print("Failed:", url, e)
                     mirror_widget["url"] = url
+            else:
+                add_skip(skipped_items, source_id, source_name, str(url), "无法从 url 提取文件名")
 
         origin_widgets.append(origin_widget)
         mirror_widgets.append(mirror_widget)
@@ -209,7 +215,7 @@ def process_fwd_source(source):
     }
 
 
-def process_github_dir_source(source):
+def process_github_dir_source(source, skipped_items):
     source_id = source["id"]
     source_name = source.get("name", source_id)
     repo = source["repo"]
@@ -244,6 +250,7 @@ def process_github_dir_source(source):
 
         download_url = item.get("download_url")
         if not download_url:
+            add_skip(skipped_items, source_id, source_name, filename, "缺少 download_url")
             continue
 
         local_path = os.path.join(local_dir, filename)
@@ -253,7 +260,7 @@ def process_github_dir_source(source):
             download_file(download_url, local_path)
             downloaded += 1
         except Exception as e:
-            print("Failed:", download_url, e)
+            add_skip(skipped_items, source_id, source_name, filename, f"下载失败: {e}")
             continue
 
         metadata = None
@@ -262,11 +269,11 @@ def process_github_dir_source(source):
                 js_text = f.read()
             metadata = extract_widget_metadata(js_text)
         except Exception as e:
-            print("Failed to parse metadata:", filename, e)
+            add_skip(skipped_items, source_id, source_name, filename, f"读取或解析 metadata 失败: {e}")
+            continue
 
-        # 关键：提取不到 metadata 直接跳过
         if not metadata:
-            print(f"Skip file without WidgetMetadata: {filename}")
+            add_skip(skipped_items, source_id, source_name, filename, "未提取到有效的 WidgetMetadata")
             continue
 
         mirror_widget = build_widget_from_metadata(
@@ -292,18 +299,19 @@ def process_github_dir_source(source):
     }
 
 
-def process_source(source):
+def process_source(source, skipped_items):
     source_type = source.get("type", "fwd")
     if source_type == "fwd":
-        return process_fwd_source(source)
+        return process_fwd_source(source, skipped_items)
     if source_type == "github_dir":
-        return process_github_dir_source(source)
+        return process_github_dir_source(source, skipped_items)
     raise Exception(f"Unsupported source type: {source_type}")
 
 
-def build_custom_widget_from_file(filename):
+def build_custom_widget_from_file(filename, skipped_items):
     path = os.path.join(CUSTOM_DIR, filename)
     raw_path = path.replace(os.sep, "/")
+    widget_name = os.path.splitext(filename)[0]
 
     metadata = None
     try:
@@ -311,15 +319,16 @@ def build_custom_widget_from_file(filename):
             js_text = f.read()
         metadata = extract_widget_metadata(js_text)
     except Exception as e:
-        print(f"Failed to read custom file metadata: {filename} -> {e}")
+        add_skip(skipped_items, "custom", "custom", filename, f"读取文件失败: {e}")
+        return None
 
     if not metadata:
-        print(f"Skip custom file without WidgetMetadata: {filename}")
+        add_skip(skipped_items, "custom", "custom", filename, "未提取到有效的 WidgetMetadata")
         return None
 
     return {
-        "id": str(metadata.get("id") or os.path.splitext(filename)[0]).strip(),
-        "title": metadata.get("title") or os.path.splitext(filename)[0],
+        "id": str(metadata.get("id") or widget_name).strip(),
+        "title": metadata.get("title") or widget_name,
         "description": metadata.get("description") or "",
         "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
         "version": metadata.get("version") or "1.0.0",
@@ -328,14 +337,14 @@ def build_custom_widget_from_file(filename):
     }
 
 
-def load_custom_widgets():
+def load_custom_widgets(skipped_items):
     ensure_dir(CUSTOM_DIR)
 
     widgets = []
     for filename in sorted(os.listdir(CUSTOM_DIR)):
         if not filename.endswith(".js"):
             continue
-        widget = build_custom_widget_from_file(filename)
+        widget = build_custom_widget_from_file(filename, skipped_items)
         if widget:
             widgets.append(widget)
 
@@ -395,7 +404,7 @@ def write_aggregated_subscriptions(origin_widgets, mirror_widgets):
         json.dump(mirror_data, f, ensure_ascii=False, indent=2)
 
 
-def generate_readme(results, total_origin, total_mirror, custom_count):
+def generate_readme(results, total_origin, total_mirror, custom_count, skipped_items):
     lines = []
     lines.append(f"# {REPO_NAME}")
     lines.append("")
@@ -432,6 +441,20 @@ def generate_readme(results, total_origin, total_mirror, custom_count):
     lines.append(f"- 聚合原地址版总数：`{len(total_origin)}`")
     lines.append(f"- 聚合镜像版总数：`{len(total_mirror)}`")
     lines.append("")
+
+    lines.append("## 跳过记录")
+    lines.append("")
+
+    if not skipped_items:
+        lines.append("本次运行没有跳过任何 js 文件。")
+        lines.append("")
+    else:
+        for item in skipped_items:
+            lines.append(
+                f"- 来源 `{item['source_name']}` / 文件 `{item['filename']}` / 原因：{item['reason']}"
+            )
+        lines.append("")
+
     lines.append("## 使用说明")
     lines.append("")
     lines.append("1. 外部源：编辑 `sources.json`")
@@ -453,6 +476,7 @@ def main():
     results = []
     all_origin_widgets = []
     all_mirror_widgets = []
+    skipped_items = []
 
     try:
         sources = load_sources()
@@ -462,14 +486,14 @@ def main():
 
     for source in sources:
         try:
-            result = process_source(source)
+            result = process_source(source, skipped_items)
             results.append(result)
             all_origin_widgets.extend(result["origin_widgets"])
             all_mirror_widgets.extend(result["mirror_widgets"])
         except Exception as e:
             print(f"Source failed: {source.get('id', 'unknown')} -> {e}")
 
-    custom_widgets = load_custom_widgets()
+    custom_widgets = load_custom_widgets(skipped_items)
     all_origin_widgets.extend(custom_widgets)
     all_mirror_widgets.extend(custom_widgets)
 
@@ -477,7 +501,13 @@ def main():
     all_mirror_widgets = dedupe_widgets_by_id_keep_highest_version(all_mirror_widgets)
 
     write_aggregated_subscriptions(all_origin_widgets, all_mirror_widgets)
-    generate_readme(results, all_origin_widgets, all_mirror_widgets, len(custom_widgets))
+    generate_readme(
+        results,
+        all_origin_widgets,
+        all_mirror_widgets,
+        len(custom_widgets),
+        skipped_items
+    )
 
 
 if __name__ == "__main__":
