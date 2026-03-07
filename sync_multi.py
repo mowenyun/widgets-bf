@@ -66,34 +66,18 @@ def build_headers(referer=""):
 
 
 def parse_version(version):
-    """
-    把版本号转成可比较的元组。
-    例如:
-    1.15.6 -> (1, 15, 6)
-    2.0 -> (2, 0)
-    1.0.0-beta -> (1, 0, 0)
-    """
     if version is None:
         return (0,)
-
     s = str(version).strip()
     if not s:
         return (0,)
-
     parts = re.findall(r'\d+', s)
     if not parts:
         return (0,)
-
     return tuple(int(x) for x in parts)
 
 
 def compare_versions(v1, v2):
-    """
-    return:
-      1  => v1 > v2
-      0  => v1 == v2
-     -1  => v1 < v2
-    """
     a = parse_version(v1)
     b = parse_version(v2)
 
@@ -108,25 +92,7 @@ def compare_versions(v1, v2):
     return 0
 
 
-def normalize_widget(widget, source_name):
-    w = copy.deepcopy(widget)
-
-    original_id = w.get("id") or w.get("title") or "unknown"
-    w["id"] = str(original_id).strip()
-
-    desc = w.get("description", "")
-    prefix = f"[source:{source_name}] "
-    if not desc.startswith(prefix):
-        w["description"] = prefix + desc
-
-    return w
-
-
 def extract_widget_metadata(js_text):
-    """
-    尝试从 JS 中提取 WidgetMetadata = {...}
-    这是宽松提取，不保证处理所有复杂 JS。
-    """
     m = re.search(r'WidgetMetadata\s*=\s*\{', js_text)
     if not m:
         return None
@@ -174,33 +140,17 @@ def extract_widget_metadata(js_text):
         return None
 
 
-def build_widget_from_metadata_or_fallback(source_name, js_filename, local_path, metadata, default_author="unknown"):
+def build_widget_from_metadata(js_filename, local_path, metadata):
     widget_name = os.path.splitext(js_filename)[0]
     raw_url = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
 
-    if metadata and isinstance(metadata, dict):
-        title = metadata.get("title") or widget_name
-        desc = metadata.get("description") or f"[source:{source_name}] Auto generated from metadata"
-        if not desc.startswith("[source:"):
-            desc = f"[source:{source_name}] " + desc
-
-        return {
-            "id": str(metadata.get("id") or widget_name).strip(),
-            "title": title,
-            "description": desc,
-            "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
-            "version": metadata.get("version") or "1.0.0",
-            "author": metadata.get("author") or default_author,
-            "url": raw_url
-        }
-
     return {
-        "id": widget_name,
-        "title": widget_name,
-        "description": f"[source:{source_name}] Auto generated from GitHub directory",
-        "requiredVersion": "0.0.1",
-        "version": "1.0.0",
-        "author": default_author,
+        "id": str(metadata.get("id") or widget_name).strip(),
+        "title": metadata.get("title") or widget_name,
+        "description": metadata.get("description") or "",
+        "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
+        "version": metadata.get("version") or "1.0.0",
+        "author": metadata.get("author") or "",
         "url": raw_url
     }
 
@@ -228,8 +178,8 @@ def process_fwd_source(source):
         if not isinstance(widget, dict):
             continue
 
-        origin_widget = normalize_widget(widget, source_name)
-        mirror_widget = copy.deepcopy(origin_widget)
+        origin_widget = copy.deepcopy(widget)
+        mirror_widget = copy.deepcopy(widget)
 
         url = widget.get("url")
         if url:
@@ -282,8 +232,6 @@ def process_github_dir_source(source):
     mirror_widgets = []
     downloaded = 0
 
-    default_author = repo.split("/")[0]
-
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -316,12 +264,15 @@ def process_github_dir_source(source):
         except Exception as e:
             print("Failed to parse metadata:", filename, e)
 
-        mirror_widget = build_widget_from_metadata_or_fallback(
-            source_name=source_name,
+        # 关键：提取不到 metadata 直接跳过
+        if not metadata:
+            print(f"Skip file without WidgetMetadata: {filename}")
+            continue
+
+        mirror_widget = build_widget_from_metadata(
             js_filename=filename,
             local_path=local_path,
-            metadata=metadata,
-            default_author=default_author
+            metadata=metadata
         )
 
         origin_widget = copy.deepcopy(mirror_widget)
@@ -353,7 +304,6 @@ def process_source(source):
 def build_custom_widget_from_file(filename):
     path = os.path.join(CUSTOM_DIR, filename)
     raw_path = path.replace(os.sep, "/")
-    widget_name = os.path.splitext(filename)[0]
 
     metadata = None
     try:
@@ -363,24 +313,17 @@ def build_custom_widget_from_file(filename):
     except Exception as e:
         print(f"Failed to read custom file metadata: {filename} -> {e}")
 
-    if metadata and isinstance(metadata, dict):
-        return {
-            "id": str(metadata.get("id") or widget_name).strip(),
-            "title": metadata.get("title") or widget_name,
-            "description": metadata.get("description") or f"[source:custom] Custom widget: {widget_name}",
-            "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
-            "version": metadata.get("version") or "1.0.0",
-            "author": metadata.get("author") or GITHUB_USER,
-            "url": f"{RAW_BASE}/{raw_path}"
-        }
+    if not metadata:
+        print(f"Skip custom file without WidgetMetadata: {filename}")
+        return None
 
     return {
-        "id": widget_name,
-        "title": widget_name,
-        "description": f"[source:custom] Custom widget: {widget_name}",
-        "requiredVersion": "0.0.1",
-        "version": "1.0.0",
-        "author": GITHUB_USER,
+        "id": str(metadata.get("id") or os.path.splitext(filename)[0]).strip(),
+        "title": metadata.get("title") or os.path.splitext(filename)[0],
+        "description": metadata.get("description") or "",
+        "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
+        "version": metadata.get("version") or "1.0.0",
+        "author": metadata.get("author") or "",
         "url": f"{RAW_BASE}/{raw_path}"
     }
 
@@ -392,16 +335,14 @@ def load_custom_widgets():
     for filename in sorted(os.listdir(CUSTOM_DIR)):
         if not filename.endswith(".js"):
             continue
-        widgets.append(build_custom_widget_from_file(filename))
+        widget = build_custom_widget_from_file(filename)
+        if widget:
+            widgets.append(widget)
 
     return widgets
 
 
 def pick_higher_version_widget(old_widget, new_widget):
-    """
-    同 id 冲突时保留 version 更高的。
-    如果 version 相同，则优先保留 new_widget。
-    """
     old_v = old_widget.get("version", "0")
     new_v = new_widget.get("version", "0")
     cmp_result = compare_versions(new_v, old_v)
@@ -412,9 +353,6 @@ def pick_higher_version_widget(old_widget, new_widget):
 
 
 def dedupe_widgets_by_id_keep_highest_version(widgets):
-    """
-    按 id 去重，保留 version 更高的。
-    """
     result = {}
     order = []
 
@@ -535,7 +473,6 @@ def main():
     all_origin_widgets.extend(custom_widgets)
     all_mirror_widgets.extend(custom_widgets)
 
-    # 按 id 去重，保留版本更高的
     all_origin_widgets = dedupe_widgets_by_id_keep_highest_version(all_origin_widgets)
     all_mirror_widgets = dedupe_widgets_by_id_keep_highest_version(all_mirror_widgets)
 
