@@ -33,18 +33,24 @@ def reset_dir(path):
     os.makedirs(path, exist_ok=True)
 
 
-def download_text(url, headers):
-    r = requests.get(url, headers=headers, timeout=30)
+def download_text(url, headers=None):
+    r = requests.get(url, headers=headers or DEFAULT_HEADERS, timeout=30)
     r.raise_for_status()
     return r.text
 
 
-def download_file(url, local_path, headers):
-    r = requests.get(url, headers=headers, timeout=60)
+def download_file(url, local_path, headers=None):
+    r = requests.get(url, headers=headers or DEFAULT_HEADERS, timeout=60)
     r.raise_for_status()
     ensure_dir(os.path.dirname(local_path) or ".")
     with open(local_path, "wb") as f:
         f.write(r.content)
+
+
+def fetch_json(url, headers=None):
+    r = requests.get(url, headers=headers or DEFAULT_HEADERS, timeout=30)
+    r.raise_for_status()
+    return r.json()
 
 
 def load_sources():
@@ -74,13 +80,95 @@ def normalize_widget(widget, source_id, source_name):
     return w
 
 
-def process_source(source):
+def extract_widget_metadata(js_text):
+    m = re.search(r'WidgetMetadata\s*=\s*\{', js_text)
+    if not m:
+        return None
+
+    start = m.end() - 1
+    depth = 0
+    in_str = None
+    escape = False
+
+    for i in range(start, len(js_text)):
+        ch = js_text[i]
+
+        if in_str:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == in_str:
+                in_str = None
+            continue
+
+        if ch in ("'", '"'):
+            in_str = ch
+            continue
+
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                obj_text = js_text[start:i + 1]
+                break
+    else:
+        return None
+
+    candidate = obj_text
+    candidate = re.sub(r",\s*}", "}", candidate)
+    candidate = re.sub(r",\s*]", "]", candidate)
+    candidate = re.sub(r'([{\s,])([A-Za-z_][A-Za-z0-9_]*)\s*:', r'\1"\2":', candidate)
+    candidate = re.sub(r"'", '"', candidate)
+
+    try:
+        return json.loads(candidate)
+    except Exception:
+        return None
+
+
+def build_widget_from_metadata_or_fallback(source_id, source_name, js_filename, local_path, metadata, default_author="unknown"):
+    widget_name = os.path.splitext(js_filename)[0]
+    raw_url = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
+
+    if metadata and isinstance(metadata, dict):
+        title = metadata.get("title") or widget_name
+        desc = metadata.get("description") or f"[source:{source_name}] Auto generated from metadata"
+        if not desc.startswith("[source:"):
+            desc = f"[source:{source_name}] " + desc
+
+        original_id = metadata.get("id") or widget_name
+        safe_id = str(original_id).strip().replace(" ", "_")
+
+        return {
+            "id": f"{source_id}.{safe_id}",
+            "title": title,
+            "description": desc,
+            "requiredVersion": metadata.get("requiredVersion") or "0.0.1",
+            "version": metadata.get("version") or "1.0.0",
+            "author": metadata.get("author") or default_author,
+            "url": raw_url
+        }
+
+    return {
+        "id": f"{source_id}.{widget_name}",
+        "title": widget_name,
+        "description": f"[source:{source_name}] Auto generated from GitHub directory",
+        "requiredVersion": "0.0.1",
+        "version": "1.0.0",
+        "author": default_author,
+        "url": raw_url
+    }
+
+
+def process_fwd_source(source):
     source_id = source["id"]
     source_name = source.get("name", source_id)
     source_url = source["url"]
     referer = source.get("referer", "")
 
-    print(f"\n===== Processing: {source_name} ({source_id}) =====")
+    print(f"\n===== Processing FWD: {source_name} ({source_id}) =====")
 
     headers = build_headers(referer)
     local_dir = os.path.join(SYNCED_DIR, source_id)
@@ -128,63 +216,96 @@ def process_source(source):
     }
 
 
-def extract_widget_metadata(js_text):
-    """
-    从 js 文件中提取 WidgetMetadata = {...}
-    这是一个尽量宽松的简单提取器，不保证覆盖所有极端情况。
-    """
-    m = re.search(r'WidgetMetadata\s*=\s*\{', js_text)
-    if not m:
-        return None
+def process_github_dir_source(source):
+    source_id = source["id"]
+    source_name = source.get("name", source_id)
+    repo = source["repo"]
+    branch = source.get("branch", "main")
+    path = source["path"]
 
-    start = m.end() - 1
-    depth = 0
-    in_str = None
-    escape = False
+    print(f"\n===== Processing GitHub Dir: {source_name} ({source_id}) =====")
 
-    for i in range(start, len(js_text)):
-        ch = js_text[i]
+    local_dir = os.path.join(SYNCED_DIR, source_id)
+    reset_dir(local_dir)
 
-        if in_str:
-            if escape:
-                escape = False
-            elif ch == "\\":
-                escape = True
-            elif ch == in_str:
-                in_str = None
+    api_url = f"https://api.github.com/repos/{repo}/contents/{path}?ref={branch}"
+    source_url = f"https://github.com/{repo}/tree/{branch}/{path}"
+
+    items = fetch_json(api_url)
+    if not isinstance(items, list):
+        raise Exception(f"GitHub contents api did not return a list: {api_url}")
+
+    origin_widgets = []
+    mirror_widgets = []
+    downloaded = 0
+
+    default_author = repo.split("/")[0]
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "file":
             continue
 
-        if ch in ("'", '"'):
-            in_str = ch
+        filename = item.get("name", "")
+        if not filename.endswith(".js"):
             continue
 
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                obj_text = js_text[start:i + 1]
-                break
-    else:
-        return None
+        download_url = item.get("download_url")
+        if not download_url:
+            continue
 
-    # 尝试把 JS 对象转成 JSON 兼容格式
-    candidate = obj_text
+        local_path = os.path.join(local_dir, filename)
 
-    # 去掉尾逗号
-    candidate = re.sub(r",\s*}", "}", candidate)
-    candidate = re.sub(r",\s*]", "]", candidate)
+        try:
+            print("Downloading:", download_url)
+            download_file(download_url, local_path)
+            downloaded += 1
+        except Exception as e:
+            print("Failed:", download_url, e)
+            continue
 
-    # 给裸 key 补引号
-    candidate = re.sub(r'([{\s,])([A-Za-z_][A-Za-z0-9_]*)\s*:', r'\1"\2":', candidate)
+        metadata = None
+        try:
+            with open(local_path, "r", encoding="utf-8") as f:
+                js_text = f.read()
+            metadata = extract_widget_metadata(js_text)
+        except Exception as e:
+            print("Failed to parse metadata:", filename, e)
 
-    # 单引号改双引号
-    candidate = re.sub(r"'", '"', candidate)
+        mirror_widget = build_widget_from_metadata_or_fallback(
+            source_id=source_id,
+            source_name=source_name,
+            js_filename=filename,
+            local_path=local_path,
+            metadata=metadata,
+            default_author=default_author
+        )
 
-    try:
-        return json.loads(candidate)
-    except Exception:
-        return None
+        origin_widget = copy.deepcopy(mirror_widget)
+        origin_widget["url"] = download_url
+
+        origin_widgets.append(origin_widget)
+        mirror_widgets.append(mirror_widget)
+
+    return {
+        "id": source_id,
+        "name": source_name,
+        "source_url": source_url,
+        "origin_widgets": origin_widgets,
+        "mirror_widgets": mirror_widgets,
+        "widget_count": len(origin_widgets),
+        "downloaded": downloaded
+    }
+
+
+def process_source(source):
+    source_type = source.get("type", "fwd")
+    if source_type == "fwd":
+        return process_fwd_source(source)
+    if source_type == "github_dir":
+        return process_github_dir_source(source)
+    raise Exception(f"Unsupported source type: {source_type}")
 
 
 def build_custom_widget_from_file(filename):
@@ -272,7 +393,7 @@ def generate_readme(results, total_origin, total_mirror, custom_count):
     lines.append("")
     lines.append("## 目录")
     lines.append("")
-    lines.append("- `sources.json`：外部源配置")
+    lines.append("- `sources.json`：来源配置")
     lines.append("- `subscriptions/`：聚合订阅文件")
     lines.append("- `synced/`：同步下来的外部 js")
     lines.append("- `custom/`：你自己上传的 js")
