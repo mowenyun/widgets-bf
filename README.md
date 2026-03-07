@@ -1,40 +1,39 @@
 # widgets-bf
 
-自动同步多个 Forward Widgets 订阅源，并生成两个版本：
+自动聚合多个 Forward Widgets 来源，并生成统一订阅。
 
-- `origin`：订阅文件在本仓库，但 js 仍使用原始地址
-- `mirror`：订阅文件和 js 都使用本仓库地址
+## 订阅地址
 
-## 仓库说明
+- 聚合原地址版：https://raw.githubusercontent.com/mowenyun/widgets-bf/main/subscriptions/all-origin.fwd
+- 聚合镜像版：https://raw.githubusercontent.com/mowenyun/widgets-bf/main/subscriptions/all-mirror.fwd
 
-- 仓库地址：https://github.com/mowenyun/widgets-bf
-- Raw 根地址：https://raw.githubusercontent.com/mowenyun/widgets-bf/main
-- 配置文件：`sources.json`
-- 自动同步脚本：`sync_multi.py`
+## 目录
 
-## 目录说明
+- `sources.json`：外部源配置
+- `subscriptions/`：聚合订阅文件
+- `synced/`：同步下来的外部 js
+- `custom/`：你自己上传的 js
 
-- `subscriptions/`：生成的订阅文件
-- `widgets/`：同步下来的 js 文件
-- `assets/`：图标等资源
-- `originals/`：原始抓取的 fwd 文件备份
-
-## 当前已同步源
+## 当前来源
 
 ### huangxd Widgets (`huangxd`)
+- 来源：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
+- Widgets：`8`
+- 成功镜像 js：`8`
 
-- 源地址：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
-- Widget 数量：`8`
-- 成功下载 js 数量：`8`
-- 原地址版：https://raw.githubusercontent.com/mowenyun/widgets-bf/main/subscriptions/huangxd-origin.fwd
-- 镜像版：https://raw.githubusercontent.com/mowenyun/widgets-bf/main/subscriptions/huangxd-mirror.fwd
+### custom
+- 来源：`https://github.com/mowenyun/widgets-bf/tree/main/custom`
+- Widgets：`1`
 
-## 使用方法
+## 统计
 
-1. 编辑 `sources.json`，添加或删除要同步的订阅源
-2. 在 GitHub Actions 中运行同步任务
-3. 从 `subscriptions/` 中使用生成后的订阅文件
+- 聚合原地址版总数：`9`
+- 聚合镜像版总数：`9`
 
-## 自动生成说明
+## 使用说明
 
-本 README 由 `sync_multi.py` 自动生成，请勿手动长期维护。
+1. 外部源：编辑 `sources.json`
+2. 自定义 js：上传到 `custom/`
+3. 运行 GitHub Actions 自动更新聚合订阅
+
+本 README 由脚本自动生成。

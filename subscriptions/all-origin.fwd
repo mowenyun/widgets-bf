@@ -1,0 +1,87 @@
+{
+  "title": "mowenyun aggregated widgets",
+  "description": "Aggregated widgets subscription (origin urls)",
+  "widgets": [
+    {
+      "id": "huangxd.douban",
+      "title": "豆瓣我看&豆瓣个性化推荐",
+      "description": "[source:huangxd Widgets] 解析豆瓣想看、在看、已看以及根据个人数据生成的个性化推荐【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.20",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/douban.js"
+    },
+    {
+      "id": "huangxd.trakt",
+      "title": "Trakt我看&Trakt个性化推荐",
+      "description": "[source:huangxd Widgets] 解析Trakt想看、在看、已看、片单、追剧日历以及根据个人数据生成的个性化推荐【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.15",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/trakt.js"
+    },
+    {
+      "id": "huangxd.live",
+      "title": "直播(电视+网络)",
+      "description": "[source:huangxd Widgets] 解析直播订阅链接【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.10",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/live.js"
+    },
+    {
+      "id": "huangxd.yatu",
+      "title": "雅图(每日放送+点播排行榜+评分排行榜)",
+      "description": "[source:huangxd Widgets] 解析雅图每日放送更新以及各类排行榜【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.6",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/yatu.js"
+    },
+    {
+      "id": "huangxd.zhuijurili",
+      "title": "追剧日历(今/明日播出、周历、各项榜单、今日推荐)",
+      "description": "[source:huangxd Widgets] 解析追剧日历今/明日播出剧集/番剧/国漫/综艺、周历、各项榜单、今日推荐等【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.4",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/zhuijurili.js"
+    },
+    {
+      "id": "huangxd.letterboxd",
+      "title": "Letterboxd电影爱好者平台",
+      "description": "[source:huangxd Widgets] 解析Letterboxd片单内的影片【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.2",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/letterboxd.js"
+    },
+    {
+      "id": "huangxd.forward.auto.danmu",
+      "title": "自动链接弹幕v2",
+      "description": "[source:huangxd Widgets] 自动获取播放链接并从服务器获取弹幕【30% off code：CHEAP】",
+      "requiredVersion": "0.0.2",
+      "version": "1.15.6",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/danmu_auto.js"
+    },
+    {
+      "id": "huangxd.forward.auto.danmu_api",
+      "title": "danmu_api弹幕",
+      "description": "[source:huangxd Widgets] 从danmu_api获取弹幕【五折码：CHEAP.5;七折码：CHEAP】",
+      "requiredVersion": "0.0.2",
+      "version": "1.0.3",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/danmu_api.js"
+    },
+    {
+      "id": "custom.danmu-universe",
+      "title": "danmu-universe",
+      "description": "[source:custom] Custom widget: danmu-universe",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "mowenyun",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/custom/danmu-universe.js"
+    }
+  ]
+}
