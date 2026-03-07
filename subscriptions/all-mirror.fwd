@@ -3,7 +3,7 @@
   "description": "Aggregated widgets subscription (mirror urls)",
   "widgets": [
     {
-      "id": "huangxd.douban",
+      "id": "douban",
       "title": "豆瓣我看&豆瓣个性化推荐",
       "description": "[source:huangxd Widgets] 解析豆瓣想看、在看、已看以及根据个人数据生成的个性化推荐【30% off code：CHEAP】",
       "requiredVersion": "0.0.1",
@@ -12,7 +12,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/douban.js"
     },
     {
-      "id": "huangxd.trakt",
+      "id": "trakt",
       "title": "Trakt我看&Trakt个性化推荐",
       "description": "[source:huangxd Widgets] 解析Trakt想看、在看、已看、片单、追剧日历以及根据个人数据生成的个性化推荐【30% off code：CHEAP】",
       "requiredVersion": "0.0.1",
@@ -21,7 +21,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/trakt.js"
     },
     {
-      "id": "huangxd.live",
+      "id": "live",
       "title": "直播(电视+网络)",
       "description": "[source:huangxd Widgets] 解析直播订阅链接【30% off code：CHEAP】",
       "requiredVersion": "0.0.1",
@@ -30,7 +30,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/live.js"
     },
     {
-      "id": "huangxd.yatu",
+      "id": "yatu",
       "title": "雅图(每日放送+点播排行榜+评分排行榜)",
       "description": "[source:huangxd Widgets] 解析雅图每日放送更新以及各类排行榜【30% off code：CHEAP】",
       "requiredVersion": "0.0.1",
@@ -39,7 +39,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/yatu.js"
     },
     {
-      "id": "huangxd.zhuijurili",
+      "id": "zhuijurili",
       "title": "追剧日历(今/明日播出、周历、各项榜单、今日推荐)",
       "description": "[source:huangxd Widgets] 解析追剧日历今/明日播出剧集/番剧/国漫/综艺、周历、各项榜单、今日推荐等【30% off code：CHEAP】",
       "requiredVersion": "0.0.1",
@@ -48,7 +48,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/zhuijurili.js"
     },
     {
-      "id": "huangxd.letterboxd",
+      "id": "letterboxd",
       "title": "Letterboxd电影爱好者平台",
       "description": "[source:huangxd Widgets] 解析Letterboxd片单内的影片【30% off code：CHEAP】",
       "requiredVersion": "0.0.1",
@@ -57,7 +57,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/letterboxd.js"
     },
     {
-      "id": "huangxd.forward.auto.danmu",
+      "id": "forward.auto.danmu",
       "title": "自动链接弹幕v2",
       "description": "[source:huangxd Widgets] 自动获取播放链接并从服务器获取弹幕【30% off code：CHEAP】",
       "requiredVersion": "0.0.2",
@@ -66,7 +66,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/danmu_auto.js"
     },
     {
-      "id": "huangxd.forward.auto.danmu_api",
+      "id": "forward.auto.danmu_api",
       "title": "danmu_api弹幕",
       "description": "[source:huangxd Widgets] 从danmu_api获取弹幕【五折码：CHEAP.5;七折码：CHEAP】",
       "requiredVersion": "0.0.2",
@@ -75,7 +75,7 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/danmu_api.js"
     },
     {
-      "id": "ec.forward.combined.media.lists",
+      "id": "forward.combined.media.lists",
       "title": "影视榜单",
       "description": "[source:ec Widgets] 聚合豆瓣、TMDB、IMDB和Bangumi的影视动画榜单",
       "requiredVersion": "0.0.1",
@@ -84,142 +84,7 @@
       "url": "https://raw.githubusercontent.com/pack1r/ForwardWidgets/refs/heads/main/widgets/combined.js"
     },
     {
-      "id": "ec.hot_picks",
-      "title": "热门精选",
-      "description": "[source:ec Widgets] 获取最新热播剧和热门影片推荐",
-      "requiredVersion": "0.0.1",
-      "version": "1.1.7",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/HotPicks.js"
-    },
-    {
-      "id": "ec.bangumi_charts_tmdb_v3",
-      "title": "Bangumi 热门榜单",
-      "description": "[source:ec Widgets] 获取Bangumi近期热门、每日放送数据，支持榜单筛选。",
-      "requiredVersion": "0.0.1",
-      "version": "2.0.0",
-      "author": "Autism",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/Bangumi_v2.0.0.js"
-    },
-    {
-      "id": "ec.imdb_discovery_final_v2",
-      "title": "IMDb 分类资源 v2",
-      "description": "[source:ec Widgets] 聚合 IMDb 热门影视资源",
-      "requiredVersion": "0.0.1",
-      "version": "2.0.0",
-      "author": "Autism",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/IMDb.js"
-    },
-    {
-      "id": "ec.person.movie.tmdb",
-      "title": "TMDB人物影视作品",
-      "description": "[source:ec Widgets] 获取 TMDB 的榜单数据",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.4",
-      "author": "Evan",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/person_movie.js"
-    },
-    {
-      "id": "ec.imdb",
-      "title": "IMDB",
-      "description": "[source:ec Widgets] IMDB",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "pack1r",
-      "url": "https://raw.githubusercontent.com/pack1r/ForwardWidgets/refs/heads/main/widgets/imdb.js"
-    },
-    {
-      "id": "ec.ti.bemarkt.vod.maccms",
-      "title": "VOD",
-      "description": "[source:ec Widgets] 获取 VOD 影视数据",
-      "requiredVersion": "0.0.1",
-      "version": "1.1.0",
-      "author": "Ti",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/vod.js"
-    },
-    {
-      "id": "ec.ti.bemarkt.podcast",
-      "title": "Podcast",
-      "description": "[source:ec Widgets] 获取 RSS 播客数据",
-      "requiredVersion": "0.0.1",
-      "version": "2.1.0",
-      "author": "Ti",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/podcast.js"
-    },
-    {
-      "id": "ec.wuming.VOD",
-      "title": "Keword VOD",
-      "description": "[source:ec Widgets] 🔍 Qurey Keword for VOD",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "Discount Code：VEUS",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/wuming.js"
-    },
-    {
-      "id": "ec.baranwang.danmu.universe",
-      "title": "通用弹幕",
-      "description": "[source:ec Widgets] 通用弹幕插件，支持腾讯、优酷、爱奇艺、哔哩哔哩、人人视频等平台",
-      "requiredVersion": "0.0.2",
-      "version": "0.15.1",
-      "author": "Baran",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/danmu-universe"
-    },
-    {
-      "id": "ec.vod_sream",
-      "title": "VOD Stream",
-      "description": "[source:ec Widgets] 聚合VOD资源",
-      "requiredVersion": "0.0.1",
-      "version": "1.2.1",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/VodStream.js"
-    },
-    {
-      "id": "ec.rr_vod_full",
-      "title": "人人美剧",
-      "description": "[source:ec Widgets] 获取人人美剧在线资源",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.1",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/rrmj.js"
-    },
-    {
-      "id": "ec.jp_vod_full",
-      "title": "金牌影院",
-      "description": "[source:ec Widgets] 金牌影院在线资源获取",
-      "requiredVersion": "0.0.1",
-      "version": "1.1.0",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/jpyy.js"
-    },
-    {
-      "id": "ec.Bitch",
-      "title": "Bitch Lives",
-      "description": "[source:ec Widgets] 🎥 Bitch Lives",
-      "requiredVersion": "0.0.1",
-      "version": "0.0.1",
-      "author": "Discount Code：VEUS",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/raw"
-    },
-    {
-      "id": "ti.ti.bemarkt.vod.maccms",
-      "title": "VOD",
-      "description": "[source:ti Widgets] 获取 VOD 影视数据",
-      "requiredVersion": "0.0.1",
-      "version": "1.1.0",
-      "author": "Ti",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ti/vod.js"
-    },
-    {
-      "id": "ti.ti.bemarkt.podcast",
-      "title": "Podcast",
-      "description": "[source:ti Widgets] 获取 RSS 播客数据",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "Ti",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ti/podcast.js"
-    },
-    {
-      "id": "2kuai.hot_picks",
+      "id": "hot_picks",
       "title": "热门精选",
       "description": "[source:2kuai ForwardWidgets] 获取最新热门影片推荐",
       "requiredVersion": "0.0.1",
@@ -228,7 +93,115 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/HotPicks.js"
     },
     {
-      "id": "2kuai.VodStream",
+      "id": "bangumi_charts_tmdb_v3",
+      "title": "Bangumi 热门榜单",
+      "description": "[source:ec Widgets] 获取Bangumi近期热门、每日放送数据，支持榜单筛选。",
+      "requiredVersion": "0.0.1",
+      "version": "2.0.0",
+      "author": "Autism",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/Bangumi_v2.0.0.js"
+    },
+    {
+      "id": "imdb_discovery_final_v2",
+      "title": "IMDb 分类资源 v2",
+      "description": "[source:ec Widgets] 聚合 IMDb 热门影视资源",
+      "requiredVersion": "0.0.1",
+      "version": "2.0.0",
+      "author": "Autism",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/IMDb.js"
+    },
+    {
+      "id": "person.movie.tmdb",
+      "title": "TMDB人物影视作品",
+      "description": "[source:ec Widgets] 获取 TMDB 的榜单数据",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.4",
+      "author": "Evan",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/person_movie.js"
+    },
+    {
+      "id": "imdb",
+      "title": "IMDB",
+      "description": "[source:ec Widgets] IMDB",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "pack1r",
+      "url": "https://raw.githubusercontent.com/pack1r/ForwardWidgets/refs/heads/main/widgets/imdb.js"
+    },
+    {
+      "id": "ti.bemarkt.vod.maccms",
+      "title": "VOD",
+      "description": "[source:ti Widgets] 获取 VOD 影视数据",
+      "requiredVersion": "0.0.1",
+      "version": "1.1.0",
+      "author": "Ti",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ti/vod.js"
+    },
+    {
+      "id": "ti.bemarkt.podcast",
+      "title": "Podcast",
+      "description": "[source:ec Widgets] 获取 RSS 播客数据",
+      "requiredVersion": "0.0.1",
+      "version": "2.1.0",
+      "author": "Ti",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/podcast.js"
+    },
+    {
+      "id": "wuming.VOD",
+      "title": "Keword VOD",
+      "description": "[source:ec Widgets] 🔍 Qurey Keword for VOD",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "Discount Code：VEUS",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/wuming.js"
+    },
+    {
+      "id": "baranwang.danmu.universe",
+      "title": "通用弹幕",
+      "description": "[source:ec Widgets] 通用弹幕插件，支持腾讯、优酷、爱奇艺、哔哩哔哩、人人视频等平台",
+      "requiredVersion": "0.0.2",
+      "version": "0.15.1",
+      "author": "Baran",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/danmu-universe"
+    },
+    {
+      "id": "vod_sream",
+      "title": "VOD Stream",
+      "description": "[source:ec Widgets] 聚合VOD资源",
+      "requiredVersion": "0.0.1",
+      "version": "1.2.1",
+      "author": "两块",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/VodStream.js"
+    },
+    {
+      "id": "rr_vod_full",
+      "title": "人人美剧",
+      "description": "[source:2kuai ForwardWidgets] 获取人人美剧在线资源",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.1",
+      "author": "两块",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/rrmj.js"
+    },
+    {
+      "id": "jp_vod_full",
+      "title": "金牌影院",
+      "description": "[source:ec Widgets] 金牌影院在线资源获取",
+      "requiredVersion": "0.0.1",
+      "version": "1.1.0",
+      "author": "两块",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/jpyy.js"
+    },
+    {
+      "id": "Bitch",
+      "title": "Bitch Lives",
+      "description": "[source:ec Widgets] 🎥 Bitch Lives",
+      "requiredVersion": "0.0.1",
+      "version": "0.0.1",
+      "author": "Discount Code：VEUS",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/raw"
+    },
+    {
+      "id": "VodStream",
       "title": "VodStream",
       "description": "[source:2kuai ForwardWidgets] Auto generated from GitHub directory",
       "requiredVersion": "0.0.1",
@@ -237,22 +210,13 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/VodStream.js"
     },
     {
-      "id": "2kuai.jpyy",
+      "id": "jpyy",
       "title": "jpyy",
       "description": "[source:2kuai ForwardWidgets] Auto generated from GitHub directory",
       "requiredVersion": "0.0.1",
       "version": "1.0.0",
       "author": "2kuai",
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/jpyy.js"
-    },
-    {
-      "id": "2kuai.rr_vod_full",
-      "title": "人人美剧",
-      "description": "[source:2kuai ForwardWidgets] 获取人人美剧在线资源",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.1",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/rrmj.js"
     }
   ]
 }
