@@ -1,11 +1,5 @@
 [
-  {
-    "id": "makkapakka",
-    "type": "fwd",
-    "name": "makkapakka Forward Widgets",
-    "url": "https://github.com/MakkaPakka518/FW/blob/main/widgets.fwd",
-    "referer": ""
-  },
+  
   {
     "id": "huangxd",
     "type": "fwd",
@@ -25,6 +19,13 @@
     "type": "fwd",
     "name": "ti Widgets",
     "url": "https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd",
+    "referer": ""
+  },
+  {
+    "id": "makkapakka",
+    "type": "fwd",
+    "name": "makkapakka Forward Widgets",
+    "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets.fwd",
     "referer": ""
   },
   {
