@@ -31,6 +31,11 @@
 - Widgets：`2`
 - 成功镜像 js：`2`
 
+### makkapakka Forward Widgets (`makkapakka`)
+- 来源：`https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets.fwd`
+- Widgets：`22`
+- 成功镜像 js：`22`
+
 ### 2kuai ForwardWidgets (`2kuai`)
 - 来源：`https://github.com/2kuai/ForwardWidgets/tree/main/Widgets`
 - Widgets：`3`
@@ -42,8 +47,8 @@
 
 ## 统计
 
-- 聚合原地址版总数：`24`
-- 聚合镜像版总数：`24`
+- 聚合原地址版总数：`46`
+- 聚合镜像版总数：`46`
 
 ## 跳过记录
 
