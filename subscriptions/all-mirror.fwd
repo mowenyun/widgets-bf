@@ -408,6 +408,15 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/VodStream.js"
     },
     {
+      "id": "ai.movie.recommendation",
+      "title": "AI 影视推荐",
+      "description": "基于自定义AI的智能影视推荐，兼容OpenAI/Gemini/硅基流动/NewApi等接口",
+      "requiredVersion": "0.0.2",
+      "version": "4.9.0",
+      "author": "crush7s",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/custom/Ai影视推荐.js"
+    },
+    {
       "id": "hanime1_me_style",
       "title": "页码",
       "description": "页码",
