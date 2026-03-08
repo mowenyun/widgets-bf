@@ -1,9 +1,9 @@
 [
   {
-    "id": "vvebo",
+    "id": "makkapakka",
     "type": "fwd",
-    "name": "Vvebo Forward Widgets",
-    "url": "https://assets.vvebo.vip/scripts/forward-widgets.fwd",
+    "name": "makkapakka Forward Widgets",
+    "url": "https://github.com/MakkaPakka518/FW/blob/main/widgets.fwd",
     "referer": "https://assets.vvebo.vip/"
   },
   {
