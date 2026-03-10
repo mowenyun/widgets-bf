@@ -3,7 +3,7 @@ WidgetMetadata = {
   title: "影视榜单Pro",
   description: "聚合豆瓣、TMDB、IMDB & Bangumi",
   author: "阿米诺斯｜𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-  version: "1.0.0",
+  version: "2.0.0",
   requiredVersion: "0.0.1",
   site: "https://t.me/MakkaPakkaOvO",
   detailCacheDuration: 60,
@@ -205,7 +205,7 @@ WidgetMetadata = {
             { name: "page", title: "页码", type: "page" }
         ]
     },
-    {
+{
         title: "TMDB 播出平台",
         description: "按播出平台和内容类型筛选剧集内容",
         requiresWebView: false,
@@ -243,6 +243,7 @@ WidgetMetadata = {
                 name: "sort_by", title: "🔢 排序方式", type: "enumeration", value: "first_air_date.desc",
                 enumOptions: [
                     { title: "上映时间↓", value: "first_air_date.desc" },
+                    { title: "上映时间↑", value: "first_air_date.asc" }, // <-- 新增的升序排列
                     { title: "人气最高", value: "popularity.desc" },
                     { title: "评分最高", value: "vote_average.desc" }
                 ]
