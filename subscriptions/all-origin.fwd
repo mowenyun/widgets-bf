@@ -385,7 +385,7 @@
       "title": "Letterboxd电影爱好者平台",
       "description": "解析Letterboxd片单内的影片【修复404】",
       "requiredVersion": "0.0.1",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "author": "huangxd|𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
       "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/qt/letterboxd.js"
     },

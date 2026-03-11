@@ -15,10 +15,38 @@ WidgetMetadata = {
                     type: "enumeration",
                     value: "select",
                     enumOptions: [
-                        {title: "筛选", value: "select"},
-                        {title: "自定义", value: "customize"},
+                        {title: "筛选榜单", value: "select"},
+                        {title: "经典演员", value: "actor"}, // 🚀 新增演员选项
+                        {title: "自定义URL", value: "customize"},
                     ],
                 },
+                // --- 新增：演员列表配置 ---
+                {
+                    name: "actor_select",
+                    title: "选择演员",
+                    type: "enumeration",
+                    description: "Letterboxd 华语经典演员大赏",
+                    belongTo: {
+                        paramName: "input_type",
+                        value: ["actor"],
+                    },
+                    enumOptions: [
+                        {title: "成龙 (Jackie Chan)", value: "https://letterboxd.com/actor/jackie-chan/"},
+                        {title: "周星驰 (Stephen Chow)", value: "https://letterboxd.com/actor/stephen-chow/"},
+                        {title: "李连杰 (Jet Li)", value: "https://letterboxd.com/actor/jet-li/"},
+                        {title: "周润发 (Chow Yun-fat)", value: "https://letterboxd.com/actor/chow-yun-fat/"},
+                        {title: "刘德华 (Andy Lau)", value: "https://letterboxd.com/actor/andy-lau-tak-wah-1/"},
+                        {title: "梁朝伟 (Tony Leung Chiu-wai)", value: "https://letterboxd.com/actor/tony-leung-chiu-wai/"},
+                        {title: "张国荣 (Leslie Cheung)", value: "https://letterboxd.com/actor/leslie-cheung/"},
+                        {title: "刘青云 (Sean Lau Ching-wan)", value: "https://letterboxd.com/actor/sean-lau-ching-wan/"},
+                        {title: "郑伊健 (Ekin Cheng)", value: "https://letterboxd.com/actor/ekin-cheng-yee-kin/"},
+                        {title: "张学友 (Jacky Cheung)", value: "https://letterboxd.com/actor/jacky-cheung-hok-yau/"},
+                        {title: "郭富城 (Aaron Kwok)", value: "https://letterboxd.com/actor/aaron-kwok/"},
+                        {title: "梁家辉 (Tony Leung Ka-fai)", value: "https://letterboxd.com/actor/tony-leung-ka-fai/"},
+                        {title: "张家辉 (Nick Cheung)", value: "https://letterboxd.com/actor/nick-cheung/"}
+                    ]
+                },
+                // --- 原有榜单配置 ---
                 {
                     name: "list_select",
                     title: "片单完整URL",
@@ -325,7 +353,7 @@ WidgetMetadata = {
                         paramName: "input_type",
                         value: ["customize"],
                     },
-                    description: "自定义片单，如：https://letterboxd.com/crew/list/2024-highest-rated-films/",
+                    description: "自定义片单或演员页，如：https://letterboxd.com/actor/jackie-chan/",
                 },
                 {
                     name: "sort_by",
@@ -409,19 +437,21 @@ WidgetMetadata = {
             ],
         },
     ],
-    version: "1.1.1",
+    version: "1.2.0", // 🚀 版本升级，记录修复 Actor/Director 页面无法解析的 Bug
     requiredVersion: "0.0.1",
-    description: "解析Letterboxd片单内的影片【置顶新增大量特色片单】",
+    description: "解析Letterboxd片单内的影片【置顶新增大量特色片单及演员库】",
     author: "huangxd｜𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     site: "https://t.me/MakkaPakkaOvO"
 };
 
 async function extractLetterboxdUrlsFromResponse(responseData, minNum, maxNum) {
     let $ = Widget.html.load(responseData);
-    let filmContainers = $('li.posteritem div.react-component[data-target-link]');
+    
+    // 🛠️ 核心修复区：放宽选择器限制，兼容 Lists / Actors / Directors 各种页面排版
+    let filmContainers = $('div[data-target-link], div.film-poster[data-target-link], div.react-component[data-target-link]');
 
     if (!filmContainers.length) {
-        throw new Error("未找到包含data-target-link属性的电影容器");
+        throw new Error("未找到包含 data-target-link 属性的电影容器");
     }
 
     let letterboxdUrls = Array.from(new Set(
@@ -429,7 +459,7 @@ async function extractLetterboxdUrlsFromResponse(responseData, minNum, maxNum) {
             .map((i, el) => {
                 const targetLink = $(el).data('target-link') || $(el).attr('data-target-link');
                 if (!targetLink || !targetLink.startsWith('/film/')) {
-                    console.warn(`无效的影片链接属性值：${targetLink}`);
+                    // console.warn(`跳过无效的影片链接：${targetLink}`);
                     return null;
                 }
                 return `https://letterboxd.com${targetLink}`;
@@ -512,7 +542,8 @@ async function fetchLetterboxdData(url, headers = {}, minNum, maxNum) {
             },
         });
 
-        console.log("请求结果:", response.data);
+        // 仅在调试时打开，避免日志爆炸
+        // console.log("请求结果:", response.data); 
 
         let letterboxdUrls = await extractLetterboxdUrlsFromResponse(response.data, minNum, maxNum);
 
@@ -528,6 +559,7 @@ async function loadListItems(params = {}) {
         const page = params.page;
         const inputType = params.input_type || "";
         const listSelect = params.list_select || "";
+        const actorSelect = params.actor_select || ""; // 🚀 接收演员数据
         const urlCustomize = params.url_customize || "";
         const sortBy = params.sort_by || "default";
         const genre = params.genre || "default";
@@ -537,15 +569,18 @@ async function loadListItems(params = {}) {
         const maxNum = ((page - 1) % 5) * count + 20;
         const letterboxdPage = Math.floor((page - 1) / 5) + 1;
 
+        // 🚀 根据选择框动态赋值 URL
         let listUrl;
         if (inputType === "select") {
-            listUrl = listSelect
+            listUrl = listSelect;
+        } else if (inputType === "actor") {
+            listUrl = actorSelect;
         } else {
-            listUrl = urlCustomize
+            listUrl = urlCustomize;
         }
 
         if (!listUrl) {
-            throw new Error("必须提供 Letterboxd 片单完整URL");
+            throw new Error("必须提供 Letterboxd 片单或演员完整URL");
         }
 
         // 确保 URL 以斜杠结尾
