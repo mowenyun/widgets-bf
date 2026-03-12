@@ -210,6 +210,15 @@
       "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/normal/dongmanone.js"
     },
     {
+      "id": "super_ultime_media_hub_makka",
+      "title": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
+      "description": "动漫、影剧、综艺、流行风向与平台分流一网打尽",
+      "requiredVersion": "0.0.1",
+      "version": "1.2.0",
+      "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
+      "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/mk-2.0/MakkaPakka-ALL.js"
+    },
+    {
       "id": " global_series_makka",
       "title": "全球影视专区",
       "description": "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
