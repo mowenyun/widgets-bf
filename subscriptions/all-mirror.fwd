@@ -354,15 +354,6 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/makkapakka/ysbd.js"
     },
     {
-      "id": "ysbd.media.makka",
-      "title": "影视榜单Pro",
-      "description": "聚合豆瓣、TMDB、IMDB & Bangumi",
-      "requiredVersion": "0.0.1",
-      "version": "2.0.0",
-      "author": "阿米诺斯｜𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/makkapakka/ysbdpro.js"
-    },
-    {
       "id": "vod_max_engine_makka",
       "title": "VOD资源聚合",
       "description": "内置海量采集接口（含18+）",
