@@ -1,4 +1,17 @@
 // ==================== 常量定义 ====================
+var WidgetMetadata = {
+  id: "hanime1",
+  title: "Hanime1",
+  description: "Hanime1 视频模块",
+  author: "mowenyun",
+  site: "https://hanime1.me",
+  version: "1.0.0",
+  requiredVersion: "0.0.1",
+  detailCacheDuration: 60,
+  modules: []
+};
+
+// ==================== 常量定义 ====================
 const DEFAULT_BASE_URL = "https://hanime1.me";
 const REQUEST_TIMEOUT = 10000;
 const DEFAULT_HEADERS = {
