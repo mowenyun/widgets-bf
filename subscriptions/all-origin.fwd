@@ -417,12 +417,12 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/custom/Ai影视推荐.js"
     },
     {
-      "id": "hanime1_me_style",
-      "title": "页码",
-      "description": "页码",
-      "requiredVersion": "0.0.2",
-      "version": "6.2.0",
-      "author": "skywazzle",
+      "id": "hanime1",
+      "title": "Hanime1",
+      "description": "Hanime1 视频模块",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "mowenyun",
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/custom/Hanime1.js"
     }
   ]

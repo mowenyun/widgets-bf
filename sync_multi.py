@@ -28,8 +28,15 @@ def ensure_dir(path):
 
 
 def reset_dir(path):
+    """Reset directory contents.
+
+    说明：在 iSH/Alpine + Python3.12 环境下，shutil.rmtree 有时会误判普通目录为符号链接并抛出
+    "Cannot call rmtree on a symbolic link"。
+    为保证 GitHub Actions / 本地一致性，这里改用 shell 的 rm -rf 来做更鲁棒的清理。
+    """
     if os.path.exists(path):
-        shutil.rmtree(path)
+        # 使用系统 rm 规避 shutil.rmtree 的符号链接误判问题
+        os.system(f"rm -rf '{path}'")
     os.makedirs(path, exist_ok=True)
 
 
