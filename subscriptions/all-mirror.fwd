@@ -88,7 +88,7 @@
       "title": "热门精选",
       "description": "获取最新热门影片推荐",
       "requiredVersion": "0.0.1",
-      "version": "1.5.7",
+      "version": "1.5.8",
       "author": "两块",
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/HotPicks.js"
     },
