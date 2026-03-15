@@ -61,7 +61,7 @@
       "title": "自动链接弹幕v2",
       "description": "自动获取播放链接并从服务器获取弹幕【30% off code：CHEAP】",
       "requiredVersion": "0.0.2",
-      "version": "1.15.6",
+      "version": "1.17.0",
       "author": "huangxd",
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/danmu_auto.js"
     },
@@ -86,11 +86,11 @@
     {
       "id": "hot_picks",
       "title": "热门精选",
-      "description": "获取最新热门影片推荐",
+      "description": "获取最新热播剧和热门影片推荐",
       "requiredVersion": "0.0.1",
-      "version": "1.5.8",
+      "version": "1.1.7",
       "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/HotPicks.js"
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/HotPicks.js"
     },
     {
       "id": "bangumi_charts_tmdb_v3",
@@ -180,7 +180,7 @@
       "requiredVersion": "0.0.1",
       "version": "1.0.1",
       "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/rrmj.js"
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/rrmj.js"
     },
     {
       "id": "jp_vod_full",
@@ -397,15 +397,6 @@
       "version": "1.0.5",
       "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/makkapakka/imdb.js"
-    },
-    {
-      "id": "vod_stream",
-      "title": "VOD Stream",
-      "description": "获取聚合VOD影片资源",
-      "requiredVersion": "0.0.1",
-      "version": "1.2.1",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/2kuai/VodStream.js"
     },
     {
       "id": "ai.movie.recommendation",
