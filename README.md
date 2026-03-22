@@ -36,18 +36,23 @@
 - Widgets：`22`
 - 成功镜像 js：`22`
 
+### 2kuai ForwardWidgets (`2kuai`)
+- 来源：`https://github.com/2kuai/ForwardWidgets/tree/main/Widgets`
+- Widgets：`3`
+- 成功镜像 js：`4`
+
 ### custom
 - 来源：`https://github.com/mowenyun/widgets-bf/tree/main/custom`
 - Widgets：`2`
 
 ## 统计
 
-- 聚合原地址版总数：`46`
-- 聚合镜像版总数：`46`
+- 聚合原地址版总数：`47`
+- 聚合镜像版总数：`47`
 
 ## 跳过记录
 
-本次运行没有跳过任何 js 文件。
+- 来源 `2kuai ForwardWidgets` / 文件 `jpyy.js` / 原因：未提取到有效的 WidgetMetadata
 
 ## 使用说明
 
