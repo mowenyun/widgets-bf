@@ -1,10 +1,10 @@
 WidgetMetadata = {
-  id: "danmu.pro.online",
-  title: "弹幕多源",
-  version: "1.1.5", // 回退花哨功能，彻底重构多源并发合并机制，解决短路截胡问题
+  id: "danmu_api_Max_binfa",
+  title: "并发弹幕",
+  version: "1.2.7", // 并发测试版：基于稳定的1.2.6，仅将请求方式改回并发，测试引擎极限
   requiredVersion: "0.0.2",
   site: "https://t.me/MakkaPakkaOvO",
-  description: "支持多api、繁简互转、数量限制、关键词屏蔽、颜色重写",
+  description: "并发搜索多api、繁简互转、数量限制、关键词屏蔽、颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   
   globalParams: [
@@ -63,7 +63,7 @@ WidgetMetadata = {
 };
 
 // ==========================================
-// 1. 繁简转换核心 (OpenCC)
+// 1. 繁简转换核心
 // ==========================================
 const DICT_URL_S2T = "https://cdn.jsdelivr.net/npm/opencc-data@1.0.3/data/STCharacters.txt";
 const DICT_URL_T2S = "https://cdn.jsdelivr.net/npm/opencc-data@1.0.3/data/TSCharacters.txt";
@@ -72,10 +72,8 @@ let MEM_DICT = null;
 async function initDict(mode) {
   if (!mode || mode === "none") return;
   if (MEM_DICT) return; 
-
   const key = `dict_${mode}`;
   let local = await Widget.storage.get(key);
-
   if (!local) {
       try {
           const res = await Widget.http.get(mode === "s2t" ? DICT_URL_S2T : DICT_URL_T2S);
@@ -98,65 +96,89 @@ async function initDict(mode) {
 function convertText(text) {
   if (!text || !MEM_DICT) return text;
   let res = "";
-  for (let char of text) {
-      res += MEM_DICT[char] || char;
-  }
+  for (let char of text) { res += MEM_DICT[char] || char; }
   return res;
 }
 
 // ==========================================
-// 2. 核心功能 (带路由)
+// 2. 核心功能
 // ==========================================
 const SOURCE_KEY = "dm_source_map";
 
 async function getSource(id) {
-  let map = await Widget.storage.get(SOURCE_KEY);
-  return map ? JSON.parse(map)[id] : null;
+  try {
+      let map = await Widget.storage.get(SOURCE_KEY);
+      return map ? JSON.parse(map)[id] : null;
+  } catch(e) { return null; }
 }
 
 async function searchDanmu(params) {
   const { title, season, searchBlockKeywords } = params;
-  const servers = [params.server, params.server2, params.server3].filter(s => s && s.startsWith("http")).map(s => s.replace(/\/$/, ""));
+  const queryTitle = title;
+  
+  const servers = [params.server, params.server2, params.server3]
+      .filter(s => s && s.startsWith("http"))
+      .map(s => s.replace(/\/$/, ""));
   
   if (!servers.length) return { animes: [] };
 
-  // 并发请求所有源，不发生短路截胡
+  let finalAnimes = [];
+  let mapEntries = {};
+  let seenIds = new Set(); 
+
+  // 【核心测试】使用 Promise.all 发起并发请求
   const tasks = servers.map(async (server) => {
       try {
-          const res = await Widget.http.get(`${server}/api/v2/search/anime?keyword=${encodeURIComponent(title)}`, {
-              headers: { "Content-Type": "application/json", "User-Agent": "ForwardWidgets/2.0" }
+          const res = await Widget.http.get(`${server}/api/v2/search/anime?keyword=${queryTitle}`, {
+              headers: { 
+                  "Content-Type": "application/json", 
+                  "User-Agent": "ForwardWidgets/1.0.0" 
+              }
           });
-          const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
-          if (data?.success && data.animes?.length > 0) return { server, animes: data.animes };
-      } catch (e) {}
+          
+          if (res) {
+              const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+              if (data && data.success && data.animes && data.animes.length > 0) {
+                  return { server, animes: data.animes };
+              }
+          }
+      } catch (e) {
+          console.log("单个源请求错误:", e);
+      }
       return null;
   });
 
+  // 等待所有源并发请求完成
   const results = await Promise.all(tasks);
-  let finalAnimes = [];
-  let mapEntries = {};
 
-  // 汇集所有源的结果
+  // 汇集结果并去重
   for (const res of results) {
       if (res) {
           for (const a of res.animes) {
-              mapEntries[a.animeId] = res.server;
+              // 多源去重
+              if (!seenIds.has(a.animeId)) {
+                  seenIds.add(a.animeId);
+                  finalAnimes.push(a);
+                  mapEntries[a.animeId] = res.server;
+              }
           }
-          finalAnimes = finalAnimes.concat(res.animes);
       }
   }
 
-  // 一次性批量保存所有来源映射，告别循环保存引发的卡死丢失
-  let mapStr = await Widget.storage.get(SOURCE_KEY);
-  let map = mapStr ? JSON.parse(mapStr) : {};
-  Object.assign(map, mapEntries);
-  await Widget.storage.set(SOURCE_KEY, JSON.stringify(map));
+  // 保存来源映射
+  try {
+      let mapStr = await Widget.storage.get(SOURCE_KEY);
+      let map = mapStr ? JSON.parse(mapStr) : {};
+      Object.assign(map, mapEntries);
+      await Widget.storage.set(SOURCE_KEY, JSON.stringify(map));
+  } catch (e) {}
 
   // 搜索结果屏蔽词过滤
   if (finalAnimes.length > 0 && searchBlockKeywords) {
       const blockedList = searchBlockKeywords.split(/[,，]/).map(k => k.trim()).filter(k => k.length > 0);
       if (blockedList.length > 0) {
           finalAnimes = finalAnimes.filter(a => {
+              if (!a.animeTitle) return false;
               for (const keyword of blockedList) {
                   if (a.animeTitle.includes(keyword)) return false; 
               }
@@ -165,22 +187,82 @@ async function searchDanmu(params) {
       }
   }
 
-  // 季数精确过滤
-  if (finalAnimes.length > 0 && season) {
-      const matched = finalAnimes.filter(a => {
-          if (!a.animeTitle.includes(title)) return false;
-          const parts = a.animeTitle.split(" ");
-          for (let p of parts) {
-              if (p.match(/\d+/) && parseInt(p.match(/\d+/)[0]) == season) return true;
-              const cn = p.match(/[一二三四五六七八九十]+/);
-              if (cn && convertChineseNumber(cn[0]) == season) return true;
-          }
-          return (a.animeTitle.trim() === title.trim() && season == 1);
-      });
-      if (matched.length > 0) finalAnimes = matched;
+  // 排序逻辑 (绝不抛弃，只做优先排序)
+  if (finalAnimes.length > 0) {
+      let animes = finalAnimes;
+      if (season) {
+          const matchedAnimes = [];
+          const nonMatchedAnimes = [];
+          animes.forEach((anime) => {
+              if (matchSeason(anime, queryTitle, season) && !(queryTitle.includes("电影") || queryTitle.includes("movie"))) {
+                  matchedAnimes.push(anime);
+              } else {
+                  nonMatchedAnimes.push(anime);
+              }
+          });
+          animes = [...matchedAnimes, ...nonMatchedAnimes];
+      } else {
+          const matchedAnimes = [];
+          const nonMatchedAnimes = [];
+          animes.forEach((anime) => {
+              if (queryTitle.includes("电影") || queryTitle.includes("movie")) {
+                  matchedAnimes.push(anime);
+              } else {
+                  nonMatchedAnimes.push(anime);
+              }
+          });
+          animes = [...matchedAnimes, ...nonMatchedAnimes];
+      }
+      finalAnimes = animes;
   }
 
   return { animes: finalAnimes };
+}
+
+function matchSeason(anime, queryTitle, season) {
+  let res = false;
+  if (anime && anime.animeTitle && anime.animeTitle.includes(queryTitle)) {
+      const title = anime.animeTitle.split("(")[0].trim();
+      if (title.startsWith(queryTitle)) {
+          const afterTitle = title.substring(queryTitle.length).trim();
+          if (afterTitle === '' && season.toString() === "1") {
+              res = true;
+          }
+          const seasonIndex = afterTitle.match(/\d+/);
+          if (seasonIndex && seasonIndex[0].toString() === season.toString()) {
+              res = true;
+          }
+          const chineseNumber = afterTitle.match(/[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾]+/);
+          if (chineseNumber && convertChineseNumber(chineseNumber[0]).toString() === season.toString()) {
+              res = true;
+          }
+      }
+  }
+  return res;
+}
+
+function convertChineseNumber(chineseNumber) {
+  if (/^\d+$/.test(chineseNumber)) return Number(chineseNumber);
+  const digits = {
+      '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,
+      '壹': 1, '貳': 2, '參': 3, '肆': 4, '伍': 5, '陸': 6, '柒': 7, '捌': 8, '玖': 9
+  };
+  const units = { '十': 10, '百': 100, '千': 1000, '拾': 10, '佰': 100, '仟': 1000 };
+  let result = 0, current = 0, lastUnit = 1;
+
+  for (let i = 0; i < chineseNumber.length; i++) {
+      const char = chineseNumber[i];
+      if (digits[char] !== undefined) {
+          current = digits[char];
+      } else if (units[char] !== undefined) {
+          const unit = units[char];
+          if (current === 0) current = 1;
+          if (unit >= lastUnit) result = current * unit; else result += current * unit;
+          lastUnit = unit; current = 0;
+      }
+  }
+  if (current > 0) result += current;
+  return result;
 }
 
 async function getDetailById(params) {
@@ -189,7 +271,7 @@ async function getDetailById(params) {
 
   try {
       const res = await Widget.http.get(`${server}/api/v2/bangumi/${animeId}`, {
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json", "User-Agent": "ForwardWidgets/1.0.0" }
       });
       const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
       if (data?.bangumi?.episodes) {
@@ -215,7 +297,7 @@ async function getCommentsById(params) {
 
   try {
       const res = await Widget.http.get(`${server}/api/v2/comment/${commentId}?withRelated=true&chConvert=0`, {
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json", "User-Agent": "ForwardWidgets/1.0.0" }
       });
       const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
       
@@ -292,19 +374,4 @@ async function getCommentsById(params) {
       
       return data;
   } catch (e) { return null; }
-}
-
-function convertChineseNumber(str) {
-  const map = {'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
-  let res = 0, curr = 0, lastUnit = 1;
-  for (let char of str) {
-      if (map[char] < 10) curr = map[char];
-      else {
-          let unit = map[char];
-          if (curr === 0) curr = 1;
-          if (unit >= lastUnit) res = curr * unit; else res += curr * unit;
-          lastUnit = unit; curr = 0;
-      }
-  }
-  return res + curr;
 }
