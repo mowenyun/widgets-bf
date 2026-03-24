@@ -358,7 +358,7 @@
       "title": "影视榜单Lite",
       "description": "豆瓣全能推荐 | TMDB探索 | 猜你想看",
       "requiredVersion": "0.0.1",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
       "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/normal/ysbd.js"
     },

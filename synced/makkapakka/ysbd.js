@@ -43,11 +43,10 @@ var WidgetMetadata = {
     title: "影视榜单Lite",
     description: "豆瓣全能推荐 | TMDB探索 | 猜你想看",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.0", // 🚀 升级版本号：加入右上角快捷菜单
+    version: "1.3.1", // 🚀 升级版本号：优化豆瓣匹配逻辑，丢弃无TMDB数据项
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
 
-    // 🔴 移除了所有全局参数
     globalParams: [],
     modules: [
         // =================================================
@@ -57,31 +56,68 @@ var WidgetMetadata = {
             title: "🟢 豆瓣",
             description: "剧集 / 电影 / 综艺 / 榜单",
             functionName: "loadDoubanModule",
-            type: "video", // 统一为 video 体验更好
+            type: "video",
             params: [
                 {
-                    name: "sort_by", // 👈 改为 sort_by 触发右上角菜单
+                    name: "sort_by",
                     title: "选择栏目",
                     type: "enumeration",
                     value: "tv_american",
                     enumOptions: [
-                        // --- 剧集推荐 ---
                         { value: "tv_american", title: "📺 英美剧" },
                         { value: "tv_korean", title: "📺 韩剧" },
                         { value: "tv_japanese", title: "📺 日剧" },
                         { value: "tv_domestic", title: "📺 国产剧" },
                         { value: "tv_animation", title: "🌸 日本动画" },
-                        // --- 电影推荐 ---
                         { value: "movie_hot", title: "🎬 实时热门电影" },
                         { value: "movie_weekly", title: "🎬 一周口碑电影" },
                         { value: "movie_top250", title: "🎬 豆瓣 Top250" },
                         { value: "movie_showing", title: "🎬 院线热映" },
-                        // --- 综艺推荐 ---
                         { value: "show_domestic", title: "🎤 国内综艺" },
                         { value: "show_foreign", title: "🎤 国外综艺" },
-                        // --- 榜单 ---
                         { value: "tv_global_best", title: "🏆 全球口碑剧集" },
                         { value: "tv_chinese_best", title: "🏆 华语口碑剧集" }
+                    ]
+                },
+                { name: "page", title: "页码", type: "page" }
+            ]
+        },
+      // =================================================
+        // 🗓 一级栏目：追剧日历 (Airing Calendar)
+        // =================================================
+        {
+            title: "🗓 周更",
+            description: "本周最新影视更新追踪",
+            functionName: "loadCalendarModule",
+            type: "video",
+            params: [
+                {
+                    name: "dateStr",
+                    title: "更新日期",
+                    type: "enumeration",
+                    value: "today",
+                    enumOptions: [
+                        { value: "today", title: "📺 今天更新" },
+                        { value: "1", title: "🔹 周一 (Monday)" },
+                        { value: "2", title: "🔹 周二 (Tuesday)" },
+                        { value: "3", title: "🔹 周三 (Wednesday)" },
+                        { value: "4", title: "🔹 周四 (Thursday)" },
+                        { value: "5", title: "🔹 周五 (Friday)" },
+                        { value: "6", title: "🔹 周六 (Saturday)" },
+                        { value: "7", title: "🔹 周日 (Sunday)" }
+                    ]
+                },
+                {
+                    name: "showType",
+                    title: "影视分类",
+                    type: "enumeration",
+                    value: "all",
+                    enumOptions: [
+                        { value: "all", title: "综合影剧" },
+                        { value: "tv", title: "📺 纯净剧集" },
+                        { value: "movie", title: "🎬 院线电影" },
+                        { value: "anime", title: "🌸 二次元动漫" },
+                        { value: "show", title: "🎤 娱乐综艺" }
                     ]
                 },
                 { name: "page", title: "页码", type: "page" }
@@ -98,7 +134,7 @@ var WidgetMetadata = {
             type: "video",
             params: [
                 {
-                    name: "sort_by", // 👈 将 mode 改为 sort_by 触发右上角菜单
+                    name: "sort_by",
                     title: "模式", 
                     type: "enumeration", 
                     value: "movie",
@@ -116,7 +152,7 @@ var WidgetMetadata = {
                 },
                 { name: "year", title: "年份", type: "input", description: "例如: 2024", value: "" },
                 {
-                    name: "sortBy", // 👈 底层排序改为驼峰命名，让出右上角位置
+                    name: "sortBy",
                     title: "排序", 
                     type: "enumeration", 
                     value: "popularity.desc",
@@ -143,20 +179,30 @@ function safeJsonParse(data) {
     } catch (e) { return null; }
 }
 
-// 补全 TMDB 图片路径
 function getTmdbImage(path) {
     if (!path) return undefined;
     if (path.startsWith("/")) return "https://image.tmdb.org/t/p/w500" + path;
     return path;
 }
 
-// 辅助函数：将ID数组转换为类型字符串（如 "科幻 / 剧情"）
 function getGenreString(ids) {
     if (!ids || !ids.length) return "";
     return ids.map(function(id) { return GENRE_MAP[id]; })
               .filter(Boolean)
               .slice(0, 3) 
               .join(" / ");
+}
+
+// 🔴 新增：清洗豆瓣剧名，剥离季数等后缀提高匹配率
+function cleanDoubanTitle(rawTitle) {
+    if (!rawTitle) return "";
+    var title = rawTitle.trim();
+    // 剔除 "第一季"、"第2部"、"Season 1" 等
+    title = title.replace(/第[一二三四五六七八九十百\d]+[季部]/g, '');
+    title = title.replace(/season\s*\d+/ig, '');
+    // 压缩多余空格
+    title = title.replace(/\s+/g, ' ').trim();
+    return title;
 }
 
 // ============================================================================
@@ -195,14 +241,12 @@ async function searchTmdb(title, year, apiKey, isTv) {
 }
 
 async function loadDoubanModule(params) {
-    // 👈 逻辑接管：从 sort_by 获取豆瓣栏目 ID
     var categoryKey = params.sort_by || "tv_american";
     var url = DOUBAN_URLS[categoryKey];
     
     if (!url) return [{ title: "配置错误", subTitle: "未找到API", type: "text" }];
 
     var page = params.page || 1;
-    // 使用内置 Key
     var apiKey = DEFAULT_TMDB_KEY;
     var isTv = (url.indexOf("tv") > -1 || url.indexOf("show") > -1);
 
@@ -219,15 +263,18 @@ async function loadDoubanModule(params) {
 
         var items = data.subject_collection_items;
         var promises = items.map(async function(item) {
-            var title = item.title;
+            var rawTitle = item.title;
+            // 🔴 关键改动：搜索前先清洗剧名
+            var cleanTitle = cleanDoubanTitle(rawTitle);
+            
             var year = item.year;
             var sub = item.card_subtitle || "";
             var rate = item.rating ? item.rating.value.toFixed(1) : "0.0";
             
-            var tmdbItem = await searchTmdb(title, year, apiKey, isTv);
+            var tmdbItem = await searchTmdb(cleanTitle, year, apiKey, isTv);
 
+            // 🔴 关键改动：如果匹配成功则返回数据，匹配失败则直接丢弃 (返回 null)
             if (tmdbItem) {
-                // ✅ 提取完整日期并构造信息
                 var dateStr = tmdbItem.release_date || tmdbItem.first_air_date || (year + "");
                 var yearStr = dateStr.substring(0, 4);
                 var genreStr = getGenreString(tmdbItem.genre_ids);
@@ -238,52 +285,32 @@ async function loadDoubanModule(params) {
                     tmdbId: tmdbItem.id,
                     type: "tmdb",
                     mediaType: tmdbItem.media_type,
-                    title: tmdbItem.title || tmdbItem.name || title,
+                    title: tmdbItem.title || tmdbItem.name || rawTitle, // 界面显示依然保留原始名或TMDB名
                     
-                    // ✨ 拼接完整日期
                     genreTitle: finalGenreTitle, 
                     subTitle: dateStr ? `⭐ ${rate} | ${dateStr}` : `⭐ ${rate}`,
                     description: dateStr ? `${dateStr} · ⭐ ${rate}\n${item.info || tmdbItem.overview || "暂无简介"}` : (item.info || tmdbItem.overview),
                     
-                    // 🚨 关键修复：原来错用了 cleanPath，这里改用 getTmdbImage 补全域名
                     posterPath: getTmdbImage(tmdbItem.poster_path),
                     backdropPath: getTmdbImage(tmdbItem.backdrop_path),
                     rating: parseFloat(rate) || tmdbItem.vote_average,
                     releaseDate: dateStr,
                     year: yearStr
                 };
-            } else {
-                // 兜底逻辑：使用原图
-                var cover = "";
-                if (item.cover && item.cover.url) {
-                    cover = item.cover.url;
-                } else if (item.pic && item.pic.normal) {
-                    cover = item.pic.normal;
-                }
-                
-                // 🚨 破解豆瓣图片防盗链，使用 wsrv 图片代理
-                if (cover && cover.includes("doubanio.com")) {
-                    cover = "https://wsrv.nl/?url=" + encodeURIComponent(cover);
-                }
-
-                return {
-                    id: String(item.id),
-                    type: "link",
-                    mediaType: isTv ? "tv" : "movie",
-                    title: title,
-                    
-                    genreTitle: sub || (isTv ? "剧集" : "电影"),
-                    subTitle: `⭐ ${rate} | 豆瓣未匹配到TMDB`,
-                    description: item.info || "豆瓣专属内容，TMDB 暂未收录",
-                    
-                    posterPath: cover, // 已破解防盗链
-                    rating: parseFloat(rate) || 0,
-                    year: year || "",
-                    link: item.url || `https://movie.douban.com/subject/${item.id}/`
-                };
             }
+            
+            return null; // 搜不到直接抛弃
         });
-        return await Promise.all(promises);
+        
+        var results = await Promise.all(promises);
+        
+        // 🔴 关键改动：过滤掉所有 null 的数据，不给客户端返回
+        var finalResults = results.filter(function(r) { return r !== null; });
+        
+        if (finalResults.length === 0) return [{ title: "数据为空", subTitle: "本页无匹配TMDB的数据", type: "text" }];
+        
+        return finalResults;
+        
     } catch (e) { return [{ title: "错误", subTitle: e.message, type: "text" }]; }
 }
 
@@ -305,7 +332,6 @@ function buildTmdbItem(item, mediaType) {
         mediaType: mediaType,
         title: title,
         
-        // ✨ 拼接完整日期
         genreTitle: genreNames || (mediaType === "tv" ? "剧集" : "电影"),
         subTitle: dateStr ? `⭐ ${vote} | ${dateStr}` : `⭐ ${vote}`,
         description: dateStr ? `${dateStr} · ⭐ ${vote}\n${item.overview || "暂无简介"}` : (item.overview || ""),
@@ -319,16 +345,15 @@ function buildTmdbItem(item, mediaType) {
 }
 
 async function loadTMDBModule(params) {
-    // 👈 逻辑接管：从 sort_by 获取模式 (movie / tv)
     var mode = params.sort_by || "movie"; 
     var page = params.page || 1;
-    var sortMethod = params.sortBy || "popularity.desc"; // 读取新的小驼峰排序参数
+    var sortMethod = params.sortBy || "popularity.desc"; 
     
     var queryParams = {
-        api_key: DEFAULT_TMDB_KEY, // 强制内置Key
+        api_key: DEFAULT_TMDB_KEY,
         language: "zh-CN",
         page: page,
-        sort_by: sortMethod, // 这里再喂给官方 API
+        sort_by: sortMethod,
         include_adult: false
     };
 
@@ -349,4 +374,79 @@ async function loadTMDBModule(params) {
         var items = (data && data.results) ? data.results : [];
         return items.map(function(item) { return buildTmdbItem(item, mode); });
     } catch (e) { return []; }
+}
+// ============================================================================
+// 🗓 模块逻辑：追剧日历 (实时计算本周更新)
+// ============================================================================
+
+async function loadCalendarModule(params) {
+    var dateChoice = params.dateStr || "today";
+    var showType = params.showType || "all";
+    var page = params.page || 1;
+    
+    // 📅 核心黑科技 1：实时计算目标日期 (算出本周一到周日的具体是哪一天 YYYY-MM-DD)
+    var targetDate = new Date();
+    if (dateChoice !== "today") {
+        var currentDay = targetDate.getDay(); 
+        var currentIsoDay = currentDay === 0 ? 7 : currentDay; // 强制转换：周日从 0 变成 7
+        var targetIsoDay = parseInt(dateChoice); // 获取下拉框里选择的 1 ~ 7
+        var diffDays = targetIsoDay - currentIsoDay; // 算出相差的天数
+        targetDate.setDate(targetDate.getDate() + diffDays);
+    }
+    
+    var year = targetDate.getFullYear();
+    var month = ("0" + (targetDate.getMonth() + 1)).slice(-2);
+    var day = ("0" + targetDate.getDate()).slice(-2);
+    var exactDateStr = year + "-" + month + "-" + day; // 最终得到比如 2024-05-20
+    
+    // 🌐 核心黑科技 2：拿着精准日期，去 TMDB “点杀”获取当天的影视
+    var baseUrl = "https://api.themoviedb.org/3/discover";
+    var commonParams = `api_key=${DEFAULT_TMDB_KEY}&language=zh-CN&page=${page}&sort_by=popularity.desc`;
+    var rawResults = [];
+
+    try {
+        // 📺 抓取剧集类 (包含 TV、动漫、综艺)
+        if (showType === 'tv' || showType === 'anime' || showType === 'show' || showType === 'all') {
+            var tvUrl = `${baseUrl}/tv?${commonParams}&air_date.gte=${exactDateStr}&air_date.lte=${exactDateStr}`;
+            
+            // 精准过滤流派 (剔除动漫和综艺，让剧集更纯粹)
+            if (showType === 'anime') tvUrl += "&with_genres=16";
+            if (showType === 'show') tvUrl += "&with_genres=10764";
+            if (showType === 'tv' || showType === 'all') tvUrl += "&without_genres=16,10764"; 
+
+            var resTv = await Widget.http.get(tvUrl);
+            var dataTv = safeJsonParse(resTv.data);
+            if (dataTv && dataTv.results) {
+                // 打上 media_type 标签，方便后续构建
+                dataTv.results.forEach(item => { item.media_type = 'tv'; rawResults.push(item); });
+            }
+        }
+
+        // 🎬 抓取电影类 (电影的日期字段和剧集不一样，是 primary_release_date)
+        if (showType === 'movie' || showType === 'all') {
+            var movieUrl = `${baseUrl}/movie?${commonParams}&primary_release_date.gte=${exactDateStr}&primary_release_date.lte=${exactDateStr}`;
+            var resMovie = await Widget.http.get(movieUrl);
+            var dataMovie = safeJsonParse(resMovie.data);
+            if (dataMovie && dataMovie.results) {
+                dataMovie.results.forEach(item => { item.media_type = 'movie'; rawResults.push(item); });
+            }
+        }
+
+        // 🌟 将结果按 TMDB 的流行度 (Popularity) 从高到低排序，避免好剧被烂剧挤下去
+        rawResults.sort(function(a, b) {
+            return (b.popularity || 0) - (a.popularity || 0);
+        });
+
+        if (rawResults.length === 0) {
+            return [{ title: "今日无更新", subTitle: "去别的日子看看吧", type: "text" }];
+        }
+
+        // 最终通过现有的 buildTmdbItem 渲染成卡片
+        return rawResults.map(function(item) {
+            return buildTmdbItem(item, item.media_type);
+        });
+
+    } catch (e) {
+        return [{ title: "错误", subTitle: e.message, type: "text" }];
+    }
 }
