@@ -1038,7 +1038,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.17.5",
+  VERSION: "1.17.6",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_ANIMES: 100,
@@ -5107,17 +5107,18 @@ function checkMediaTypeMismatch(titleA, titleB, typeDescA, typeDescB, countA, co
   let is3DB = (typeDescB || "").includes("3D");
   let is2DA = (typeDescA || "").includes("2D");
   let is2DB = (typeDescB || "").includes("2D");
-  if (is3DA && !is3DB) {
+  const isWildcardA = !is3DA && !is2DA;
+  const isWildcardB = !is3DB && !is2DB;
+  if (!isWildcardA && isWildcardB) {
     if (/3[dD]/.test(titleB)) is3DB = true;
-  } else if (is3DB && !is3DA) {
+    else if (/2[dD]/.test(titleB)) is2DB = true;
+  } else if (!isWildcardB && isWildcardA) {
     if (/3[dD]/.test(titleA)) is3DA = true;
+    else if (/2[dD]/.test(titleA)) is2DA = true;
   }
-  if (is2DA && !is2DB) {
-    if (/2[dD]/.test(titleB)) is2DB = true;
-  } else if (is2DB && !is2DA) {
-    if (/2[dD]/.test(titleA)) is2DA = true;
-  }
-  if (is3DA !== is3DB) return true;
+  const finalHasDimA = is3DA || is2DA;
+  const finalHasDimB = is3DB || is2DB;
+  if (finalHasDimA && finalHasDimB && is3DA !== is3DB) return true;
   const mediaA = getStrictMediaType(titleA, typeDescA);
   const mediaB = getStrictMediaType(titleB, typeDescB);
   if (!mediaA || !mediaB || mediaA === mediaB) return false;
@@ -12360,7 +12361,20 @@ var DandanSource = class extends BaseSource {
       const titles = Array.isArray(bangumiData.titles) ? bangumiData.titles.map((t) => t.title) : [];
       const relateds = Array.isArray(bangumiData.relateds) ? bangumiData.relateds : [];
       const type = bangumiData.type || null;
-      const typeDescription = bangumiData.typeDescription || null;
+      let typeDescription = bangumiData.typeDescription || null;
+      let is3D = false;
+      let is2D = false;
+      if (bangumiData.tags && Array.isArray(bangumiData.tags)) {
+        bangumiData.tags.forEach((tag) => {
+          if (tag.name && tag.name.toUpperCase().includes("3D")) is3D = true;
+          if (tag.name && tag.name.toUpperCase().includes("2D")) is2D = true;
+        });
+      }
+      if (is3D) {
+        typeDescription = "3D" + (typeDescription || "");
+      } else if (is2D) {
+        typeDescription = "2D" + (typeDescription || "");
+      }
       const imageUrl = bangumiData.imageUrl || null;
       log("info", `getDandanEposides: ${JSON.stringify(resp.data.bangumi.episodes)}`);
       return { episodes, titles, relateds, type, typeDescription, imageUrl };
@@ -16129,13 +16143,13 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
   const urlRegex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/[^\s]*)?$/;
   if (urlRegex.test(queryTitle)) {
     const tmpAnime = Anime.fromJson({
-      "animeId": 111,
-      "bangumiId": "string",
+      "animeId": 0,
+      "bangumiId": "0",
       "animeTitle": queryTitle,
-      "type": "type",
-      "typeDescription": "string",
-      "imageUrl": "string",
-      "startDate": "2025-08-08T13:25:11.189Z",
+      "type": "",
+      "typeDescription": "\u94FE\u63A5\u89E3\u6790",
+      "imageUrl": "",
+      "startDate": "",
       "episodeCount": 1,
       "rating": 0,
       "isFavorited": true
@@ -16603,7 +16617,7 @@ async function getComment(path2, queryFormat, segmentFlag, clientIp, includeDura
     let offset = null;
     if (clientIp) {
       const lastSearch = getLastSearch(clientIp);
-      if (lastSearch && lastSearch.title && lastSearch.season && lastSearch.episode && episodeTitle) {
+      if (lastSearch && lastSearch.episodeId === commentId && lastSearch.title && lastSearch.season && lastSearch.episode && episodeTitle) {
         lastTitle = lastSearch.title;
         lastSeason = lastSearch.season;
         offset = `${lastSearch.episode}:${episodeTitle}`;
@@ -16738,7 +16752,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.17.5" : Globals.VERSION;
+var wv = true ? "1.17.6" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
