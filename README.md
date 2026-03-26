@@ -16,10 +16,20 @@
 
 ## 当前来源
 
+### huangxd Widgets (`huangxd`)
+- 来源：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
+- Widgets：`8`
+- 成功镜像 js：`8`
+
+### ec Widgets (`ec`)
+- 来源：`https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd`
+- Widgets：`14`
+- 成功镜像 js：`12`
+
 ### ti Widgets (`ti`)
 - 来源：`https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd`
 - Widgets：`2`
-- 成功镜像 js：`1`
+- 成功镜像 js：`2`
 
 ### makkapakka Forward Widgets (`makkapakka`)
 - 来源：`https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets.fwd`
@@ -37,8 +47,8 @@
 
 ## 统计
 
-- 聚合原地址版总数：`29`
-- 聚合镜像版总数：`29`
+- 聚合原地址版总数：`47`
+- 聚合镜像版总数：`47`
 
 ## 跳过记录
 
