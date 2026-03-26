@@ -32,7 +32,8 @@ function getGlobalGenreText(ids) {
 
 // 统一 UI 卡片构建工厂
 function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, genreText, subTitle, desc }) {
-    const baseInfo = date ? `${date} · ${subTitle || '⭐ ' + rating}` : (subTitle || `⭐ ${rating}`);
+    // 💡 核心修改1：去掉星星和评分的拼接，如果有日期和副标题，只用 "·" 将它们连接起来
+    const baseInfo = [date, subTitle].filter(Boolean).join(" · ");
     const overview = desc ? `\n${desc}` : "\n暂无简介";
 
     return {
@@ -42,11 +43,13 @@ function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, ge
         mediaType: type,
         title: title,
         genreTitle: genreText || (type === "tv" ? "剧集" : "电影"), 
-        description: baseInfo + overview,
+        // 优化：防止把评分去掉后多出来空行
+        description: baseInfo ? (baseInfo + overview) : (desc || "暂无简介"),
         releaseDate: date,
         posterPath: poster ? `https://image.tmdb.org/t/p/w500${poster}` : "",
         backdropPath: backdrop ? `https://image.tmdb.org/t/p/w780${backdrop}` : "",
-        rating: parseFloat(rating) || 0,
+        // 💡 核心修改2：注释掉原生的 rating 属性，防止 Forward App 底层自带的评分组件渲染出来
+        // rating: parseFloat(rating) || 0,
         subTitle: subTitle
     };
 }
@@ -59,7 +62,7 @@ var WidgetMetadata = {
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.0", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
+    version: "1.2.2", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
     
@@ -197,7 +200,7 @@ var WidgetMetadata = {
                         { title: "🟡 IMDb 权威榜单", value: "imdb" },
                         { title: "🍅 烂番茄风向标", value: "rt" },
                         { title: "🌍 Trakt 趋势榜", value: "trakt" },
-                        { title: "🫛 豆瓣 国内风向", value: "douban" }
+                        { title: "🟢 豆瓣 国内风向", value: "douban" }
                     ]
                 },
                 {
@@ -391,10 +394,10 @@ function movie_buildItem(item) {
     return {
         id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: "movie",
         title: item.title, releaseDate: releaseDate, genreTitle: movie_getGenreText(item.genre_ids),    
-        subTitle: `⭐ ${score} | ${releaseDate.substring(0,4)}`,            
+        subTitle: `${releaseDate.substring(0,4)}`,            
         posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
         backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-        description: `🎬电影 | ⭐ ${score}\n${item.overview || "暂无简介"}`, rating: item.vote_average || 0
+        description: `电影\n${item.overview || "暂无简介"}`
     };
 }
 async function loadGeneralMovies(params) {
@@ -444,20 +447,23 @@ async function fetchGenreRankData(mediaType, genre, region, sort_rule, page) {
         const today = new Date(); today.setMonth(today.getMonth() + 1); const maxDate = today.toISOString().split('T')[0];
         if (mediaType === "movie") queryParams["primary_release_date.lte"] = maxDate; else queryParams["first_air_date.lte"] = maxDate;
     }
-    try {
+try {
         const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: queryParams });
         return (res.results || []).map(item => {
             const date = item.release_date || item.first_air_date || ""; 
-            const score = item.vote_average ? item.vote_average.toFixed(1) : "暂无评分";
+            // 💡 删除了 const score = ... 这行，因为用不到了
+            
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.title || item.name,
                 genreTitle: getGlobalGenreText(item.genre_ids),
                 releaseDate: date,
-                subTitle: `⭐ ${score} | ${date ? date.substring(0, 4) : "未知"}`, 
-                description: `${date} · ⭐ ${score}\n${item.overview || "暂无简介"}`,
+                // 💡 修改1：去掉 subTitle 里的 " ${score} | "，只保留纯年份
+                subTitle: `${date ? date.substring(0, 4) : "未知"}`, 
+                // 💡 修改2：去掉 description 里的 " ·  ${score}"，只保留完整日期和简介
+                description: `${date}\n${item.overview || "暂无简介"}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-                rating: parseFloat(score) || 0,
+                // 💡 修改3：彻底删除了 rating: parseFloat(score) || 0, 这一行
                 _popularity: item.popularity || 0,
                 _date: date || "1970-01-01"
             };
@@ -529,22 +535,27 @@ async function loadVarietyShows(params = {}) {
         queryParams.sort_by = "vote_average.desc"; queryParams["vote_count.gte"] = 15; 
     }
 
-    try {
+try {
         const res = await Widget.tmdb.get("/discover/tv", { params: queryParams });
         const items = res.results || [];
         if (items.length === 0) return page === 1 ? [{ id: "empty", type: "text", title: "暂无综艺数据" }] : [];
         return items.map(item => {
             const date = item.release_date || item.first_air_date || ""; 
-            const score = item.vote_average ? item.vote_average.toFixed(1) : "暂无评分";
+            // 💡 删除了 const score = ... 这一行
+            
             let genreLabel = getGlobalGenreText(item.genre_ids);
             if (genreLabel === "影视") genreLabel = "综艺";
 
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: "tv", title: item.title || item.name,
-                genreTitle: genreLabel, releaseDate: date, subTitle: `⭐ ${score} | ${date ? date.substring(0, 4) : "未知"}`, 
-                description: `${date} · ⭐ ${score}\n${item.overview || "暂无简介"}`,
+                genreTitle: genreLabel, releaseDate: date, 
+                // 💡 修改1：去掉了 " ${score} | "
+                subTitle: `${date ? date.substring(0, 4) : "未知"}`, 
+                // 💡 修改2：去掉了 " ·  ${score}"
+                description: `${date}\n${item.overview || "暂无简介"}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
-                backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", rating: parseFloat(score) || 0
+                // 💡 修改3：删除了尾部的 ", rating: parseFloat(score) || 0"
+                backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : ""
             };
         });
     } catch (e) { return [{ id: "err", type: "text", title: "加载失败" }]; }
@@ -597,12 +608,16 @@ async function searchRtTmdb(rtItem, rank) {
         if (rtItem.popcornScore) scores.push(`🍿 ${rtItem.popcornScore}%`);
         const customSub = scores.join("  ") || "烂番茄认证";
         const dateStr = match.first_air_date || match.release_date || "";
-        const score = match.vote_average ? match.vote_average.toFixed(1) : "0.0";
+        // 💡 删除了 const score = ... 这行
+        
         return {
             id: String(match.id), tmdbId: match.id, type: "tmdb", mediaType: rtItem.mediaType, title: `${rank}. ${match.name || match.title}`, 
             genreTitle: getGlobalGenreText(match.genre_ids) || (rtItem.mediaType === "movie" ? "电影" : "剧集"),
-            description: `${dateStr} · ⭐ ${score}\n原名: ${rtItem.title}`, releaseDate: dateStr, subTitle: customSub, 
-            posterPath: match.poster_path ? `https://image.tmdb.org/t/p/w500${match.poster_path}` : "", backdropPath: match.backdrop_path ? `https://image.tmdb.org/t/p/w780${match.backdrop_path}` : "", rating: match.vote_average
+            // 💡 修改1：去掉了 description 里的 " ·  ${score}"
+            description: `${dateStr}\n原名: ${rtItem.title}`, releaseDate: dateStr, subTitle: customSub, 
+            posterPath: match.poster_path ? `https://image.tmdb.org/t/p/w500${match.poster_path}` : "", 
+            // 💡 修改2：删除了代码末尾的 ", rating: match.vote_average"
+            backdropPath: match.backdrop_path ? `https://image.tmdb.org/t/p/w780${match.backdrop_path}` : ""
         };
     } catch (e) { return null; }
 }
@@ -611,12 +626,20 @@ function buildImdbItem(item, forceType) {
     if (!item) return null;
     const type = forceType || item.media_type || (item.title ? "movie" : "tv");
     const fullDate = item.release_date || item.first_air_date || ""; 
-    const score = item.vote_average ? item.vote_average.toFixed(1) : "0.0";
+    // 💡 删除了 const score = ... 这行
+
     return {
         id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: type, title: item.title || item.name,
-        subTitle: fullDate ? `⭐ ${score} | ${fullDate}` : `⭐ ${score}`, description: fullDate ? `${fullDate} · ⭐ ${score}\n${item.overview || "暂无简介"}` : item.overview,
-        releaseDate: fullDate, posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-        rating: parseFloat(score) || 0, year: fullDate.substring(0, 4), genreTitle: getGlobalGenreText(item.genre_ids) || (type === "tv" ? "剧集" : "电影"), _rating: parseFloat(score) || 0
+        // 💡 修改1：去掉星星拼接，有日期就只显示日期
+        subTitle: fullDate || "", 
+        // 💡 修改2：去掉 description 里的星星
+        description: fullDate ? `${fullDate}\n${item.overview || "暂无简介"}` : (item.overview || "暂无简介"),
+        releaseDate: fullDate, 
+        posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
+        backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
+        // 💡 修改3：彻底删除了 rating 和 _rating 这两个会导致底层渲染评分的字段
+        year: fullDate.substring(0, 4), 
+        genreTitle: getGlobalGenreText(item.genre_ids) || (type === "tv" ? "剧集" : "电影")
     };
 }
 
@@ -676,8 +699,12 @@ async function handleTraktList(listType, traktType, traktClientId, page) {
             return {
                 id: String(d.id), tmdbId: d.id, type: "tmdb", mediaType: mediaType, title: d.name || d.title || subject.title,
                 genreTitle: getGlobalGenreText(d.genres?.map(g => g.id)), releaseDate: d.first_air_date || d.release_date || "",
-                subTitle: stats, description: `${d.first_air_date || d.release_date || ""} · ⭐ ${d.vote_average?.toFixed(1)}\n${d.overview || "暂无简介"}`,
-                posterPath: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : "", backdropPath: d.backdrop_path ? `https://image.tmdb.org/t/p/w780${d.backdrop_path}` : "", rating: d.vote_average
+                subTitle: stats, 
+                // 💡 修改1：去掉了 description 里的 " ·  ${d.vote_average?.toFixed(1)}"
+                description: `${d.first_air_date || d.release_date || ""}\n${d.overview || "暂无简介"}`,
+                posterPath: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : "", 
+                // 💡 修改2：删除了代码末尾的 ", rating: d.vote_average"
+                backdropPath: d.backdrop_path ? `https://image.tmdb.org/t/p/w780${d.backdrop_path}` : ""
             };
         } catch (e) { return null; }
     });
@@ -721,7 +748,7 @@ async function fetchDoubanAndMap(tag, type, page) {
         const promises = list.map(async item => {
             let finalItem = { 
                 id: `db_${item.id}`, type: "tmdb", mediaType: type, 
-                title: item.title, subTitle: `豆瓣🫛 ${item.rate}`, 
+                title: item.title, subTitle: `豆瓣 ${item.rate}`, 
                 description: `豆瓣 ${item.rate}\n暂无简介`, 
                 genreTitle: type === "tv" ? "剧集" : "电影",
                 posterPath: item.cover 
@@ -768,14 +795,17 @@ async function loadPlatformMatrixData(mediaType, params) {
         if (!res.results || res.results.length === 0) return params.page === 1 ? [{ id: "empty", type: "text", title: "暂无流媒体数据" }] : [];
         return res.results.map(item => {
             const date = item.first_air_date || item.release_date || "";
-            const score = item.vote_average?.toFixed(1) || "0.0";
+            // 💡 删除了 const score = ... 这行
+            
             return {
                 id: String(item.id), tmdbId: item.id, type: "tmdb", mediaType: mediaType, title: item.name || item.title, date: date, releaseDate: date,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-                rating: parseFloat(score), 
+                // 💡 修改1：彻底移除了 rating: parseFloat(score) 这一行
                 genreTitle: getGlobalGenreText(item.genre_ids),
-                subTitle: `⭐ ${score}`, description: `${date} · ⭐ ${score}\n${item.overview || "暂无简介"}`
+                // 💡 修改2：移除了原本只有星星的 subTitle
+                // 💡 修改3：去掉了 description 里的 " ·  ${score}"
+                description: `${date}\n${item.overview || "暂无简介"}`
             };
         });
     } catch (e) { return [{ id: "err", type: "text", title: "流媒体拉取失败" }]; }
@@ -838,13 +868,16 @@ async function searchTmdbForTop10(queryTitle, mediaType, rank) {
         if (data && data.results && data.results.length > 0) {
             let item = data.results[0];
             const date = item.first_air_date || item.release_date || ""; 
-            const score = item.vote_average ? item.vote_average.toFixed(1) : "0.0";
+            // 💡 删除了 const score = ... 这行
+            
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.name || item.title,
                 releaseDate: date, year: date.substring(0, 4), genreTitle: getGlobalGenreText(item.genre_ids),
                 subTitle: `TOP ${rank}`, posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "",
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-                description: `TOP ${rank} | ⭐ ${score}\n${item.overview || "暂无简介"}`, rating: item.vote_average || 0
+                // 💡 修改1：去掉了 description 里的 " |  ${score}"
+                description: `TOP ${rank}\n${item.overview || "暂无简介"}`
+                // 💡 修改2：删除了代码末尾的 ", rating: item.vote_average || 0"
             };
         }
     } catch (e) {} return null;
@@ -857,12 +890,15 @@ async function fetchTmdbFallback_Top10(platform, region, mediaType) {
         const data = await Widget.tmdb.get(`/discover/${mediaType}`, { params: { watch_region: regionMap[region] || "US", with_watch_providers: providerMap[platform] || "8", sort_by: "popularity.desc", page: 1, language: "zh-CN" } });
         return (data.results || []).slice(0, 10).map((item, index) => {
             const date = item.first_air_date || item.release_date || ""; 
-            const score = item.vote_average ? item.vote_average.toFixed(1) : "0.0";
+            // 💡 删除了 const score = ... 这行
+            
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.name || item.title,
                 releaseDate: date, year: date.substring(0, 4), genreTitle: getGlobalGenreText(item.genre_ids), subTitle: `TOP ${index + 1}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-                description: `TOP ${index + 1} | ⭐ ${score}\n${item.overview || "暂无简介"}`, rating: item.vote_average || 0
+                // 💡 修改1：去掉了 description 里的 " |  ${score}"
+                description: `TOP ${index + 1}\n${item.overview || "暂无简介"}`
+                // 💡 修改2：删除了代码末尾的 ", rating: item.vote_average || 0"
             };
         });
     } catch (e) { return []; }
