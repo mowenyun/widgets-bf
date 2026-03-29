@@ -985,13 +985,13 @@ __publicField(Envs, "env");
 // 记录获取过的环境变量
 __publicField(Envs, "originalEnvVars", /* @__PURE__ */ new Map());
 __publicField(Envs, "accessedEnvVars", /* @__PURE__ */ new Map());
-__publicField(Envs, "VOD_ALLOWED_PLATFORMS", ["qiyi", "bilibili1", "imgo", "youku", "qq", "migu", "sohu", "leshi", "xigua", "maiduidui"]);
+__publicField(Envs, "VOD_ALLOWED_PLATFORMS", ["qiyi", "bilibili1", "imgo", "youku", "qq", "migu", "sohu", "leshi", "xigua", "maiduidui", "aiyifan"]);
 // vod允许的播放平台
-__publicField(Envs, "ALLOWED_PLATFORMS", ["qiyi", "bilibili1", "imgo", "youku", "qq", "migu", "renren", "hanjutv", "bahamut", "dandan", "sohu", "leshi", "xigua", "maiduidui", "animeko", "custom"]);
+__publicField(Envs, "ALLOWED_PLATFORMS", ["qiyi", "bilibili1", "imgo", "youku", "qq", "migu", "renren", "hanjutv", "bahamut", "dandan", "sohu", "leshi", "xigua", "maiduidui", "aiyifan", "animeko", "custom"]);
 // 全部源允许的播放平台
-__publicField(Envs, "ALLOWED_SOURCES", ["360", "vod", "tmdb", "douban", "tencent", "youku", "iqiyi", "imgo", "bilibili", "migu", "renren", "hanjutv", "bahamut", "dandan", "sohu", "leshi", "xigua", "maiduidui", "animeko", "custom"]);
+__publicField(Envs, "ALLOWED_SOURCES", ["360", "vod", "tmdb", "douban", "tencent", "youku", "iqiyi", "imgo", "bilibili", "migu", "renren", "hanjutv", "bahamut", "dandan", "sohu", "leshi", "xigua", "maiduidui", "aiyifan", "animeko", "custom"]);
 // 允许的源
-__publicField(Envs, "MERGE_ALLOWED_SOURCES", ["tencent", "youku", "iqiyi", "imgo", "bilibili", "migu", "renren", "hanjutv", "bahamut", "dandan", "sohu", "leshi", "xigua", "maiduidui", "animeko"]);
+__publicField(Envs, "MERGE_ALLOWED_SOURCES", ["tencent", "youku", "iqiyi", "imgo", "bilibili", "migu", "renren", "hanjutv", "bahamut", "dandan", "sohu", "leshi", "xigua", "maiduidui", "aiyifan", "animeko"]);
 // 允许的源合并
 __publicField(Envs, "DEFAULT_AI_MATCH_PROMPT", `\u4F60\u662F\u4E00\u4E2A\u4E13\u4E1A\u7684\u5F71\u89C6\u5339\u914D\u4E13\u5BB6\uFF0C\u4F60\u7684\u7684\u4EFB\u52A1\u662F\u6839\u636E\u7528\u6237\u63D0\u4F9B\u7684 JSON \u6570\u636E\uFF0C\u4ECE\u5019\u9009\u52A8\u6F2B\u5217\u8868\u4E2D\u5339\u914D\u6700\u7B26\u5408\u6761\u4EF6\u7684\u52A8\u6F2B\u53CA\u96C6\u6570\u3002
 
@@ -1038,7 +1038,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.17.6",
+  VERSION: "1.18.0",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_ANIMES: 100,
@@ -3399,6 +3399,10 @@ function resolveAnimeById(id, detailStore = null, source = null) {
   }
   return findAnimeByIdInIterator(iterateSearchCacheDetails(), idStr, source);
 }
+function resolveAnimeByIdFromDetailStore(id, detailStore = null, source = null) {
+  const idStr = String(id);
+  return findAnimeByIdInIterator(iterateDetailStore(detailStore), idStr, source);
+}
 function resolveEpisodeContextById(id, detailStore = null) {
   const commentId = Number(id);
   if (!Number.isFinite(commentId)) {
@@ -3833,12 +3837,19 @@ function handleDanmusLike(groupedDanmus) {
   if (!globals.likeSwitch) {
     return groupedDanmus;
   }
+  const lowThresholdSources = /* @__PURE__ */ new Set([
+    "[hanjutv]",
+    "[sohu]",
+    "[bilibili1]",
+    "[migu]"
+  ]);
   return groupedDanmus.map((item) => {
     if (!item.like || item.like < 5) {
       return item;
     }
-    const lowThresholdSources = ["[hanjutv]", "[sohu]", "[bilibili1]", "[migu]"];
-    const isLowThresholdSource = lowThresholdSources.some((source) => item.p.includes(source));
+    const sourceTag = item.p.match(/,(\[[^\]]+\])$/)?.[1] || "";
+    const isHanjutvVariantTag = sourceTag.includes("\u97E9\u5C0F\u5708") || sourceTag.includes("\u6781\u901F\u7248");
+    const isLowThresholdSource = isHanjutvVariantTag || lowThresholdSources.has(sourceTag);
     const threshold = isLowThresholdSource ? 100 : 1e3;
     const icon = item.like >= threshold ? "\u{1F525}" : "\uFE0F\u2661";
     let formattedLike;
@@ -6522,7 +6533,19 @@ function alignSourceTimelines(results, sourceNames, realIds, dandanShifts = {}) 
       const match = targetStr.match(/sn=(\d+)/) || targetStr.match(/\d+$/);
       return match ? match[1] || match[0] : targetStr;
     }
-    return targetStr.replace(/^https?:\/\/(www\.)?/, "").split("?")[0];
+    let core = targetStr.replace(/^https?:\/\/(www\.)?/, "");
+    if (sName === "bilibili" || sName === "bilibili1") {
+      if (/\/combine\?/.test(core)) {
+        return core.replace(/#.*/, "");
+      }
+      const pMatch = core.match(/\b(p=\d+)\b/);
+      core = core.replace(/\?.*/, "");
+      if (pMatch) {
+        core += `?${pMatch[1]}`;
+      }
+      return core;
+    }
+    return core.replace(/\?.*/, "");
   };
   for (let idx = 0; idx < results.length; idx++) {
     const sourceName = sourceNames[idx];
@@ -6578,6 +6601,391 @@ function getDanmuTime(danmu) {
     return danmu.progress / 1e3;
   }
   return 0;
+}
+
+// danmu_api/utils/hanjutv-util.js
+function normalizePositiveTimestamp(value, fallbackValue = Date.now()) {
+  const ts = Number(value);
+  return Number.isFinite(ts) && ts > 0 ? Math.trunc(ts) : Math.trunc(Number(fallbackValue) || Date.now());
+}
+function encodeBase64UrlText(text = "") {
+  return bytesToBase64(stringToUtf8Bytes(text)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+function decodeBase64UrlText(text = "") {
+  const normalized = String(text || "").trim();
+  if (!normalized) return "";
+  const base64 = normalized.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+  return utf8BytesToString(base64ToBytes(base64));
+}
+var HANJUTV_VERSION = "6.8.2";
+var HANJUTV_VC = "a_8280";
+var HANJUTV_CH = "xiaomi";
+var HANJUTV_MODEL = "Redmi Note 12";
+var HANJUTV_MAKER = "Xiaomi";
+var HANJUTV_OSV = "14";
+var HANJUTV_UA = `HanjuTV/${HANJUTV_VERSION} (${HANJUTV_MODEL}; Android ${HANJUTV_OSV}; Scale/2.00)`;
+var HANJUTV_INSTALL_AGE_MS = 14 * 24 * 60 * 60 * 1e3;
+var UID_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+var UK_KEY = "f349wghhe784tqwh";
+var UK_IV = "d3w8hf94fidk38lk";
+var RESPONSE_SECRET = "34F9Q53w/HJW8E6Q";
+var SAID = "fb3597b87601d5a7";
+function utf8Encode(text) {
+  if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(text);
+  return stringToUtf8Bytes(text);
+}
+function utf8Decode(bytes) {
+  if (typeof TextDecoder !== "undefined") return new TextDecoder().decode(bytes);
+  return utf8BytesToString(bytes);
+}
+function xorBytes(a, b) {
+  const out = new Uint8Array(a.length);
+  for (let i = 0; i < a.length; i++) out[i] = a[i] ^ b[i];
+  return out;
+}
+function pkcs7Pad(bytes, blockSize = 16) {
+  const remain = bytes.length % blockSize;
+  const padSize = remain === 0 ? blockSize : blockSize - remain;
+  const result = new Uint8Array(bytes.length + padSize);
+  result.set(bytes, 0);
+  result.fill(padSize, bytes.length);
+  return result;
+}
+function stripControlChars(text) {
+  return text.replace(/[\u0000-\u001f\u007f-\u009f]/g, "");
+}
+function addRoundKey2(state, w, round) {
+  const out = new Uint8Array(16);
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      out[r + 4 * c] = state[r + 4 * c] ^ w[round * 4 + c][r];
+    }
+  }
+  return out;
+}
+function shiftRows(state) {
+  const out = new Uint8Array(16);
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      out[r + 4 * c] = state[r + 4 * ((c + r) % 4)];
+    }
+  }
+  return out;
+}
+function gfMul(a, b) {
+  let p = 0;
+  let aa = a;
+  let bb = b;
+  for (let i = 0; i < 8; i++) {
+    if (bb & 1) p ^= aa;
+    const hi = aa & 128;
+    aa = aa << 1 & 255;
+    if (hi) aa ^= 27;
+    bb >>= 1;
+  }
+  return p;
+}
+function mixColumns(state) {
+  const out = new Uint8Array(16);
+  for (let c = 0; c < 4; c++) {
+    const col = state.slice(4 * c, 4 * c + 4);
+    out[4 * c + 0] = gfMul(col[0], 2) ^ gfMul(col[1], 3) ^ col[2] ^ col[3];
+    out[4 * c + 1] = col[0] ^ gfMul(col[1], 2) ^ gfMul(col[2], 3) ^ col[3];
+    out[4 * c + 2] = col[0] ^ col[1] ^ gfMul(col[2], 2) ^ gfMul(col[3], 3);
+    out[4 * c + 3] = gfMul(col[0], 3) ^ col[1] ^ col[2] ^ gfMul(col[3], 2);
+  }
+  return out;
+}
+function invMixColumns2(state) {
+  const out = new Uint8Array(16);
+  for (let c = 0; c < 4; c++) {
+    const col = state.slice(4 * c, 4 * c + 4);
+    out[4 * c + 0] = gfMul(col[0], 14) ^ gfMul(col[1], 11) ^ gfMul(col[2], 13) ^ gfMul(col[3], 9);
+    out[4 * c + 1] = gfMul(col[0], 9) ^ gfMul(col[1], 14) ^ gfMul(col[2], 11) ^ gfMul(col[3], 13);
+    out[4 * c + 2] = gfMul(col[0], 13) ^ gfMul(col[1], 9) ^ gfMul(col[2], 14) ^ gfMul(col[3], 11);
+    out[4 * c + 3] = gfMul(col[0], 11) ^ gfMul(col[1], 13) ^ gfMul(col[2], 9) ^ gfMul(col[3], 14);
+  }
+  return out;
+}
+function aesEncryptBlock(input, w) {
+  let state = new Uint8Array(input);
+  state = addRoundKey2(state, w, 0);
+  for (let round = 1; round <= 9; round++) {
+    state = subWord(state);
+    state = shiftRows(state);
+    state = mixColumns(state);
+    state = addRoundKey2(state, w, round);
+  }
+  state = subWord(state);
+  state = shiftRows(state);
+  state = addRoundKey2(state, w, 10);
+  return state;
+}
+function aesDecryptBlock2(input, w) {
+  let state = new Uint8Array(input);
+  state = addRoundKey2(state, w, 10);
+  for (let round = 9; round >= 1; round--) {
+    state = invShiftRows(state);
+    state = invSubBytes(state);
+    state = addRoundKey2(state, w, round);
+    state = invMixColumns2(state);
+  }
+  state = invShiftRows(state);
+  state = invSubBytes(state);
+  state = addRoundKey2(state, w, 0);
+  return state;
+}
+function aesCbcEncryptPure(plainBytes, keyBytes, ivBytes) {
+  const padded = pkcs7Pad(plainBytes, 16);
+  const w = keyExpansion(keyBytes);
+  const out = new Uint8Array(padded.length);
+  let prev = new Uint8Array(ivBytes);
+  for (let i = 0; i < padded.length; i += 16) {
+    const block = padded.slice(i, i + 16);
+    const mixed = xorBytes(block, prev);
+    const cipherBlock = aesEncryptBlock(mixed, w);
+    out.set(cipherBlock, i);
+    prev = cipherBlock;
+  }
+  return out;
+}
+function aesCbcDecryptPureNoUnpad(cipherBytes, keyBytes, ivBytes) {
+  if (cipherBytes.length % 16 !== 0) {
+    throw new Error(`\u5BC6\u6587\u957F\u5EA6\u4E0D\u662F16\u7684\u500D\u6570: ${cipherBytes.length}`);
+  }
+  const w = keyExpansion(keyBytes);
+  const out = new Uint8Array(cipherBytes.length);
+  let prev = new Uint8Array(ivBytes);
+  for (let i = 0; i < cipherBytes.length; i += 16) {
+    const block = cipherBytes.slice(i, i + 16);
+    const plainBlock = xorBytes(aesDecryptBlock2(block, w), prev);
+    out.set(plainBlock, i);
+    prev = block;
+  }
+  return out;
+}
+async function aesCbcEncryptToBase64(plainText, key, iv) {
+  const keyBytes = utf8Encode(key);
+  const ivBytes = utf8Encode(iv);
+  const plainBytes = utf8Encode(plainText);
+  const cipherBytes = aesCbcEncryptPure(plainBytes, keyBytes, ivBytes);
+  return bytesToBase64(cipherBytes);
+}
+async function aesCbcDecryptBase64NoPadding(cipherBase64, key, iv) {
+  const keyBytes = utf8Encode(key);
+  const ivBytes = utf8Encode(iv);
+  const cipherBytes = base64ToBytes(cipherBase64);
+  const plainBytes = aesCbcDecryptPureNoUnpad(cipherBytes, keyBytes, ivBytes);
+  return utf8Decode(plainBytes);
+}
+function randomInt(max) {
+  if (globalThis.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(1);
+    globalThis.crypto.getRandomValues(bytes);
+    return bytes[0] % max;
+  }
+  return Math.floor(Math.random() * max);
+}
+function createHanjutvUid(length = 20) {
+  let uid = "";
+  for (let i = 0; i < length; i++) uid += UID_CHARSET[randomInt(UID_CHARSET.length)];
+  return uid;
+}
+function randomFrom(chars, len) {
+  let s = "";
+  for (let i = 0; i < len; i++) s += chars[randomInt(chars.length)];
+  return s;
+}
+function createSearchContext(uid, sessionInitTs = Date.now()) {
+  const initTs = normalizePositiveTimestamp(sessionInitTs);
+  return {
+    uid: uid || createHanjutvUid(),
+    said: randomFrom("0123456789abcdef", 16),
+    oa: randomFrom("0123456789abcdef", 16),
+    installTs: Math.max(0, initTs - HANJUTV_INSTALL_AGE_MS)
+  };
+}
+function buildSearchSignPayload(context, timestamp) {
+  const ts = normalizePositiveTimestamp(timestamp, context.installTs + HANJUTV_INSTALL_AGE_MS);
+  return JSON.stringify({ emu: 0, ou: 0, it: context.installTs, iit: context.installTs, bs: 0, uid: context.uid, pc: 0, tm: 81, d8m: "0,0,0,0,0,0,0,4", md: HANJUTV_MODEL, maker: HANJUTV_MAKER, osv: HANJUTV_OSV, br: 95, rpc: 0, scc: 2, plc: 6, toc: 19, tsc: 10, ts, pa: 1, crec: 0, nw: 2, px: "0", isp: "", ai: context.said, oa: context.oa, dpc: 0, dsc: 0, qpc: 0, apad: 0, pk: "com.babycloud.hanju" });
+}
+async function buildHanjutvSearchHeaders(sessionInitTs = Date.now(), uid = createHanjutvUid()) {
+  const searchContext = createSearchContext(uid, sessionInitTs);
+  const uidMd5 = md5(searchContext.uid);
+  const uk = await aesCbcEncryptToBase64(searchContext.uid, UK_KEY, UK_IV);
+  return async function makeHeaders(reqTs = Date.now()) {
+    const signPayload = buildSearchSignPayload(searchContext, reqTs);
+    const sign = await aesCbcEncryptToBase64(signPayload, uidMd5.slice(0, 16), uidMd5.slice(16, 32));
+    return {
+      uid: searchContext.uid,
+      headers: {
+        app: "hj",
+        ch: HANJUTV_CH,
+        said: searchContext.said,
+        uk,
+        vn: HANJUTV_VERSION,
+        sign,
+        "User-Agent": HANJUTV_UA,
+        vc: HANJUTV_VC,
+        "Accept-Encoding": "gzip",
+        Connection: "Keep-Alive"
+      }
+    };
+  };
+}
+async function buildLiteHeaders(sessionInitTs = Date.now()) {
+  const uid = randomFrom("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 20);
+  const oa = randomFrom("0123456789abcdef", 16);
+  return async function makeHeaders(reqTs = Date.now()) {
+    const uidMd5 = md5(uid);
+    const rpPayload = JSON.stringify({
+      emu: 0,
+      ou: 0,
+      it: sessionInitTs,
+      iit: sessionInitTs,
+      bs: 0,
+      uid,
+      isp: "",
+      pc: 0,
+      tm: 50,
+      d8m: "0,0,0,0,0,0,14,7",
+      md: "23127PN0CC",
+      dn: "",
+      osv: "16",
+      br: 50,
+      rpc: 0,
+      scc: 1,
+      plc: 1,
+      toc: 5,
+      tsc: 7,
+      ts: reqTs,
+      nw: 2,
+      px: "0",
+      ai: SAID,
+      oa,
+      dpc: 0,
+      dsc: 0,
+      qpc: 0,
+      apad: 0
+    });
+    const di = await aesCbcEncryptToBase64(uid, UK_KEY, UK_IV);
+    const rp = await aesCbcEncryptToBase64(rpPayload, uidMd5.slice(0, 16), uidMd5.slice(16, 32));
+    return {
+      uid,
+      headers: {
+        version: "a_22570",
+        "version-name": "1.7.2",
+        channel: "xiaomi",
+        "app-type": "ztv",
+        "User-Agent": "ZTV/1.7.2 (23127PN0CC; Android 16; Scale/2.00)",
+        said: SAID,
+        di,
+        token: "",
+        uid: "",
+        rp,
+        "Accept-Encoding": "gzip",
+        Connection: "Keep-Alive"
+      }
+    };
+  };
+}
+async function decodeHanjutvEncryptedPayload(payload, uid = "") {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
+  if (typeof payload.data !== "string" || payload.data.length === 0) return payload;
+  const ts = payload.ts ?? "";
+  let key = typeof payload.key === "string" && payload.key ? payload.key : "";
+  if (!key && uid && ts !== "") key = md5(`${uid}${ts}`);
+  if (!key) throw new Error("\u7F3A\u5C11\u89E3\u5BC6 key\uFF0C\u4E14\u65E0\u6CD5\u901A\u8FC7 uid+ts \u63A8\u5BFC");
+  const mix = md5(`${key}${RESPONSE_SECRET}`);
+  const aesKey = mix.slice(0, 16);
+  const iv = mix.slice(16, 32);
+  const plainText = await aesCbcDecryptBase64NoPadding(payload.data, aesKey, iv);
+  const cleanedText = stripControlChars(plainText).trim();
+  return JSON.parse(cleanedText);
+}
+function normalizeHanjutvEpisodeIdText(rawId = "") {
+  const idText = String(rawId || "").trim();
+  return idText.startsWith("hanjutv:") ? idText.slice("hanjutv:".length) : idText;
+}
+function buildHanjutvEpisodeRef(id = "", preferTv = false) {
+  const cleanId = String(id || "").trim();
+  if (!cleanId) return null;
+  return {
+    id: cleanId,
+    preferTv,
+    rawId: `${preferTv ? "tv" : "hxq"}:${cleanId}`
+  };
+}
+function decodeMergedHanjutvEpisodeId(normalizedId = "") {
+  if (!normalizedId.startsWith("merge:")) return null;
+  try {
+    const payloadText = decodeBase64UrlText(normalizedId.slice("merge:".length));
+    const payload = JSON.parse(payloadText);
+    const hxqId = String(payload?.hxq || "").trim();
+    const tvId = String(payload?.tv || "").trim();
+    if (!hxqId || !tvId) return null;
+    return { hxqId, tvId };
+  } catch (_) {
+    return null;
+  }
+}
+function encodeMergedHanjutvEpisodeDanmuId(hxqId = "", tvId = "") {
+  const cleanHxqId = String(hxqId || "").trim();
+  const cleanTvId = String(tvId || "").trim();
+  if (!cleanHxqId || !cleanTvId) return "";
+  return `merge:${encodeBase64UrlText(JSON.stringify({
+    hxq: cleanHxqId,
+    tv: cleanTvId
+  }))}`;
+}
+function parseHanjutvEpisodeDanmuId(rawId = "") {
+  const normalizedId = normalizeHanjutvEpisodeIdText(rawId);
+  if (!normalizedId) {
+    return { id: "", preferTv: false, rawId: "", refs: [] };
+  }
+  const mergedIds = decodeMergedHanjutvEpisodeId(normalizedId);
+  if (mergedIds) {
+    const refs = [
+      buildHanjutvEpisodeRef(mergedIds.hxqId, false),
+      buildHanjutvEpisodeRef(mergedIds.tvId, true)
+    ].filter(Boolean);
+    return {
+      id: refs[0]?.id || "",
+      preferTv: false,
+      rawId: normalizedId,
+      refs
+    };
+  }
+  if (normalizedId.startsWith("tv:")) {
+    const ref2 = buildHanjutvEpisodeRef(normalizedId.slice(3), true);
+    return {
+      id: ref2?.id || "",
+      preferTv: true,
+      rawId: ref2?.rawId || "",
+      refs: ref2 ? [ref2] : []
+    };
+  }
+  if (normalizedId.startsWith("hxq:")) {
+    const ref2 = buildHanjutvEpisodeRef(normalizedId.slice(4), false);
+    return {
+      id: ref2?.id || "",
+      preferTv: false,
+      rawId: ref2?.rawId || "",
+      refs: ref2 ? [ref2] : []
+    };
+  }
+  const ref = buildHanjutvEpisodeRef(normalizedId, false);
+  return {
+    id: ref?.id || "",
+    preferTv: false,
+    rawId: ref?.rawId || "",
+    refs: ref ? [ref] : []
+  };
+}
+function getHanjutvSourceLabel(rawId = "") {
+  const normalizedId = normalizeHanjutvEpisodeIdText(rawId);
+  if (normalizedId.startsWith("merge:")) return "\u97E9\u5C0F\u5708\uFF06\u6781\u901F\u7248";
+  return normalizedId.startsWith("tv:") ? "\u6781\u901F\u7248" : "\u97E9\u5C0F\u5708";
 }
 
 // danmu_api/sources/base.js
@@ -7958,300 +8366,34 @@ ${path2}?${sortedQuery}`;
   }
 };
 
-// danmu_api/utils/hanjutv-util.js
-var HANJUTV_VERSION = "6.8.2";
-var HANJUTV_VC = "a_8280";
-var HANJUTV_CH = "xiaomi";
-var HANJUTV_MODEL = "Redmi Note 12";
-var HANJUTV_MAKER = "Xiaomi";
-var HANJUTV_OSV = "14";
-var HANJUTV_UA = `HanjuTV/${HANJUTV_VERSION} (${HANJUTV_MODEL}; Android ${HANJUTV_OSV}; Scale/2.00)`;
-var HANJUTV_INSTALL_AGE_MS = 14 * 24 * 60 * 60 * 1e3;
-var HANJUTV_UK_KEY = "f349wghhe784tqwh";
-var HANJUTV_UK_IV = "d3w8hf94fidk38lk";
-var HANJUTV_RESPONSE_SECRET = "34F9Q53w/HJW8E6Q";
-var UID_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-var UK_KEY = "f349wghhe784tqwh";
-var UK_IV = "d3w8hf94fidk38lk";
-var SAID = "fb3597b87601d5a7";
-function utf8Encode(text) {
-  if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(text);
-  return stringToUtf8Bytes(text);
-}
-function utf8Decode(bytes) {
-  if (typeof TextDecoder !== "undefined") return new TextDecoder().decode(bytes);
-  return utf8BytesToString(bytes);
-}
-function xorBytes(a, b) {
-  const out = new Uint8Array(a.length);
-  for (let i = 0; i < a.length; i++) out[i] = a[i] ^ b[i];
-  return out;
-}
-function pkcs7Pad(bytes, blockSize = 16) {
-  const remain = bytes.length % blockSize;
-  const padSize = remain === 0 ? blockSize : blockSize - remain;
-  const result = new Uint8Array(bytes.length + padSize);
-  result.set(bytes, 0);
-  result.fill(padSize, bytes.length);
-  return result;
-}
-function stripControlChars(text) {
-  return text.replace(/[\u0000-\u001f\u007f-\u009f]/g, "");
-}
-function addRoundKey2(state, w, round) {
-  const out = new Uint8Array(16);
-  for (let c = 0; c < 4; c++) {
-    for (let r = 0; r < 4; r++) {
-      out[r + 4 * c] = state[r + 4 * c] ^ w[round * 4 + c][r];
-    }
-  }
-  return out;
-}
-function shiftRows(state) {
-  const out = new Uint8Array(16);
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 4; c++) {
-      out[r + 4 * c] = state[r + 4 * ((c + r) % 4)];
-    }
-  }
-  return out;
-}
-function gfMul(a, b) {
-  let p = 0;
-  let aa = a;
-  let bb = b;
-  for (let i = 0; i < 8; i++) {
-    if (bb & 1) p ^= aa;
-    const hi = aa & 128;
-    aa = aa << 1 & 255;
-    if (hi) aa ^= 27;
-    bb >>= 1;
-  }
-  return p;
-}
-function mixColumns(state) {
-  const out = new Uint8Array(16);
-  for (let c = 0; c < 4; c++) {
-    const col = state.slice(4 * c, 4 * c + 4);
-    out[4 * c + 0] = gfMul(col[0], 2) ^ gfMul(col[1], 3) ^ col[2] ^ col[3];
-    out[4 * c + 1] = col[0] ^ gfMul(col[1], 2) ^ gfMul(col[2], 3) ^ col[3];
-    out[4 * c + 2] = col[0] ^ col[1] ^ gfMul(col[2], 2) ^ gfMul(col[3], 3);
-    out[4 * c + 3] = gfMul(col[0], 3) ^ col[1] ^ col[2] ^ gfMul(col[3], 2);
-  }
-  return out;
-}
-function invMixColumns2(state) {
-  const out = new Uint8Array(16);
-  for (let c = 0; c < 4; c++) {
-    const col = state.slice(4 * c, 4 * c + 4);
-    out[4 * c + 0] = gfMul(col[0], 14) ^ gfMul(col[1], 11) ^ gfMul(col[2], 13) ^ gfMul(col[3], 9);
-    out[4 * c + 1] = gfMul(col[0], 9) ^ gfMul(col[1], 14) ^ gfMul(col[2], 11) ^ gfMul(col[3], 13);
-    out[4 * c + 2] = gfMul(col[0], 13) ^ gfMul(col[1], 9) ^ gfMul(col[2], 14) ^ gfMul(col[3], 11);
-    out[4 * c + 3] = gfMul(col[0], 11) ^ gfMul(col[1], 13) ^ gfMul(col[2], 9) ^ gfMul(col[3], 14);
-  }
-  return out;
-}
-function aesEncryptBlock(input, w) {
-  let state = new Uint8Array(input);
-  state = addRoundKey2(state, w, 0);
-  for (let round = 1; round <= 9; round++) {
-    state = subWord(state);
-    state = shiftRows(state);
-    state = mixColumns(state);
-    state = addRoundKey2(state, w, round);
-  }
-  state = subWord(state);
-  state = shiftRows(state);
-  state = addRoundKey2(state, w, 10);
-  return state;
-}
-function aesDecryptBlock2(input, w) {
-  let state = new Uint8Array(input);
-  state = addRoundKey2(state, w, 10);
-  for (let round = 9; round >= 1; round--) {
-    state = invShiftRows(state);
-    state = invSubBytes(state);
-    state = addRoundKey2(state, w, round);
-    state = invMixColumns2(state);
-  }
-  state = invShiftRows(state);
-  state = invSubBytes(state);
-  state = addRoundKey2(state, w, 0);
-  return state;
-}
-function aesCbcEncryptPure(plainBytes, keyBytes, ivBytes) {
-  const padded = pkcs7Pad(plainBytes, 16);
-  const w = keyExpansion(keyBytes);
-  const out = new Uint8Array(padded.length);
-  let prev = new Uint8Array(ivBytes);
-  for (let i = 0; i < padded.length; i += 16) {
-    const block = padded.slice(i, i + 16);
-    const mixed = xorBytes(block, prev);
-    const cipherBlock = aesEncryptBlock(mixed, w);
-    out.set(cipherBlock, i);
-    prev = cipherBlock;
-  }
-  return out;
-}
-function aesCbcDecryptPureNoUnpad(cipherBytes, keyBytes, ivBytes) {
-  if (cipherBytes.length % 16 !== 0) {
-    throw new Error(`\u5BC6\u6587\u957F\u5EA6\u4E0D\u662F16\u7684\u500D\u6570: ${cipherBytes.length}`);
-  }
-  const w = keyExpansion(keyBytes);
-  const out = new Uint8Array(cipherBytes.length);
-  let prev = new Uint8Array(ivBytes);
-  for (let i = 0; i < cipherBytes.length; i += 16) {
-    const block = cipherBytes.slice(i, i + 16);
-    const plainBlock = xorBytes(aesDecryptBlock2(block, w), prev);
-    out.set(plainBlock, i);
-    prev = block;
-  }
-  return out;
-}
-async function aesCbcEncryptToBase64(plainText, key, iv) {
-  const keyBytes = utf8Encode(key);
-  const ivBytes = utf8Encode(iv);
-  const plainBytes = utf8Encode(plainText);
-  const cipherBytes = aesCbcEncryptPure(plainBytes, keyBytes, ivBytes);
-  return bytesToBase64(cipherBytes);
-}
-async function aesCbcDecryptBase64NoPadding(cipherBase64, key, iv) {
-  const keyBytes = utf8Encode(key);
-  const ivBytes = utf8Encode(iv);
-  const cipherBytes = base64ToBytes(cipherBase64);
-  const plainBytes = aesCbcDecryptPureNoUnpad(cipherBytes, keyBytes, ivBytes);
-  return utf8Decode(plainBytes);
-}
-function randomInt(max) {
-  if (globalThis.crypto?.getRandomValues) {
-    const bytes = new Uint8Array(1);
-    globalThis.crypto.getRandomValues(bytes);
-    return bytes[0] % max;
-  }
-  return Math.floor(Math.random() * max);
-}
-function buildSearchSignPayload(uid, timestamp) {
-  const ts = Number(timestamp);
-  const installTs = Math.max(0, ts - HANJUTV_INSTALL_AGE_MS);
-  return JSON.stringify({ emu: 0, ou: 0, it: installTs, iit: installTs, bs: 0, uid, pc: 0, tm: 81, d8m: "0,0,0,0,0,0,0,4", md: HANJUTV_MODEL, maker: HANJUTV_MAKER, osv: HANJUTV_OSV, br: 95, rpc: 0, scc: 2, plc: 6, toc: 19, tsc: 10, ts, pa: 1, crec: 0, nw: 2, px: "0", isp: "", ai: "", oa: "", dpc: 0, dsc: 0, qpc: 0, apad: 0, pk: "com.babycloud.hanju" });
-}
-function createHanjutvUid(length = 20) {
-  let uid = "";
-  for (let i = 0; i < length; i++) uid += UID_CHARSET[randomInt(UID_CHARSET.length)];
-  return uid;
-}
-function randomFrom(chars, len) {
-  let s = "";
-  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
-}
-async function createHanjutvSearchHeaders(uid, timestamp = Date.now()) {
-  const ts = Number(timestamp);
-  const uidMd5 = md5(uid);
-  const signPayload = buildSearchSignPayload(uid, ts);
-  const sign = await aesCbcEncryptToBase64(signPayload, uidMd5.slice(0, 16), uidMd5.slice(16, 32));
-  const uk = await aesCbcEncryptToBase64(uid, HANJUTV_UK_KEY, HANJUTV_UK_IV);
-  return {
-    app: "hj",
-    ch: HANJUTV_CH,
-    uk,
-    vn: HANJUTV_VERSION,
-    sign,
-    "User-Agent": HANJUTV_UA,
-    vc: HANJUTV_VC,
-    "Accept-Encoding": "gzip",
-    Connection: "Keep-Alive"
-  };
-}
-async function buildLiteHeaders(sessionInitTs = Date.now()) {
-  const uid = randomFrom("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 20);
-  const oa = randomFrom("0123456789abcdef", 16);
-  return async function makeHeaders(reqTs = Date.now()) {
-    const uidMd5 = md5(uid);
-    const rpPayload = JSON.stringify({
-      emu: 0,
-      ou: 0,
-      it: sessionInitTs,
-      iit: sessionInitTs,
-      bs: 0,
-      uid,
-      isp: "",
-      pc: 0,
-      tm: 50,
-      d8m: "0,0,0,0,0,0,14,7",
-      md: "23127PN0CC",
-      dn: "",
-      osv: "16",
-      br: 50,
-      rpc: 0,
-      scc: 1,
-      plc: 1,
-      toc: 5,
-      tsc: 7,
-      ts: reqTs,
-      nw: 2,
-      px: "0",
-      ai: SAID,
-      oa,
-      dpc: 0,
-      dsc: 0,
-      qpc: 0,
-      apad: 0
-    });
-    const di = await aesCbcEncryptToBase64(uid, UK_KEY, UK_IV);
-    const rp = await aesCbcEncryptToBase64(rpPayload, uidMd5.slice(0, 16), uidMd5.slice(16, 32));
-    return {
-      uid,
-      headers: {
-        version: "a_22570",
-        "version-name": "1.7.2",
-        channel: "xiaomi",
-        "app-type": "ztv",
-        "User-Agent": "ZTV/1.7.2 (23127PN0CC; Android 16; Scale/2.00)",
-        said: SAID,
-        di,
-        token: "",
-        uid: "",
-        rp,
-        "Accept-Encoding": "gzip",
-        Connection: "Keep-Alive"
-      }
-    };
-  };
-}
-async function decodeHanjutvEncryptedPayload(payload, uid = "") {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
-  if (typeof payload.data !== "string" || payload.data.length === 0) return payload;
-  const ts = payload.ts ?? "";
-  let key = typeof payload.key === "string" && payload.key ? payload.key : "";
-  if (!key && uid && ts !== "") key = md5(`${uid}${ts}`);
-  if (!key) throw new Error("\u7F3A\u5C11\u89E3\u5BC6 key\uFF0C\u4E14\u65E0\u6CD5\u901A\u8FC7 uid+ts \u63A8\u5BFC");
-  const mix = md5(`${key}${HANJUTV_RESPONSE_SECRET}`);
-  const aesKey = mix.slice(0, 16);
-  const iv = mix.slice(16, 32);
-  const plainText = await aesCbcDecryptBase64NoPadding(payload.data, aesKey, iv);
-  const cleanedText = stripControlChars(plainText).trim();
-  return JSON.parse(cleanedText);
-}
-
 // danmu_api/sources/hanjutv.js
 var CATE_MAP = { 1: "\u97E9\u5267", 2: "\u7EFC\u827A", 3: "\u7535\u5F71", 4: "\u65E5\u5267", 5: "\u7F8E\u5267", 6: "\u6CF0\u5267", 7: "\u56FD\u4EA7\u5267" };
 var MAX_AXIS = 1e8;
+var DANMU_WINDOW_MS = 6e4;
+var HANJUTV_VARIANTS = Object.freeze({
+  HXQ: "hxq",
+  TV: "tv",
+  MERGED: "merged"
+});
 var HanjutvSource = class extends BaseSource {
   constructor() {
     super();
-    this.webHost = "https://hxqapi.hiyun.tv";
     this.appHost = "https://hxqapi.hiyun.tv";
     this.tvHost = "https://api.xiawen.tv";
-    this.oldDanmuHost = "https://hxqapi.zmdcq.com";
+    this.fallbackDanmuHost = "https://hxqapi.zmdcq.com";
+    this.danmuHosts = Array.from(/* @__PURE__ */ new Set([this.appHost, this.fallbackDanmuHost]));
     this.defaultRefer = "2JGztvGjRVpkxcr0T4ZWG2k+tOlnHmDGUNMwAGSeq548YV2FMbs0h0bXNi6DJ00L";
-    this.webUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
+    this.danmuUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
     this.appUserAgent = "HanjuTV/6.8.2 (Redmi Note 12; Android 14; Scale/2.00)";
+    this._mobileMakeHeaders = null;
+    this._tvMakeHeaders = null;
+    this._mobileWarmupPromise = null;
+    this._mobileWarmupAttempted = false;
   }
-  getWebHeaders() {
+  getDanmuHeaders() {
     return {
       "Content-Type": "application/json",
-      "User-Agent": this.webUserAgent
+      "User-Agent": this.danmuUserAgent
     };
   }
   getAppHeaders() {
@@ -8271,8 +8413,16 @@ var HanjutvSource = class extends BaseSource {
    * 构建 TV 端请求头，返回 { headers, uid }
    */
   async buildTvHeaders() {
-    const makeHeaders = await buildLiteHeaders(Date.now());
-    return makeHeaders(Date.now());
+    if (!this._tvMakeHeaders) {
+      this._tvMakeHeaders = await buildLiteHeaders(Date.now());
+    }
+    return this._tvMakeHeaders(Date.now());
+  }
+  async buildMobileHeaders() {
+    if (!this._mobileMakeHeaders) {
+      this._mobileMakeHeaders = await buildHanjutvSearchHeaders(Date.now());
+    }
+    return this._mobileMakeHeaders(Date.now());
   }
   /**
    * 向 TV 端发起 GET 请求并自动解密响应
@@ -8296,6 +8446,10 @@ var HanjutvSource = class extends BaseSource {
       name: error.name,
       stack: error.stack
     });
+  }
+  attachDanmuSourceLabel(comments = [], rawId = "") {
+    const sourceLabel = getHanjutvSourceLabel(rawId);
+    return Array.isArray(comments) ? comments.map((item) => ({ ...item, _sourceLabel: sourceLabel })) : [];
   }
   /**
    * 安全执行异步操作，失败时返回 fallback 值并可选打印警告
@@ -8330,17 +8484,33 @@ var HanjutvSource = class extends BaseSource {
     if (!Array.isArray(items)) return [];
     return items.map((item, index) => {
       if (!item || typeof item !== "object") return null;
-      const pid = item.pid || item.id || item.programId || item.episodeId;
-      if (!pid) return null;
+      const episodeId = item.pid || item.eid || item.id || item.programId || item.episodeId;
+      if (!episodeId) return null;
       const serialCandidate = item.serialNo ?? item.serial_no ?? item.sort ?? item.sortNo ?? item.num ?? item.episodeNo ?? index + 1;
       const serialNo = Number(serialCandidate);
+      const pid = item.pid || item.programId || item.episodeId || item.id || "";
+      const eid = item.eid || item.id || item.episodeId || "";
       return {
         ...item,
-        pid: String(pid),
+        episodeId: String(episodeId),
+        pid: pid ? String(pid) : "",
+        eid: eid ? String(eid) : "",
         serialNo: Number.isFinite(serialNo) && serialNo > 0 ? serialNo : index + 1,
         title: item.title || item.name || item.programName || item.episodeTitle || ""
       };
     }).filter(Boolean).sort((a, b) => a.serialNo - b.serialNo);
+  }
+  normalizeHxqEpisodes(items = []) {
+    return this.normalizeEpisodes(items).filter((item) => item.pid).map((item) => ({
+      ...item,
+      pid: String(item.pid)
+    }));
+  }
+  normalizeTvEpisodes(items = []) {
+    return this.normalizeEpisodes(items).filter((item) => item.eid || item.episodeId).map((item) => ({
+      ...item,
+      eid: String(item.eid || item.episodeId)
+    }));
   }
   extractSearchItems(data) {
     const list = data?.seriesData?.seriesList || data?.seriesList || data?.seriesData?.series || [];
@@ -8356,45 +8526,77 @@ var HanjutvSource = class extends BaseSource {
     }
     return Array.from(map.values());
   }
-  countMatchedItems(items = [], keyword = "") {
-    if (!Array.isArray(items) || !keyword) return 0;
-    return items.reduce((count, item) => {
-      const name = item?.name ? String(item.name) : "";
-      return count + (titleMatches(name, keyword) ? 1 : 0);
-    }, 0);
+  isMergeableSearchPair(leftItem, rightItem, keyword = "") {
+    if (!leftItem?.name || !rightItem?.name) return false;
+    if (keyword) {
+      if (!titleMatches(leftItem.name, keyword) || !titleMatches(rightItem.name, keyword)) return false;
+    }
+    return titleMatches(leftItem.name, rightItem.name) && titleMatches(rightItem.name, leftItem.name);
   }
-  mergeSearchCandidates(keyword, s5List = [], webList = []) {
-    const partition = (candidates) => {
-      const matched = [], unmatched = [];
-      for (const item of this.dedupeBySid(candidates)) {
+  buildSearchCandidate(item, variant, linkedSid = "") {
+    if (!item?.sid) return null;
+    const primarySid = String(item.sid);
+    const normalizedLinkedSid = String(linkedSid || "").trim();
+    const animeId = variant === HANJUTV_VARIANTS.MERGED ? convertToAsciiSum(`hxq:${primarySid}|tv:${normalizedLinkedSid}`) : convertToAsciiSum(primarySid);
+    return {
+      ...item,
+      animeId,
+      _variant: variant,
+      ...normalizedLinkedSid ? { tvSid: normalizedLinkedSid } : {}
+    };
+  }
+  mergeSearchCandidates(keyword, s5List = [], tvList = []) {
+    const s5Unique = this.dedupeBySid(s5List);
+    const tvUnique = this.dedupeBySid(tvList);
+    const partition = (items) => {
+      const matched = [];
+      const unmatched = [];
+      for (const item of items) {
         (titleMatches(item?.name || "", keyword) ? matched : unmatched).push(item);
       }
       return { matched, unmatched };
     };
-    const s5 = partition(s5List);
-    const web = partition(webList);
-    const hasMatched = s5.matched.length + web.matched.length > 0;
-    const orderedCandidates = hasMatched ? [...s5.matched, ...web.matched, ...s5.unmatched, ...web.unmatched] : [...this.dedupeBySid(s5List), ...this.dedupeBySid(webList)];
+    const s5 = partition(s5Unique);
+    const tv = partition(tvUnique);
+    const hasMatched = s5.matched.length + tv.matched.length > 0;
     const resultList = [];
-    const sidSet = /* @__PURE__ */ new Set();
-    for (const item of orderedCandidates) {
-      const sid = item?.sid ? String(item.sid) : "";
-      if (!sid || sidSet.has(sid)) continue;
-      sidSet.add(sid);
-      resultList.push(item);
+    const usedTvSids = /* @__PURE__ */ new Set();
+    for (const item of s5.matched) {
+      const pairedTv = tv.matched.find((candidate) => !usedTvSids.has(String(candidate.sid)) && this.isMergeableSearchPair(item, candidate, keyword));
+      if (pairedTv) {
+        usedTvSids.add(String(pairedTv.sid));
+        resultList.push(this.buildSearchCandidate(item, HANJUTV_VARIANTS.MERGED, pairedTv.sid));
+      } else {
+        resultList.push(this.buildSearchCandidate(item, HANJUTV_VARIANTS.HXQ));
+      }
     }
-    const names = (list) => list?.map((item) => item.name) || [];
+    tv.matched.filter((item) => !usedTvSids.has(String(item.sid))).forEach((item) => {
+      resultList.push(this.buildSearchCandidate(item, HANJUTV_VARIANTS.TV));
+    });
+    if (hasMatched) {
+      resultList.push(
+        ...s5.unmatched.map((item) => this.buildSearchCandidate(item, HANJUTV_VARIANTS.HXQ)).filter(Boolean),
+        ...tv.unmatched.map((item) => this.buildSearchCandidate(item, HANJUTV_VARIANTS.TV)).filter(Boolean)
+      );
+    } else {
+      resultList.push(
+        ...s5Unique.map((item) => this.buildSearchCandidate(item, HANJUTV_VARIANTS.HXQ)).filter(Boolean),
+        ...tvUnique.map((item) => this.buildSearchCandidate(item, HANJUTV_VARIANTS.TV)).filter(Boolean)
+      );
+    }
+    const names = (list) => list.map((item) => item.name);
     return {
       resultList,
       stats: {
-        s5Total: s5.matched.length + s5.unmatched.length,
+        s5Total: s5Unique.length,
         s5Matched: s5.matched.length,
-        webTotal: web.matched.length + web.unmatched.length,
-        webMatched: web.matched.length,
+        tvTotal: tvUnique.length,
+        tvMatched: tv.matched.length,
+        mergedCount: hasMatched ? resultList.filter((item) => item?._variant === HANJUTV_VARIANTS.MERGED).length : 0,
         s5MatchedList: names(s5.matched),
         s5UnmatchedList: names(s5.unmatched),
-        webMatchedList: names(web.matched),
-        webUnmatchedList: names(web.unmatched)
+        tvMatchedList: names(tv.matched),
+        tvUnmatchedList: names(tv.unmatched)
       }
     };
   }
@@ -8419,9 +8621,27 @@ var HanjutvSource = class extends BaseSource {
     if (items.length === 0) throw new Error(`${tag} \u65E0\u6709\u6548\u7ED3\u679C`);
     return items;
   }
+  async warmupMobileIdentity(headers) {
+    try {
+      await Widget.http.get(`${this.appHost}/api/common/configs`, { headers, timeout: 8e3, retries: 0 });
+    } catch (_) {
+    }
+  }
+  async ensureMobileIdentityWarmed() {
+    if (this._mobileWarmupAttempted) {
+      await this._mobileWarmupPromise;
+      return;
+    }
+    this._mobileWarmupAttempted = true;
+    this._mobileWarmupPromise = (async () => {
+      const headerInfo = await this.buildMobileHeaders();
+      await this.warmupMobileIdentity(headerInfo.headers);
+    })();
+    await this._mobileWarmupPromise;
+  }
   async searchWithS5Api(keyword) {
-    const uid = createHanjutvUid();
-    const headers = await createHanjutvSearchHeaders(uid);
+    await this.ensureMobileIdentityWarmed();
+    const { uid, headers } = await this.buildMobileHeaders();
     const q = encodeURIComponent(keyword);
     const resp = await Widget.http.get(`https://hxqapi.hiyun.tv/api/search/s5?k=${q}&srefer=search_input&type=0&page=1`, {
       headers,
@@ -8429,15 +8649,6 @@ var HanjutvSource = class extends BaseSource {
       retries: 1
     });
     return this.extractFromPayload(resp?.data, uid, "s5");
-  }
-  async searchWithLegacyApi(keyword) {
-    const q = encodeURIComponent(keyword);
-    const resp = await Widget.http.get(`https://hxqapi.hiyun.tv/wapi/search/aggregate/search?keyword=${q}&scope=101&page=1`, {
-      headers: this.getWebHeaders(),
-      timeout: 1e4,
-      retries: 1
-    });
-    return this.extractSearchItems(resp?.data);
   }
   async searchWithTvApi(keyword) {
     const q = encodeURIComponent(keyword);
@@ -8453,87 +8664,94 @@ var HanjutvSource = class extends BaseSource {
     try {
       const key = String(keyword || "").trim();
       if (!key) return [];
-      let s5List = await this.tryGet(() => this.searchWithS5Api(key), [], `[Hanjutv] s5 \u641C\u7D22\u5931\u8D25\uFF0C\u964D\u7EA7\u65E7\u63A5\u53E3`);
-      let webList = [];
-      let tvList = [];
-      const needFallback = (list) => list.length === 0 || this.countMatchedItems(list, key) === 0;
-      if (needFallback(s5List)) {
-        if (s5List.length > 0) log("warn", `[Hanjutv] s5 \u8FD4\u56DE ${s5List.length} \u6761\u4F46\u6807\u9898\u96F6\u547D\u4E2D\uFF0C\u89E6\u53D1 legacy \u8865\u507F\u68C0\u7D22`);
-        webList = await this.tryGet(() => this.searchWithLegacyApi(key), [], `[Hanjutv] \u65E7\u641C\u7D22\u63A5\u53E3\u5931\u8D25`);
-        if (needFallback(webList)) {
-          if (webList.length > 0) log("warn", `[Hanjutv] web \u8FD4\u56DE ${webList.length} \u6761\u4F46\u6807\u9898\u96F6\u547D\u4E2D\uFF0C\u89E6\u53D1 TV \u8865\u507F\u68C0\u7D22`);
-          log("info", `[Hanjutv] \u5C1D\u8BD5TV\u7AEF\u641C\u7D22\u63A5\u53E3\u4F5C\u4E3A\u964D\u7EA7\u65B9\u6848`);
-          tvList = await this.tryGet(() => this.searchWithTvApi(key), [], `[Hanjutv] TV\u7AEF\u641C\u7D22\u63A5\u53E3\u4E5F\u5931\u8D25`);
-        }
-      }
-      const { resultList, stats } = this.mergeSearchCandidates(key, s5List, [...webList, ...tvList]);
-      if (resultList.length === 0) {
-        log("info", "hanjutvSearchresp: s5\u3001\u65E7\u63A5\u53E3\u548CTV\u7AEF\u63A5\u53E3\u5747\u65E0\u6709\u6548\u7ED3\u679C");
+      const [s5List, tvList] = await Promise.all([
+        this.tryGet(() => this.searchWithS5Api(key), [], `[Hanjutv] s5 \u641C\u7D22\u5931\u8D25`),
+        this.tryGet(() => this.searchWithTvApi(key), [], `[Hanjutv] TV \u641C\u7D22\u5931\u8D25`)
+      ]);
+      const { resultList, stats } = this.mergeSearchCandidates(key, s5List, tvList);
+      const totalMatched = stats.s5Matched + stats.tvMatched;
+      if (resultList.length > 0 && totalMatched === 0) {
+        log("warn", `[Hanjutv] \u6240\u6709\u5019\u9009\u5747\u672A\u547D\u4E2D\u5173\u952E\u8BCD\uFF0C\u4E22\u5F03\u7591\u4F3C\u63A8\u8350\u6D41\u7ED3\u679C: ${key}`);
         return [];
       }
-      log("info", `[Hanjutv] \u641C\u7D22\u5019\u9009\u7EDF\u8BA1 s5MatchedList=${JSON.stringify(stats.s5MatchedList)}, s5UnmatchedList=${JSON.stringify(stats.s5UnmatchedList)}, webMatchedList=${JSON.stringify(stats.webMatchedList)}, webUnmatchedList=${JSON.stringify(stats.webUnmatchedList)}`);
-      log("info", `[Hanjutv] \u641C\u7D22\u5019\u9009\u7EDF\u8BA1 s5=${stats.s5Total}(\u547D\u4E2D${stats.s5Matched}), web=${stats.webTotal}(\u547D\u4E2D${stats.webMatched})`);
+      if (resultList.length === 0) {
+        log("info", "hanjutvSearchresp: s5 \u4E0E TV \u63A5\u53E3\u5747\u65E0\u6709\u6548\u7ED3\u679C");
+        return [];
+      }
+      log("info", `[Hanjutv] \u641C\u7D22\u5019\u9009\u7EDF\u8BA1 s5MatchedList=${JSON.stringify(stats.s5MatchedList)}, s5UnmatchedList=${JSON.stringify(stats.s5UnmatchedList)}, tvMatchedList=${JSON.stringify(stats.tvMatchedList)}, tvUnmatchedList=${JSON.stringify(stats.tvUnmatchedList)}`);
+      log("info", `[Hanjutv] \u641C\u7D22\u5019\u9009\u7EDF\u8BA1 s5=${stats.s5Total}(\u547D\u4E2D${stats.s5Matched}), tv=${stats.tvTotal}(\u547D\u4E2D${stats.tvMatched}), merged=${stats.mergedCount}`);
       log("info", `[Hanjutv] \u641C\u7D22\u627E\u5230 ${resultList.length} \u4E2A\u6709\u6548\u7ED3\u679C`);
-      return resultList.map((anime) => ({ ...anime, animeId: convertToAsciiSum(anime.sid) }));
+      return resultList.filter(Boolean);
     } catch (error) {
       this.logError("getHanjutvAnimes error", error);
       return [];
     }
   }
   // ── 详情 & 剧集 ──────────────────────────────────────────────
-  async getDetail(id) {
+  async getSeriesDetail(id, loader, missingLogTag, errorTag) {
     try {
       const sid = String(id || "").trim();
-      if (!sid) return [];
-      let detail = await this.tryGet(async () => {
-        const r = await Widget.http.get(`${this.appHost}/api/series/detail?sid=${sid}`, { headers: this.getAppHeaders(), timeout: 1e4, retries: 1 });
-        return r?.data?.series ?? null;
-      }, null) ?? await this.tryGet(async () => {
-        const r = await Widget.http.get(`${this.webHost}/wapi/series/series/detail?sid=${sid}`, { headers: this.getWebHeaders(), timeout: 1e4, retries: 1 });
-        return r?.data?.series ?? null;
-      }, null) ?? await this.tryGet(async () => {
-        const decoded = await this.tvGet(`/api/v1/series/detail/query?sid=${sid}`);
-        return decoded?.series ?? null;
-      }, null, "getHanjutvDetail error");
+      if (!sid) return null;
+      const detail = await this.tryGet(() => loader(sid), null, errorTag);
       if (!detail) {
-        log("info", "getHanjutvDetail: series \u4E0D\u5B58\u5728");
-        return [];
+        log("info", `${missingLogTag}: series \u4E0D\u5B58\u5728`);
+        return null;
       }
       return detail;
     } catch (error) {
-      this.logError("getHanjutvDetail error", error);
-      return [];
+      this.logError(errorTag, error);
+      return null;
     }
   }
-  async getEpisodes(id) {
+  async getHxqDetail(id) {
+    return this.getSeriesDetail(id, async (sid) => {
+      const r = await Widget.http.get(`${this.appHost}/api/series/detail?sid=${sid}`, {
+        headers: this.getAppHeaders(),
+        timeout: 1e4,
+        retries: 1
+      });
+      return r?.data?.series ?? null;
+    }, "getHanjutvHxqDetail", "getHanjutvHxqDetail error");
+  }
+  async getTvDetail(id) {
+    return this.getSeriesDetail(id, async (sid) => {
+      const decoded = await this.tvGet(`/api/v1/series/detail/query?sid=${sid}`);
+      return decoded?.series ?? null;
+    }, "getHanjutvTvDetail", "getHanjutvTvDetail error");
+  }
+  async getHxqEpisodes(id) {
     try {
       const sid = String(id || "").trim();
       if (!sid) return [];
       const attempts = [
         async () => {
-          const r = await Widget.http.get(`${this.appHost}/api/series/detail?sid=${sid}`, { headers: this.getAppHeaders(), timeout: 1e4, retries: 1 });
-          return this.normalizeEpisodes(Array.isArray(r?.data?.playItems) ? r.data.playItems : []);
+          const r = await Widget.http.get(`${this.appHost}/api/series/detail?sid=${sid}`, {
+            headers: this.getAppHeaders(),
+            timeout: 1e4,
+            retries: 1
+          });
+          return this.normalizeHxqEpisodes(Array.isArray(r?.data?.playItems) ? r.data.playItems : []);
         },
         async () => {
-          const r = await Widget.http.get(`${this.appHost}/api/series2/episodes?sid=${sid}&refer=${encodeURIComponent(this.defaultRefer)}`, { headers: this.getAppHeaders(), timeout: 1e4, retries: 1 });
-          const d = r?.data;
-          return this.normalizeEpisodes(d?.programs || d?.episodes || d?.qxkPrograms || []);
+          const r = await Widget.http.get(`${this.appHost}/api/series2/episodes?sid=${sid}&refer=${encodeURIComponent(this.defaultRefer)}`, {
+            headers: this.getAppHeaders(),
+            timeout: 1e4,
+            retries: 1
+          });
+          const data = r?.data;
+          return this.normalizeHxqEpisodes(data?.programs || data?.episodes || data?.qxkPrograms || []);
         },
         async () => {
-          const r = await Widget.http.get(`${this.appHost}/api/series/programs_v2?sid=${sid}`, { headers: this.getAppHeaders(), timeout: 1e4, retries: 1 });
-          const d = r?.data;
-          return this.normalizeEpisodes([
-            ...Array.isArray(d?.programs) ? d.programs : [],
-            ...Array.isArray(d?.qxkPrograms) ? d.qxkPrograms : []
+          const r = await Widget.http.get(`${this.appHost}/api/series/programs_v2?sid=${sid}`, {
+            headers: this.getAppHeaders(),
+            timeout: 1e4,
+            retries: 1
+          });
+          const data = r?.data;
+          return this.normalizeHxqEpisodes([
+            ...Array.isArray(data?.programs) ? data.programs : [],
+            ...Array.isArray(data?.qxkPrograms) ? data.qxkPrograms : []
           ]);
-        },
-        async () => {
-          const r = await Widget.http.get(`${this.webHost}/wapi/series/series/detail?sid=${sid}`, { headers: this.getWebHeaders(), timeout: 1e4, retries: 1 });
-          return this.normalizeEpisodes(r?.data?.episodes || []);
-        },
-        async () => {
-          const decoded = await this.tvGet(`/api/v1/series/detail/query?sid=${sid}`);
-          return this.normalizeEpisodes(decoded?.episodes || []);
         }
       ];
       let episodes = [];
@@ -8542,51 +8760,167 @@ var HanjutvSource = class extends BaseSource {
         episodes = await this.tryGet(attempt, []);
       }
       if (episodes.length === 0) {
-        log("info", "getHanjutvEposides: episodes \u4E0D\u5B58\u5728");
+        log("info", "getHanjutvHxqEpisodes: episodes \u4E0D\u5B58\u5728");
         return [];
       }
       return episodes.sort((a, b) => a.serialNo - b.serialNo);
     } catch (error) {
-      this.logError("getHanjutvEposides error", error);
+      this.logError("getHanjutvHxqEpisodes error", error);
       return [];
     }
   }
+  async getTvEpisodes(id) {
+    try {
+      const sid = String(id || "").trim();
+      if (!sid) return [];
+      const episodes = await this.tryGet(async () => {
+        const decoded = await this.tvGet(`/api/v1/series/detail/query?sid=${sid}`);
+        return this.normalizeTvEpisodes(decoded?.episodes || []);
+      }, [], "getHanjutvTvEpisodes error");
+      if (episodes.length === 0) {
+        log("info", "getHanjutvTvEpisodes: episodes \u4E0D\u5B58\u5728");
+        return [];
+      }
+      return episodes.sort((a, b) => a.serialNo - b.serialNo);
+    } catch (error) {
+      this.logError("getHanjutvTvEpisodes error", error);
+      return [];
+    }
+  }
+  resolveAnimeYear(anime, ...details) {
+    const candidates = [
+      anime?.updateTime,
+      anime?.publishTime,
+      ...details.map((item) => item?.updateTime),
+      ...details.map((item) => item?.publishTime)
+    ];
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      const parsed = new Date(candidate);
+      const year = parsed.getFullYear();
+      if (Number.isFinite(year) && year > 1900) return year;
+    }
+    return (/* @__PURE__ */ new Date()).getFullYear();
+  }
+  buildEpisodeTitle(serialNo, rawTitle = "") {
+    const title = String(rawTitle || "").trim();
+    return title ? `\u7B2C${serialNo}\u96C6\uFF1A${title}` : `\u7B2C${serialNo}\u96C6`;
+  }
+  buildEpisodeLink(hxqEpisode, tvEpisode) {
+    const serialNo = hxqEpisode?.serialNo ?? tvEpisode?.serialNo ?? 1;
+    const title = this.buildEpisodeTitle(serialNo, hxqEpisode?.title || tvEpisode?.title || "");
+    let url = "";
+    if (hxqEpisode?.pid && tvEpisode?.eid) {
+      const mergedId = encodeMergedHanjutvEpisodeDanmuId(hxqEpisode.pid, tvEpisode.eid);
+      url = mergedId ? `hanjutv:${mergedId}` : "";
+    } else if (hxqEpisode?.pid) {
+      url = `hxq:${hxqEpisode.pid}`;
+    } else if (tvEpisode?.eid) {
+      url = `tv:${tvEpisode.eid}`;
+    }
+    if (!url) return null;
+    return { name: title, url, title: `\u3010hanjutv\u3011 ${title}` };
+  }
+  mergeVariantEpisodes(hxqEpisodes = [], tvEpisodes = []) {
+    const hxqMap = new Map(hxqEpisodes.map((item) => [Number(item.serialNo), item]));
+    const tvMap = new Map(tvEpisodes.map((item) => [Number(item.serialNo), item]));
+    const serialNos = Array.from(/* @__PURE__ */ new Set([
+      ...hxqMap.keys(),
+      ...tvMap.keys()
+    ])).filter(Number.isFinite).sort((a, b) => a - b);
+    return serialNos.map((serialNo) => this.buildEpisodeLink(hxqMap.get(serialNo), tvMap.get(serialNo))).filter(Boolean);
+  }
+  buildAnimeSummary(anime, detail, links, animeId) {
+    const category = this.getCategory(detail?.category ?? anime?.category);
+    const year = this.resolveAnimeYear(anime, detail);
+    return {
+      animeId,
+      bangumiId: String(animeId),
+      animeTitle: `${anime.name}(${year})\u3010${category}\u3011from hanjutv`,
+      type: category,
+      typeDescription: category,
+      imageUrl: anime?.image?.thumb || "",
+      startDate: generateValidStartDate(year),
+      episodeCount: links.length,
+      rating: Number(detail?.rank ?? 0),
+      isFavorited: true,
+      source: "hanjutv"
+    };
+  }
+  async getHxqBundle(sid) {
+    if (!sid) return { detail: null, episodes: [] };
+    const [detail, episodes] = await Promise.all([this.getHxqDetail(sid), this.getHxqEpisodes(sid)]);
+    return { detail, episodes };
+  }
+  async getTvBundle(sid) {
+    if (!sid) return { detail: null, episodes: [] };
+    const [detail, episodes] = await Promise.all([this.getTvDetail(sid), this.getTvEpisodes(sid)]);
+    return { detail, episodes };
+  }
+  async buildAnimePayload(anime) {
+    const variant = anime?._variant || HANJUTV_VARIANTS.HXQ;
+    const hxqSid = String(anime?.sid || "").trim();
+    const tvSid = String(anime?.tvSid || "").trim();
+    const tvLookupSid = tvSid || (variant === HANJUTV_VARIANTS.TV ? hxqSid : "");
+    const parsedAnimeId = Number(anime?.animeId);
+    const stableMergedAnimeId = variant === HANJUTV_VARIANTS.MERGED && hxqSid && tvSid ? Number.isFinite(parsedAnimeId) && parsedAnimeId > 0 ? parsedAnimeId : convertToAsciiSum(`hxq:${hxqSid}|tv:${tvSid}`) : null;
+    const needsHxqBundle = (variant === HANJUTV_VARIANTS.HXQ || variant === HANJUTV_VARIANTS.MERGED) && hxqSid;
+    const needsTvBundle = (variant === HANJUTV_VARIANTS.TV || variant === HANJUTV_VARIANTS.MERGED) && tvLookupSid;
+    const [hxqBundle, tvBundle] = await Promise.all([
+      needsHxqBundle ? this.getHxqBundle(hxqSid) : Promise.resolve({ detail: null, episodes: [] }),
+      needsTvBundle ? this.getTvBundle(tvLookupSid) : Promise.resolve({ detail: null, episodes: [] })
+    ]);
+    if (variant === HANJUTV_VARIANTS.MERGED && hxqSid && tvSid) {
+      const links = this.mergeVariantEpisodes(hxqBundle.episodes, tvBundle.episodes);
+      if (links.length > 0) {
+        const detail = hxqBundle.detail?.category ? hxqBundle.detail : tvBundle.detail?.category ? tvBundle.detail : hxqBundle.detail || tvBundle.detail;
+        return { summary: this.buildAnimeSummary(anime, detail, links, stableMergedAnimeId), links };
+      }
+    }
+    if ((variant === HANJUTV_VARIANTS.HXQ || variant === HANJUTV_VARIANTS.MERGED) && hxqSid) {
+      const links = hxqBundle.episodes.map((ep) => this.buildEpisodeLink(ep, null)).filter(Boolean);
+      if (links.length > 0) {
+        return {
+          summary: this.buildAnimeSummary(
+            anime,
+            hxqBundle.detail,
+            links,
+            stableMergedAnimeId ?? convertToAsciiSum(hxqSid)
+          ),
+          links
+        };
+      }
+    }
+    if ((variant === HANJUTV_VARIANTS.TV || variant === HANJUTV_VARIANTS.MERGED) && tvLookupSid) {
+      const links = tvBundle.episodes.map((ep) => this.buildEpisodeLink(null, ep)).filter(Boolean);
+      if (links.length > 0) {
+        return {
+          summary: this.buildAnimeSummary(
+            anime,
+            tvBundle.detail,
+            links,
+            stableMergedAnimeId ?? convertToAsciiSum(tvLookupSid)
+          ),
+          links
+        };
+      }
+    }
+    return null;
+  }
   // ── 番剧处理 ─────────────────────────────────────────────────
-  async handleAnimes(sourceAnimes, queryTitle, curAnimes, detailStore = null) {
+  async handleAnimes(sourceAnimes, queryTitle, curAnimes, extra = null, detailStore = null) {
     if (!Array.isArray(sourceAnimes)) {
       log("error", "[Hanjutv] sourceAnimes is not a valid array");
       return [];
     }
     const tmpAnimes = [];
-    const processHanjutvAnimes = await Promise.all(
+    await Promise.all(
       sourceAnimes.filter((s) => titleMatches(s.name, queryTitle)).map(async (anime) => {
         try {
-          const [detail, eps] = await Promise.all([
-            this.getDetail(anime.sid),
-            this.getEpisodes(anime.sid)
-          ]);
-          const links = eps.map((ep) => {
-            const epTitle = ep.title?.trim() ? `\u7B2C${ep.serialNo}\u96C6\uFF1A${ep.title}` : `\u7B2C${ep.serialNo}\u96C6`;
-            return { name: epTitle, url: ep.pid, title: `\u3010hanjutv\u3011 ${epTitle}` };
-          });
-          if (links.length === 0) return;
-          const category = this.getCategory(detail.category);
-          const year = new Date(anime.updateTime).getFullYear();
-          const transformedAnime = {
-            animeId: anime.animeId,
-            bangumiId: String(anime.animeId),
-            animeTitle: `${anime.name}(${year})\u3010${category}\u3011from hanjutv`,
-            type: category,
-            typeDescription: category,
-            imageUrl: anime.image.thumb,
-            startDate: generateValidStartDate(year),
-            episodeCount: links.length,
-            rating: detail.rank,
-            isFavorited: true,
-            source: "hanjutv"
-          };
-          tmpAnimes.push(transformedAnime);
-          addAnime({ ...transformedAnime, links }, detailStore);
+          const payload = await this.buildAnimePayload(anime);
+          if (!payload || !payload.summary || !Array.isArray(payload.links) || payload.links.length === 0) return;
+          tmpAnimes.push(payload.summary);
+          addAnime({ ...payload.summary, links: payload.links }, detailStore);
           if (globals.animes.length > globals.MAX_ANIMES) removeEarliestAnime();
         } catch (error) {
           log("error", `[Hanjutv] Error processing anime: ${error.message}`);
@@ -8594,55 +8928,105 @@ var HanjutvSource = class extends BaseSource {
       })
     );
     this.sortAndPushAnimesByYear(tmpAnimes, curAnimes);
-    return processHanjutvAnimes;
+    return tmpAnimes;
   }
   // ── 弹幕 ─────────────────────────────────────────────────────
-  async getEpisodeDanmu(id) {
+  async fetchEpisodeDanmuByRef(episodeRef) {
+    const episodeId = String(episodeRef?.id || "").trim();
+    if (!episodeId) return [];
     let allDanmus = [];
-    try {
-      let fromAxis = 0;
-      while (fromAxis < MAX_AXIS) {
-        const resp = await Widget.http.get(`https://hxqapi.zmdcq.com/api/danmu/playItem/list?fromAxis=${fromAxis}&pid=${id}&toAxis=${MAX_AXIS}`, {
-          headers: this.getWebHeaders(),
-          retries: 1
-        });
-        if (resp?.data?.danmus) allDanmus.push(...resp.data.danmus);
-        const nextAxis = resp?.data?.nextAxis ?? MAX_AXIS;
-        if (nextAxis >= MAX_AXIS || nextAxis <= fromAxis) break;
-        fromAxis = nextAxis;
-      }
-      if (allDanmus.length === 0) {
-        let prevId = 0;
-        fromAxis = 0;
-        let pageCount = 0;
-        const maxPages = 120;
-        while (fromAxis < MAX_AXIS && pageCount < maxPages) {
-          try {
-            const data = await this.tvGet(`/api/v1/bulletchat/episode/get?eid=${id}&prevId=${prevId}&fromAxis=${fromAxis}&toAxis=${MAX_AXIS}&offset=0`);
+    if (!episodeRef.preferTv) {
+      const headers = this.getDanmuHeaders();
+      for (const danmuHost of this.danmuHosts) {
+        const hostDanmus = [];
+        try {
+          let prevId = 0;
+          let fromAxis = 0;
+          let toAxis = DANMU_WINDOW_MS;
+          let pageCount = 0;
+          const maxPages = 240;
+          while (fromAxis < MAX_AXIS && pageCount < maxPages) {
+            const resp = await Widget.http.get(`${danmuHost}/api/danmu/playItem/list?pid=${episodeId}&prevId=${prevId}&fromAxis=${fromAxis}&toAxis=${toAxis}&offset=0`, {
+              headers,
+              timeout: 1e4,
+              retries: 1
+            });
             pageCount++;
-            allDanmus.push(...data.bulletchats);
-            const hasMore = Number(data.more ?? 0) === 1 || data.more === true || data.more === "1";
-            const nextAxis = Number(data.nextAxis ?? MAX_AXIS);
-            const lastId = Number(data.lastId ?? prevId);
-            if (Number.isFinite(lastId) && lastId > prevId) prevId = lastId;
+            const pageDanmus = Array.isArray(resp?.data?.danmus) ? resp.data.danmus : [];
+            if (pageDanmus.length > 0) hostDanmus.push(...pageDanmus);
+            const hasMore = Number(resp?.data?.more ?? 0) === 1 || resp?.data?.more === true || resp?.data?.more === "1";
+            const nextAxis = Number(resp?.data?.nextAxis ?? MAX_AXIS);
+            const lastId = Number(resp?.data?.lastId ?? prevId);
             if (!Number.isFinite(nextAxis) || nextAxis <= fromAxis || nextAxis >= MAX_AXIS) break;
+            if (Number.isFinite(lastId) && lastId > prevId) prevId = lastId;
             fromAxis = nextAxis;
-            if (!hasMore) prevId = 0;
-          } catch (error) {
-            this.logError("fetchHanjutvEpisodeDanmu", error);
+            if (hasMore) {
+              continue;
+            }
+            if (pageDanmus.length === 0) break;
+            toAxis = fromAxis + DANMU_WINDOW_MS;
+          }
+          if (hostDanmus.length > 0) {
+            allDanmus = hostDanmus;
+            break;
+          }
+        } catch (error) {
+          this.logError(`fetchHanjutvEpisodeDanmu(\u97E9\u5C0F\u5708\u5F39\u5E55:${danmuHost})`, error);
+          if (hostDanmus.length > 0) {
+            allDanmus = hostDanmus;
             break;
           }
         }
       }
-    } catch (error) {
-      this.logError("fetchHanjutvEpisodeDanmu error", error);
+    }
+    if (allDanmus.length === 0) {
+      let prevId = 0;
+      let fromAxis = 0;
+      let pageCount = 0;
+      const maxPages = 120;
+      while (fromAxis < MAX_AXIS && pageCount < maxPages) {
+        try {
+          const data = await this.tvGet(`/api/v1/bulletchat/episode/get?eid=${episodeId}&prevId=${prevId}&fromAxis=${fromAxis}&toAxis=${MAX_AXIS}&offset=0`);
+          pageCount++;
+          const pageDanmus = Array.isArray(data?.bulletchats) ? data.bulletchats : [];
+          if (pageDanmus.length > 0) allDanmus.push(...pageDanmus);
+          const hasMore = Number(data.more ?? 0) === 1 || data.more === true || data.more === "1";
+          const nextAxis = Number(data.nextAxis ?? MAX_AXIS);
+          const lastId = Number(data.lastId ?? prevId);
+          if (!Number.isFinite(nextAxis) || nextAxis <= fromAxis || nextAxis >= MAX_AXIS) break;
+          if (Number.isFinite(lastId) && lastId > prevId) prevId = lastId;
+          fromAxis = nextAxis;
+          if (!hasMore) prevId = 0;
+          if (pageDanmus.length === 0 && !hasMore) break;
+        } catch (error) {
+          this.logError("fetchHanjutvEpisodeDanmu(TV\u7AEF)", error);
+          break;
+        }
+      }
     }
     return allDanmus;
+  }
+  async getEpisodeDanmu(id) {
+    const episodeRef = parseHanjutvEpisodeDanmuId(id);
+    const refs = Array.isArray(episodeRef?.refs) ? episodeRef.refs.filter((item) => item?.id) : [];
+    if (refs.length === 0) return [];
+    if (refs.length === 1) {
+      const comments = await this.fetchEpisodeDanmuByRef(refs[0]);
+      return this.attachDanmuSourceLabel(comments, refs[0].rawId);
+    }
+    const results = await Promise.all(
+      refs.map(async (ref) => {
+        const comments = await this.fetchEpisodeDanmuByRef(ref);
+        return this.attachDanmuSourceLabel(comments, ref.rawId);
+      })
+    );
+    return results.flat();
   }
   async getEpisodeDanmuSegments(id) {
     log("info", "\u83B7\u53D6\u97E9\u5267TV\u5F39\u5E55\u5206\u6BB5\u5217\u8868...", id);
     return new SegmentListResponse({
       type: "hanjutv",
+      duration: 0,
       segmentList: [{ type: "hanjutv", segment_start: 0, segment_end: 3e4, url: id }]
     });
   }
@@ -8652,10 +9036,11 @@ var HanjutvSource = class extends BaseSource {
   formatComments(comments) {
     return comments.map((c) => ({
       cid: Number(c.did),
-      p: `${(c.t / 1e3).toFixed(2)},${c.tp === 2 ? 5 : c.tp},${Number(c.sc)},[hanjutv]`,
+      p: `${(c.t / 1e3).toFixed(2)},${c.tp === 2 ? 5 : c.tp},${Number(c.sc)},[${c._sourceLabel || "hanjutv"}]`,
       m: c.con,
-      t: Math.round(c.t / 1e3),
-      like: c.lc
+      t: c.t / 1e3,
+      like: c.lc,
+      _sourceLabel: c._sourceLabel
     }));
   }
 };
@@ -11387,8 +11772,45 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
     }
     return contents;
   }
+  /**
+   * 获取视频的分段信息，支持解析常规视频（/video/BV）与合并分P请求（/combine?cid）
+   * 对于合并分P，将其拆解为标准分段任务队列并注入时间轴平移元数据
+   */
   async getEpisodeDanmuSegments(id) {
     log("info", "\u83B7\u53D6B\u7AD9\u5F39\u5E55\u5206\u6BB5\u5217\u8868...", id);
+    if (typeof id === "string" && id.includes("/combine?")) {
+      const segmentList2 = [];
+      let currentOffset = 0;
+      let totalDuration = 0;
+      const urlStr = id.startsWith("http") ? id : `https://www.bilibili.com${id}`;
+      const urlObj = new URL(urlStr);
+      for (const [key, value] of urlObj.searchParams.entries()) {
+        if (!key.startsWith("cid")) continue;
+        const cid2 = key.substring(3);
+        const [startStr, endStr] = value.split("-");
+        const start2 = parseFloat(startStr) || 0;
+        const end2 = parseFloat(endStr) || 0;
+        const duration2 = end2 - start2;
+        if (duration2 <= 0) continue;
+        totalDuration += duration2;
+        const maxLen2 = Math.ceil(end2 / 360);
+        for (let i = 0; i < maxLen2; i++) {
+          const metadataHash = `#combine_start=${start2}&combine_end=${end2}&combine_offset=${currentOffset}`;
+          segmentList2.push({
+            "type": "bilibili1",
+            "segment_start": i * 360,
+            "segment_end": Math.min((i + 1) * 360, end2),
+            "url": `https://api.bilibili.com/x/v2/dm/web/seg.so?type=1&oid=${cid2}&segment_index=${i + 1}${metadataHash}`
+          });
+        }
+        currentOffset += duration2;
+      }
+      return new SegmentListResponse({
+        "type": "bilibili1",
+        "duration": totalDuration,
+        "segmentList": segmentList2
+      });
+    }
     const videoInfo = await this._extractVideoInfo(id);
     if (!videoInfo) {
       return new SegmentListResponse({
@@ -11424,9 +11846,15 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
       "segmentList": segmentList
     });
   }
+  /**
+   * 获取单段弹幕数据
+   * 包含就地拦截元数据并进行时间轴平移与截取的能力
+   */
   async getEpisodeSegmentDanmu(segment) {
     try {
-      const response = await Widget.http.get(segment.url, {
+      const urlObj = new URL(segment.url);
+      const rawUrl = segment.url.split("#")[0];
+      const response = await Widget.http.get(rawUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
           "Cookie": globals.bilibliCookie
@@ -11437,6 +11865,31 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
       let contents = [];
       if (response && response.data) {
         contents = parseDanmakuBase64(response.data);
+      }
+      if (urlObj.hash && urlObj.hash.includes("combine_offset")) {
+        const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+        const start2 = parseFloat(hashParams.get("combine_start")) || 0;
+        const end2 = parseFloat(hashParams.get("combine_end")) || 0;
+        const offset = parseFloat(hashParams.get("combine_offset")) || 0;
+        const filtered = [];
+        for (const c of contents) {
+          let time = 0;
+          if (c.p && typeof c.p === "string") time = parseFloat(c.p.split(",")[0]);
+          else if (c.t !== void 0) time = Number(c.t);
+          else if (c.progress !== void 0) time = c.progress / 1e3;
+          if (!isNaN(time) && time >= start2 && time <= end2) {
+            const shiftedTime = time - start2 + offset;
+            if (c.p && typeof c.p === "string") {
+              const parts = c.p.split(",");
+              parts[0] = shiftedTime.toFixed(5);
+              c.p = parts.join(",");
+            }
+            if (c.t !== void 0) c.t = shiftedTime;
+            if (c.progress !== void 0) c.progress = Math.round(shiftedTime * 1e3);
+            filtered.push(c);
+          }
+        }
+        return filtered;
       }
       return contents;
     } catch (error) {
@@ -12545,7 +12998,19 @@ var DandanSource = class extends BaseSource {
             const match = targetStr.match(/sn=(\d+)/) || targetStr.match(/\d+$/);
             return match ? match[1] || match[0] : targetStr;
           }
-          return targetStr.replace(/^https?:\/\/(www\.)?/, "").split("?")[0];
+          let core = targetStr.replace(/^https?:\/\/(www\.)?/, "");
+          if (sName === "bilibili" || sName === "bilibili1") {
+            if (/\/combine\?/.test(core)) {
+              return core.replace(/#.*/, "");
+            }
+            const pMatch = core.match(/\b(p=\d+)\b/);
+            core = core.replace(/\?.*/, "");
+            if (pMatch) {
+              core += `?${pMatch[1]}`;
+            }
+            return core;
+          }
+          return core.replace(/\?.*/, "");
         };
         for (const rel of relatedResp.data.relateds) {
           const url = rel.url;
@@ -15482,6 +15947,449 @@ var MaiduiduiSource = class extends BaseSource {
 };
 var maiduidui_default = MaiduiduiSource;
 
+// danmu_api/sources/aiyifan.js
+var AiyifanSource = class extends BaseSource {
+  constructor() {
+    super();
+    this.PUBLIC_KEY = "CJStD3SqE3GrCouoCpbVIb1VCJOmBZ4sBZ8mE2uoDJHVDpKrP69cEMKtCZ0qD31bP68qDJ9bCJOvDZ4oDM4sOJ1VCJTcCpOuCpHYCpOmDZLcOJTaD3GrDZ5ZP68qOJOpDc6";
+    this.SALT = "StD3JStD3SqE3GrCouoC";
+    this.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36";
+    this.SEARCH_API = "https://rankv21.tripdata.app/v3/list/briefsearch";
+    this.PLAYLIST_API = "https://app-m10.tripdata.app/v3/video/languagesplaylist";
+    this.VIDEO_API = "https://app-m10.tripdata.app/v3/video/play";
+    this.DANMU_API = "https://app-m10.tripdata.app/api/video/getBarrage";
+    this.DOMAIN_API = "https://www.yfsp.tv/play";
+  }
+  /**
+   * 计算接口签名 vv
+   */
+  computeVv(params) {
+    const sortedParams = Object.keys(params).map((k) => `${k}=${params[k]}`).join("&");
+    const raw = this.PUBLIC_KEY + "&" + sortedParams.toLowerCase() + "&" + this.SALT;
+    return md5(raw);
+  }
+  /**
+   * 搜索电视剧
+   * @param {string} keyword - 搜索关键词
+   * @param {number} page - 页码，默认为1
+   * @param {number} size - 每页数量，默认为10
+   * @returns {Promise<Object>} 搜索结果
+   */
+  async searchDrama(keyword, page = 1, size = 10) {
+    const params = {
+      tags: keyword,
+      orderby: 4,
+      page,
+      size,
+      desc: 1,
+      isserial: -1
+    };
+    const headers = {
+      "User-Agent": this.USER_AGENT,
+      "Accept": "application/json"
+    };
+    log("info", `[\u641C\u7D22] \u5173\u952E\u8BCD: ${keyword}, \u9875\u7801: ${page}`);
+    try {
+      const urlWithParams = updateQueryString(this.SEARCH_API, params);
+      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
+      if (response.status !== 200) {
+        log("error", `[\u641C\u7D22\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 200) || response.statusText}`);
+        return null;
+      }
+      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      if (data.ret !== 200) {
+        log("error", `[\u641C\u7D22\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}, msg: ${data.msg}`);
+        return null;
+      }
+      return data;
+    } catch (error) {
+      log("error", `[\u641C\u7D22\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
+      return null;
+    }
+  }
+  /**
+   * 从搜索结果中提取剧目列表
+   * @param {Object} searchResult - 搜索结果
+   * @returns {Array} 剧目列表
+   */
+  extractDramaList(searchResult) {
+    const dramas = [];
+    const infoList = searchResult?.data?.info || [];
+    if (!infoList.length) {
+      log("warn", "[\u8B66\u544A] \u641C\u7D22\u7ED3\u679C\u4E3A\u7A7A");
+      return dramas;
+    }
+    for (const item of infoList) {
+      const result = item.result || [];
+      if (!result.length) {
+        continue;
+      }
+      for (const dramaInfo of result) {
+        const vid2 = dramaInfo.contxt;
+        const title = dramaInfo.title;
+        dramas.push({
+          contxt: vid2,
+          title,
+          ...dramaInfo
+        });
+        log("info", `[\u53D1\u73B0\u5267\u76EE] ${title}  vid=${vid2}`);
+      }
+    }
+    return dramas;
+  }
+  /**
+   * 通过 languagesplaylist 接口获取该剧集的全部集信息
+   * @param {string} vid - 剧集唯一标识
+   * @returns {Promise<Array>} 集列表
+   */
+  async getPlaylist(vid2) {
+    const baseParams = {
+      cinema: 1,
+      vid: vid2,
+      lsk: 1,
+      taxis: 0,
+      cid: "0,1,4,152"
+    };
+    const vv = this.computeVv(baseParams);
+    const params = {
+      ...baseParams,
+      vv,
+      pub: this.PUBLIC_KEY
+    };
+    const headers = {
+      "User-Agent": this.USER_AGENT,
+      "Accept": "application/json"
+    };
+    log("info", `[\u64AD\u653E\u5217\u8868] \u8BF7\u6C42 vid: ${vid2}`);
+    try {
+      const urlWithParams = updateQueryString(this.PLAYLIST_API, params);
+      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
+      if (response.status !== 200) {
+        log("error", `[\u64AD\u653E\u5217\u8868\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 200) || response.statusText}`);
+        return [];
+      }
+      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      if (data.ret !== 200) {
+        log("error", `[\u64AD\u653E\u5217\u8868\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}, msg: ${data.msg}`);
+        return [];
+      }
+      const episodes = [];
+      const infoList = data.data?.info || [];
+      for (const info of infoList) {
+        for (const ep of info.playList || []) {
+          episodes.push(ep);
+        }
+      }
+      log("info", `[\u64AD\u653E\u5217\u8868] \u5171\u83B7\u53D6\u5230 ${episodes.length} \u96C6`);
+      return episodes;
+    } catch (error) {
+      log("error", `[\u64AD\u653E\u5217\u8868\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
+      return [];
+    }
+  }
+  /**
+   * 获取视频播放信息，包括 uniqueKey
+   * @param {string} epKey - 剧集的 key
+   * @param {number} epId - 剧集的 id（可选，用于打印）
+   * @returns {Promise<Object>} 包含 uniqueKey 等信息的 data 字典
+   */
+  async getVideoInfo(epKey, epId = null) {
+    const baseParams = {
+      cinema: 1,
+      id: epKey,
+      a: 0,
+      lang: "none",
+      usersign: 1,
+      region: "GL.",
+      device: 0,
+      isMasterSupport: 1
+    };
+    const vv = this.computeVv(baseParams);
+    const params = {
+      ...baseParams,
+      vv,
+      pub: this.PUBLIC_KEY
+    };
+    const headers = {
+      "User-Agent": this.USER_AGENT,
+      "Accept": "application/json"
+    };
+    const epInfo = epId ? `(ID:${epId})` : "";
+    log("info", `[\u89C6\u9891\u4FE1\u606F] \u8BF7\u6C42 key: ${epKey} ${epInfo}`);
+    log("info", `[\u89C6\u9891\u4FE1\u606F] vv\u7B7E\u540D: ${vv.substring(0, 16)}...`);
+    try {
+      const urlWithParams = updateQueryString(this.VIDEO_API, params);
+      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
+      if (response.status !== 200) {
+        log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 200) || response.statusText}`);
+        return null;
+      }
+      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      if (data.ret !== 200) {
+        log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}, msg: ${data.msg}`);
+        return null;
+      }
+      return data.data || {};
+    } catch (error) {
+      log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
+      return null;
+    }
+  }
+  /**
+   * 从视频信息中提取 uniqueKey
+   * @param {Object} videoInfo - 视频信息
+   * @returns {string} uniqueKey
+   */
+  extractUniqueKey(videoInfo) {
+    const info = videoInfo.info?.[0] || {};
+    const uniqueKey = info.uniqueKey;
+    if (uniqueKey) {
+      log("info", `[\u89C6\u9891\u4FE1\u606F] \u83B7\u53D6\u5230 uniqueKey: ${uniqueKey}`);
+    }
+    return uniqueKey;
+  }
+  /**
+   * 获取弹幕列表
+   * @param {string} uniqueKey - 唯一标识
+   * @param {number} page - 页码，默认为1
+   * @param {number} size - 每页数量，默认为30000
+   * @returns {Promise<Array>} 弹幕列表
+   */
+  async fetchBarrage(uniqueKey, page = 1, size = 3e4) {
+    const baseParams = {
+      cinema: 1,
+      page,
+      size,
+      uniqueKey
+    };
+    const vv = this.computeVv(baseParams);
+    const params = {
+      ...baseParams,
+      vv,
+      pub: this.PUBLIC_KEY
+    };
+    const headers = {
+      "User-Agent": this.USER_AGENT
+    };
+    log("info", `[\u5F39\u5E55] \u8BF7\u6C42 uniqueKey: ${uniqueKey}`);
+    log("info", `[\u5F39\u5E55] vv\u7B7E\u540D: ${vv.substring(0, 16)}...`);
+    try {
+      const urlWithParams = updateQueryString(this.DANMU_API, params);
+      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
+      if (response.status !== 200) {
+        log("error", `[\u5F39\u5E55\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 400) || response.statusText}`);
+        return [];
+      }
+      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      if (data.ret !== 200) {
+        log("error", `[\u5F39\u5E55\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}`);
+        return [];
+      }
+      const danmuList = data.data?.info || [];
+      log("info", `[\u5F39\u5E55] \u83B7\u53D6\u5230 ${danmuList.length} \u6761\u5F39\u5E55`);
+      return danmuList;
+    } catch (error) {
+      log("error", `[\u5F39\u5E55\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
+      return [];
+    }
+  }
+  /**
+   * 搜索功能
+   * @param {string} keyword - 搜索关键词
+   * @returns {Promise<Array>} 搜索结果
+   */
+  async search(keyword) {
+    log("info", `[Aiyifan] \u5F00\u59CB\u641C\u7D22: ${keyword}`);
+    const searchResult = await this.searchDrama(keyword);
+    if (!searchResult) {
+      log("error", "\u641C\u7D22\u5931\u8D25\uFF0C\u9000\u51FA");
+      return [];
+    }
+    const dramas = this.extractDramaList(searchResult);
+    if (!dramas.length) {
+      log("warn", "\u672A\u627E\u5230\u5267\u76EE\u4FE1\u606F\uFF0C\u9000\u51FA");
+      return [];
+    }
+    const results = dramas.map((drama) => {
+      return {
+        provider: "aiyifan",
+        mediaId: drama.contxt,
+        // vid 作为 mediaId
+        title: drama.title,
+        type: drama.atypeName,
+        // 默认类型
+        year: new Date(drama.postTime).getFullYear(),
+        // 年份信息可能需要从其他地方获取
+        imageUrl: drama.imgPath || null,
+        // 图片链接
+        episodeCount: 0
+        // 初始集数为0，后续获取
+      };
+    });
+    log("info", `[Aiyifan] \u641C\u7D22\u5B8C\u6210\uFF0C\u627E\u5230 ${results.length} \u4E2A\u7ED3\u679C`);
+    return results;
+  }
+  /**
+   * 获取剧集详情
+   * @param {string} id - 剧集ID
+   * @returns {Promise<Array>} 剧集列表
+   */
+  async getEpisodes(id) {
+    log("info", `[Aiyifan] \u83B7\u53D6\u5267\u96C6\u8BE6\u60C5: ${id}`);
+    const episodes = await this.getPlaylist(id);
+    if (!episodes.length) {
+      log("error", "\u83B7\u53D6\u64AD\u653E\u5217\u8868\u5931\u8D25");
+      return [];
+    }
+    const result = episodes.map((ep, index) => ({
+      vid: ep.key,
+      // 使用key作为vid
+      id: ep.id,
+      title: ep.name || `\u7B2C${index + 1}\u96C6`,
+      link: `${this.DOMAIN_API}/${id}?id=${ep.key}`
+    }));
+    log("info", `[Aiyifan] \u83B7\u53D6\u5230 ${result.length} \u4E2A\u5267\u96C6`);
+    return result;
+  }
+  /**
+   * 处理animes结果
+   * @param {Array} sourceAnimes - 源动漫数据
+   * @param {string} queryTitle - 查询标题
+   * @param {Array} curAnimes - 当前动漫列表
+   * @param {any} detailStore - 详情存储
+   * @returns {Promise<Array>} 处理后的动漫列表
+   */
+  async handleAnimes(sourceAnimes, queryTitle, curAnimes, detailStore = null) {
+    const tmpAnimes = [];
+    if (!sourceAnimes || !Array.isArray(sourceAnimes)) {
+      log("error", "[Aiyifan] sourceAnimes is not a valid array");
+      return [];
+    }
+    const processPromises = sourceAnimes.filter((anime) => titleMatches(anime.title, queryTitle)).map(async (anime) => {
+      try {
+        const eps = await this.getEpisodes(anime.mediaId);
+        if (eps.length === 0) {
+          log("info", `[Aiyifan] ${anime.title} \u65E0\u5206\u96C6\uFF0C\u8DF3\u8FC7`);
+          return;
+        }
+        const links = eps.map((ep, index) => ({
+          name: ep.title || `${index + 1}`,
+          url: ep.link,
+          title: `\u3010aiyifan\u3011 ${ep.title}`
+        }));
+        if (links.length === 0) return;
+        const numericAnimeId = convertToAsciiSum(anime.mediaId);
+        const transformedAnime = {
+          animeId: numericAnimeId,
+          bangumiId: anime.mediaId,
+          animeTitle: `${anime.title}(${anime.year || "N/A"})\u3010${anime.type}\u3011from aiyifan`,
+          type: anime.type,
+          typeDescription: anime.type,
+          imageUrl: anime.imageUrl,
+          startDate: generateValidStartDate(anime.year),
+          episodeCount: links.length,
+          rating: 0,
+          isFavorited: true,
+          source: "aiyifan"
+        };
+        tmpAnimes.push(transformedAnime);
+        addAnime({ ...transformedAnime, links }, detailStore);
+        if (globals.animes.length > globals.MAX_ANIMES) {
+          removeEarliestAnime();
+        }
+      } catch (error) {
+        log("error", `[Aiyifan] \u5904\u7406 ${anime.title} \u5931\u8D25:`, error.message);
+      }
+    });
+    await Promise.all(processPromises);
+    this.sortAndPushAnimesByYear(tmpAnimes, curAnimes);
+    return tmpAnimes;
+  }
+  /**
+   * 获取某集的弹幕
+   * @param {string} id - 视频ID
+   * @returns {Promise<Array>} 弹幕列表
+   */
+  async getEpisodeDanmu(id) {
+    log("info", `[Aiyifan] \u83B7\u53D6\u5F39\u5E55: ${id}`);
+    const videoId = new URL(id).searchParams.get("id") ?? id;
+    const videoInfo = await this.getVideoInfo(videoId);
+    if (!videoInfo) {
+      log("error", "\u83B7\u53D6\u89C6\u9891\u4FE1\u606F\u5931\u8D25");
+      return [];
+    }
+    const uniqueKey = this.extractUniqueKey(videoInfo);
+    if (!uniqueKey) {
+      log("error", "\u672A\u83B7\u53D6\u5230uniqueKey");
+      return [];
+    }
+    const danmuList = await this.fetchBarrage(uniqueKey);
+    if (danmuList.length === 0) {
+      log("info", "\u672A\u83B7\u53D6\u5230\u5F39\u5E55");
+      return [];
+    }
+    danmuList.sort((a, b) => (a.second || 0) - (b.second || 0));
+    log("info", `[Aiyifan] \u83B7\u53D6\u5230 ${danmuList.length} \u6761\u5F39\u5E55`);
+    return danmuList;
+  }
+  /**
+   * 获取某集的弹幕分片列表
+   * @param {string} id - 视频ID
+   * @returns {Promise<any>} 弹幕分片列表
+   */
+  async getEpisodeDanmuSegments(id) {
+    const danmaku = await this.getEpisodeDanmu(id);
+    const segmentList = [{
+      "type": "aiyifan",
+      "segment_start": 0,
+      "segment_end": Math.max(...danmaku.map((d) => d.second || 0), 0),
+      "url": `${this.DANMU_API}?uniqueKey=${id}`
+    }];
+    return {
+      "type": "aiyifan",
+      "duration": Math.max(...danmaku.map((d) => d.second || 0), 0),
+      "segmentList": segmentList
+    };
+  }
+  /**
+   * 获取某集的分片弹幕
+   * @param {any} segment - 分片信息
+   * @returns {Promise<Array>} 分片弹幕
+   */
+  async getEpisodeSegmentDanmu(segment) {
+    const uniqueKey = segment.url?.split("uniqueKey=")[1];
+    if (!uniqueKey) {
+      return [];
+    }
+    return await this.getEpisodeDanmu(uniqueKey);
+  }
+  /**
+   * 格式化弹幕
+   * @param {Array} comments - 原始弹幕
+   * @returns {Array} 格式化后的弹幕
+   */
+  formatComments(comments) {
+    return comments.map((comment) => {
+      return {
+        // 时间（秒）
+        p: `${comment.second || 0},${comment.position === 1 ? 5 : 1},25,${hexToInt(comment.color.replace("#", ""))},0,0,0,0`,
+        // 标准弹幕格式: time, type, fontsize, color, unix_timestamp, pool, uid, row_id
+        m: comment.contxt || comment.content || "",
+        // 弹幕内容
+        like: comment.good,
+        // 点赞数
+        // 保留原始数据
+        ...comment
+      };
+    }).map((c) => {
+      if (globals.danmuSimplifiedTraditional === "simplified") {
+        if (c.m) c.m = simplized(c.m);
+      }
+      return c;
+    });
+  }
+};
+
 // danmu_api/sources/animeko.js
 var AnimekoSource = class extends BaseSource {
   /**
@@ -16003,6 +16911,7 @@ var sohuSource = new SohuSource();
 var leshiSource = new LeshiSource();
 var xiguaSource = new xigua_default();
 var maiduiduiSource = new maiduidui_default();
+var aiyifanSource = new AiyifanSource();
 var animekoSource = new AnimekoSource();
 var otherSource = new OtherSource();
 var doubanSource = new DoubanSource(tencentSource2, iqiyiSource2, youkuSource2, bilibiliSource2, miguSource);
@@ -16063,6 +16972,8 @@ async function resolveUrlDuration(url) {
       segmentResult = await xiguaSource.getComments(targetUrl, "xigua", true);
     } else if (targetUrl.includes(".mddcloud.com.cn")) {
       segmentResult = await maiduiduiSource.getComments(targetUrl, "maiduidui", true);
+    } else if (targetUrl.includes(".yfsp.tv")) {
+      segmentResult = await aiyifanSource.getComments(targetUrl, "aiyifan", true);
     }
     return extractDurationFromSegments(segmentResult);
   } catch (error) {
@@ -16175,6 +17086,8 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
       platform = "xigua";
     } else if (queryTitle.includes(".mddcloud.com.cn")) {
       platform = "maiduidui";
+    } else if (queryTitle.includes(".yfsp.tv")) {
+      platform = "aiyifan";
     }
     const pageTitle = await getPageTitle(queryTitle);
     const links = [{
@@ -16223,6 +17136,7 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
       if (source === "leshi") return leshiSource.search(queryTitle);
       if (source === "xigua") return xiguaSource.search(queryTitle);
       if (source === "maiduidui") return maiduiduiSource.search(queryTitle);
+      if (source === "aiyifan") return aiyifanSource.search(queryTitle);
       if (source === "animeko") return animekoSource.search(queryTitle);
     });
     const results = await Promise.all(requestPromises);
@@ -16250,6 +17164,7 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
       leshi: animesLeshi,
       xigua: animesXigua,
       maiduidui: animesMaiduidui,
+      aiyifan: animesAiyifan,
       animeko: animesAnimeko
     } = resultData;
     for (const key of globals.sourceOrderArr) {
@@ -16297,6 +17212,8 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
         await xiguaSource.handleAnimes(animesXigua, queryTitle, curAnimes, requestAnimeDetailsMap);
       } else if (key === "maiduidui") {
         await maiduiduiSource.handleAnimes(animesMaiduidui, queryTitle, curAnimes, requestAnimeDetailsMap);
+      } else if (key === "aiyifan") {
+        await aiyifanSource.handleAnimes(animesAiyifan, queryTitle, curAnimes, requestAnimeDetailsMap);
       } else if (key === "animeko") {
         await animekoSource.handleAnimes(animesAnimeko, queryTitle, curAnimes, requestAnimeDetailsMap);
       }
@@ -16316,7 +17233,7 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
         log("info", `[searchAnime] Anime ${anime.animeId} filtered by name: ${animeTitle}`);
         continue;
       }
-      const animeData = globals.animes.find((a) => a.animeId === anime.animeId);
+      const animeData = resolveAnimeByIdFromDetailStore(anime?.bangumiId, requestAnimeDetailsMap, anime?.source) || resolveAnimeByIdFromDetailStore(anime?.animeId, requestAnimeDetailsMap, anime?.source) || resolveAnimeById(anime?.bangumiId, requestAnimeDetailsMap, anime?.source) || resolveAnimeById(anime?.animeId, requestAnimeDetailsMap, anime?.source);
       if (animeData && animeData.links) {
         let episodesList = animeData.links.map((link, index) => ({
           episodeId: link.id,
@@ -16354,9 +17271,9 @@ async function searchAnime(url, preferAnimeId = null, preferSource = null, detai
     animes: curAnimes
   });
 }
-async function getBangumi(path2) {
+async function getBangumi(path2, detailStore = null, source = null) {
   const idParam = path2.split("/").pop();
-  const anime = resolveAnimeById(idParam);
+  const anime = resolveAnimeByIdFromDetailStore(idParam, detailStore, source) || resolveAnimeById(idParam);
   if (!anime) {
     log("error", `Anime with ID ${idParam} not found`);
     return jsonResponse(
@@ -16428,8 +17345,33 @@ function buildBangumiData(anime, idParam = "") {
 }
 async function fetchMergedComments(url, animeTitle, commentId) {
   const parts = url.split(MERGE_DELIMITER);
-  const sourceNames = parts.map((part) => part.split(":")[0]).filter(Boolean);
-  const sourceTag = sourceNames.join("\uFF06");
+  const partMetas = parts.map((part) => {
+    const firstColonIndex = part.indexOf(":");
+    if (firstColonIndex === -1) {
+      return {
+        realId: "",
+        logicalSource: "",
+        sourceLabel: ""
+      };
+    }
+    const sourceName = part.substring(0, firstColonIndex);
+    const realId = part.substring(firstColonIndex + 1);
+    if (sourceName !== "hanjutv") {
+      return {
+        realId,
+        logicalSource: sourceName,
+        sourceLabel: sourceName
+      };
+    }
+    return {
+      realId,
+      logicalSource: "hanjutv",
+      sourceLabel: getHanjutvSourceLabel(realId)
+    };
+  });
+  const sourceNames = partMetas.map((meta) => meta.logicalSource).filter(Boolean);
+  const realIds = partMetas.map((meta) => meta.realId);
+  const sourceTag = partMetas.map((meta) => meta.sourceLabel).filter(Boolean).join("\uFF06");
   log("info", `[Merge] \u5F00\u59CB\u83B7\u53D6 [${sourceTag}] \u805A\u5408\u5F39\u5E55...`);
   const cached = getCommentCache(url);
   if (cached) {
@@ -16437,11 +17379,10 @@ async function fetchMergedComments(url, animeTitle, commentId) {
     return cached;
   }
   const stats = {};
-  const tasks = parts.map(async (part) => {
-    const firstColonIndex = part.indexOf(":");
-    if (firstColonIndex === -1) return [];
-    const sourceName = part.substring(0, firstColonIndex);
-    const realId = part.substring(firstColonIndex + 1);
+  const tasks = partMetas.map(async (meta) => {
+    const sourceName = meta.logicalSource;
+    const sourceLabel = meta.sourceLabel || meta.logicalSource;
+    const realId = meta.realId;
     if (!sourceName || !realId) return [];
     const pendingKey = `${sourceName}:${realId}`;
     if (PENDING_DANMAKU_REQUESTS.has(pendingKey)) {
@@ -16469,22 +17410,25 @@ async function fetchMergedComments(url, animeTitle, commentId) {
       else if (sourceName === "leshi") sourceInstance = leshiSource;
       else if (sourceName === "xigua") sourceInstance = xiguaSource;
       else if (sourceName === "maiduidui") sourceInstance = maiduiduiSource;
+      else if (sourceName === "aiyifan") sourceInstance = aiyifanSource;
       else if (sourceName === "animeko") sourceInstance = animekoSource;
       if (sourceInstance) {
         try {
           const raw = await sourceInstance.getEpisodeDanmu(realId, parts);
           const formatted = sourceInstance.formatComments(raw);
           if (formatted && Array.isArray(formatted)) {
-            formatted.forEach((item) => item._sourceLabel = sourceName);
+            formatted.forEach((item) => {
+              if (!item._sourceLabel) item._sourceLabel = sourceLabel;
+            });
           }
           if (raw && raw.relatedShifts) {
             formatted.relatedShifts = raw.relatedShifts;
           }
-          stats[sourceName] = formatted.length;
+          stats[sourceLabel] = formatted.length;
           return formatted;
         } catch (e) {
-          log("error", `[Merge] \u83B7\u53D6 ${sourceName} \u5931\u8D25: ${e.message}`);
-          stats[sourceName] = 0;
+          log("error", `[Merge] \u83B7\u53D6 ${sourceLabel} \u5931\u8D25: ${e.message}`);
+          stats[sourceLabel] = 0;
           return [];
         }
       }
@@ -16499,10 +17443,6 @@ async function fetchMergedComments(url, animeTitle, commentId) {
   });
   const results = await Promise.all(tasks);
   if (sourceNames.includes("dandan")) {
-    const realIds = parts.map((part) => {
-      const firstColonIndex = part.indexOf(":");
-      return firstColonIndex === -1 ? "" : part.substring(firstColonIndex + 1);
-    });
     const dandanIndex = sourceNames.indexOf("dandan");
     const dandanShifts = results[dandanIndex] && results[dandanIndex].relatedShifts ? results[dandanIndex].relatedShifts : {};
     alignSourceTimelines(results, sourceNames, realIds, dandanShifts);
@@ -16589,6 +17529,8 @@ async function getComment(path2, queryFormat, segmentFlag, clientIp, includeDura
       danmus = await xiguaSource.getComments(url, plat, segmentFlag);
     } else if (url.includes(".mddcloud.com.cn")) {
       danmus = await maiduiduiSource.getComments(url, plat, segmentFlag);
+    } else if (url.includes(".yfsp.tv")) {
+      danmus = await aiyifanSource.getComments(url, plat, segmentFlag);
     }
     const urlPattern = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,})(\/.*)?$/i;
     if (!urlPattern.test(url)) {
@@ -16715,6 +17657,8 @@ async function getSegmentComment(segment, queryFormat) {
       danmus = await xiguaSource.getSegmentComments(segment);
     } else if (platform === "maiduidui") {
       danmus = await maiduiduiSource.getSegmentComments(segment);
+    } else if (platform === "aiyifan") {
+      danmus = await aiyifanSource.getSegmentComments(segment);
     } else if (platform === "hanjutv") {
       danmus = await hanjutvSource.getSegmentComments(segment);
     } else if (platform === "bahamut") {
@@ -16752,7 +17696,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.17.6" : Globals.VERSION;
+var wv = true ? "1.18.0" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
@@ -16765,7 +17709,7 @@ WidgetMetadata = {
     // 源配置
     {
       name: "sourceOrder",
-      title: "\u6E90\u6392\u5E8F\u914D\u7F6E\uFF0C\u9ED8\u8BA4'360,vod,renren,hanjutv'\uFF0C\u53EF\u9009['360', 'vod', 'tmdb', 'douban', 'tencent', 'youku', 'iqiyi', 'imgo', 'bilibili', 'migu', 'sohu', 'leshi', 'xigua', 'maiduidui', 'renren', 'hanjutv', 'bahamut', 'dandan', 'custom']",
+      title: "\u6E90\u6392\u5E8F\u914D\u7F6E\uFF0C\u9ED8\u8BA4'360,vod,renren,hanjutv'\uFF0C\u53EF\u9009['360', 'vod', 'tmdb', 'douban', 'tencent', 'youku', 'iqiyi', 'imgo', 'bilibili', 'migu', 'sohu', 'leshi', 'xigua', 'maiduidui', 'aiyifan', 'renren', 'hanjutv', 'bahamut', 'dandan', 'custom']",
       type: "input",
       placeholders: [
         {
@@ -16899,12 +17843,12 @@ WidgetMetadata = {
     // 匹配配置
     {
       name: "platformOrder",
-      title: "\u5E73\u53F0\u4F18\u9009\u914D\u7F6E\uFF0C\u53EF\u9009['qiyi', 'bilibili1', 'imgo', 'youku', 'qq', 'migu', 'sohu', 'leshi, 'xigua', 'maiduidui', 'renren', 'hanjutv', 'bahamut', 'dandan', 'custom']",
+      title: "\u5E73\u53F0\u4F18\u9009\u914D\u7F6E\uFF0C\u53EF\u9009['qiyi', 'bilibili1', 'imgo', 'youku', 'qq', 'migu', 'sohu', 'leshi, 'xigua', 'maiduidui', 'aiyifan', 'renren', 'hanjutv', 'bahamut', 'dandan', 'custom']",
       type: "input",
       placeholders: [
         {
           title: "\u914D\u7F6E1",
-          value: "qq,qiyi,imgo,bilibili1,youku,migu,sohu,leshi,xigua,maiduidui,renren,hanjutv,bahamut,dandan,custom"
+          value: "qq,qiyi,imgo,bilibili1,youku,migu,sohu,leshi,xigua,maiduidui,aiyifan,renren,hanjutv,bahamut,dandan,custom"
         },
         {
           title: "\u914D\u7F6E2",
