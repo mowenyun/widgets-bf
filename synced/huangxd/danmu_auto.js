@@ -855,7 +855,8 @@ var Envs = class {
       "SEARCH_CACHE_MINUTES": { category: "cache", type: "number", description: "\u641C\u7D22\u7ED3\u679C\u7F13\u5B58\u65F6\u95F4(\u5206\u949F)\uFF0C\u9ED8\u8BA43", min: 1, max: 120 },
       "COMMENT_CACHE_MINUTES": { category: "cache", type: "number", description: "\u5F39\u5E55\u7F13\u5B58\u65F6\u95F4(\u5206\u949F)\uFF0C\u9ED8\u8BA43", min: 1, max: 120 },
       "REMEMBER_LAST_SELECT": { category: "cache", type: "boolean", description: "\u8BB0\u4F4F\u624B\u52A8\u9009\u62E9\u7ED3\u679C" },
-      "MAX_LAST_SELECT_MAP": { category: "cache", type: "number", description: "\u8BB0\u4F4F\u4E0A\u6B21\u9009\u62E9\u6620\u5C04\u7F13\u5B58\u5927\u5C0F\u9650\u5236", min: 10, max: 1e3 },
+      "MAX_LAST_SELECT_MAP": { category: "cache", type: "number", description: "\u8BB0\u4F4F\u4E0A\u6B21\u9009\u62E9\u6620\u5C04\u7F13\u5B58\u5927\u5C0F\u9650\u5236\uFF0C\u9ED8\u8BA4100", min: 10, max: 1e3 },
+      "MAX_ANIMES": { category: "cache", type: "number", description: "\u52A8\u6F2B\u6807\u9898\u7F13\u5B58\u6700\u5927\u6570\u91CF\uFF0C\u9ED8\u8BA4100", min: 100, max: 1e3 },
       "UPSTASH_REDIS_REST_URL": { category: "cache", type: "text", description: "Upstash Redis\u8BF7\u6C42\u94FE\u63A5" },
       "UPSTASH_REDIS_REST_TOKEN": { category: "cache", type: "text", description: "Upstash Redis\u8BBF\u95EE\u4EE4\u724C" },
       "LOCAL_REDIS_URL": { category: "cache", type: "text", description: "\u672C\u5730 Redis \u8FDE\u63A5URL\uFF0C\u793A\u4F8B\uFF1Aredis://:password@127.0.0.1:6379/0\uFF0C\u53EA\u652F\u6301\u672C\u5730\u90E8\u7F72\u548Cdocker\u90E8\u7F72" },
@@ -968,6 +969,8 @@ var Envs = class {
       // 是否记住手动选择结果，用于match自动匹配时优选上次的选择（默认 true，记住）
       MAX_LAST_SELECT_MAP: this.get("MAX_LAST_SELECT_MAP", 100, "number"),
       // 记住上次选择映射缓存大小限制（默认 100）
+      MAX_ANIMES: this.get("MAX_ANIMES", 100, "number"),
+      // 动漫标题缓存最大数量（默认 100）
       deployPlatformAccount: this.get("DEPLOY_PLATFROM_ACCOUNT", "", "string", true),
       // 部署平台账号ID配置（默认空）
       deployPlatformProject: this.get("DEPLOY_PLATFROM_PROJECT", "", "string", true),
@@ -1038,10 +1041,9 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.18.0",
+  VERSION: "1.18.1",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
-  MAX_ANIMES: 100,
   MAX_RECORDS: 100,
   // 请求记录最大数量
   // 运行时状态
@@ -1185,7 +1187,7 @@ var Globals = {
         }
         if (prop === "version") return self.VERSION;
         if (prop === "maxLogs") return self.MAX_LOGS;
-        if (prop === "maxAnimes") return self.MAX_ANIMES;
+        if (prop === "maxAnimes") return self.envs.MAX_ANIMES;
         if (prop === "maxRecords") return self.MAX_RECORDS;
         if (prop === "maxLastSelectMap") return self.MAX_LAST_SELECT_MAP;
         if (prop === "makeProxyUrl") return self.makeProxyUrl.bind(self);
@@ -15955,9 +15957,9 @@ var AiyifanSource = class extends BaseSource {
     this.SALT = "StD3JStD3SqE3GrCouoC";
     this.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36";
     this.SEARCH_API = "https://rankv21.tripdata.app/v3/list/briefsearch";
-    this.PLAYLIST_API = "https://app-m10.tripdata.app/v3/video/languagesplaylist";
-    this.VIDEO_API = "https://app-m10.tripdata.app/v3/video/play";
-    this.DANMU_API = "https://app-m10.tripdata.app/api/video/getBarrage";
+    this.PLAYLIST_API = "https://m10.yfsp.tv/v3/video/languagesplaylist";
+    this.VIDEO_API = "https://m10.yfsp.tv/v3/video/play";
+    this.DANMU_API = "https://m10.yfsp.tv/api/video/getBarrage";
     this.DOMAIN_API = "https://www.yfsp.tv/play";
   }
   /**
@@ -15992,15 +15994,7 @@ var AiyifanSource = class extends BaseSource {
     try {
       const urlWithParams = updateQueryString(this.SEARCH_API, params);
       const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      if (response.status !== 200) {
-        log("error", `[\u641C\u7D22\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 200) || response.statusText}`);
-        return null;
-      }
       const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
-      if (data.ret !== 200) {
-        log("error", `[\u641C\u7D22\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}, msg: ${data.msg}`);
-        return null;
-      }
       return data;
     } catch (error) {
       log("error", `[\u641C\u7D22\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
@@ -16064,15 +16058,7 @@ var AiyifanSource = class extends BaseSource {
     try {
       const urlWithParams = updateQueryString(this.PLAYLIST_API, params);
       const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      if (response.status !== 200) {
-        log("error", `[\u64AD\u653E\u5217\u8868\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 200) || response.statusText}`);
-        return [];
-      }
       const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
-      if (data.ret !== 200) {
-        log("error", `[\u64AD\u653E\u5217\u8868\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}, msg: ${data.msg}`);
-        return [];
-      }
       const episodes = [];
       const infoList = data.data?.info || [];
       for (const info of infoList) {
@@ -16120,15 +16106,7 @@ var AiyifanSource = class extends BaseSource {
     try {
       const urlWithParams = updateQueryString(this.VIDEO_API, params);
       const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      if (response.status !== 200) {
-        log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 200) || response.statusText}`);
-        return null;
-      }
       const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
-      if (data.ret !== 200) {
-        log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}, msg: ${data.msg}`);
-        return null;
-      }
       return data.data || {};
     } catch (error) {
       log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
@@ -16176,15 +16154,7 @@ var AiyifanSource = class extends BaseSource {
     try {
       const urlWithParams = updateQueryString(this.DANMU_API, params);
       const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      if (response.status !== 200) {
-        log("error", `[\u5F39\u5E55\u5931\u8D25] HTTP ${response.status}: ${response.data?.slice(0, 400) || response.statusText}`);
-        return [];
-      }
       const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
-      if (data.ret !== 200) {
-        log("error", `[\u5F39\u5E55\u5931\u8D25] \u8FD4\u56DE\u7801: ${data.ret}`);
-        return [];
-      }
       const danmuList = data.data?.info || [];
       log("info", `[\u5F39\u5E55] \u83B7\u53D6\u5230 ${danmuList.length} \u6761\u5F39\u5E55`);
       return danmuList;
@@ -17696,7 +17666,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.18.0" : Globals.VERSION;
+var wv = true ? "1.18.1" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
