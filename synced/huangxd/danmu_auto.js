@@ -1041,7 +1041,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.18.1",
+  VERSION: "1.18.2",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -15949,26 +15949,331 @@ var MaiduiduiSource = class extends BaseSource {
 };
 var maiduidui_default = MaiduiduiSource;
 
+// danmu_api/utils/aiyifan-util.js
+var DEFAULT_CONFIG_PAGE_URL = "https://www.yfsp.tv/";
+var DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36";
+var AIYIFAN_SIGNING_CONFIG_TTL_MS = 60 * 1e3;
+function safeGet(obj, path2, defaultValue) {
+  if (obj == null) return defaultValue;
+  const keys = path2.split(".");
+  let result = obj;
+  for (let i = 0; i < keys.length; i++) {
+    if (result == null) return defaultValue;
+    const key = keys[i];
+    const arrayMatch = key.match(/^(.+)\[(\d+)\]$/);
+    if (arrayMatch) {
+      const arrKey = arrayMatch[1];
+      const index = parseInt(arrayMatch[2], 10);
+      result = result[arrKey];
+      if (Array.isArray(result) && index < result.length) {
+        result = result[index];
+      } else {
+        return defaultValue;
+      }
+    } else {
+      result = result[key];
+    }
+  }
+  return result !== void 0 ? result : defaultValue;
+}
+function extractAssignedObjectLiteral(html, variableName) {
+  const assignmentPattern = new RegExp("\\b(?:var|let|const)\\s+" + variableName + "\\s*=\\s*");
+  const match = assignmentPattern.exec(html);
+  if (!match) {
+    return null;
+  }
+  const objectStart = html.indexOf("{", match.index + match[0].length);
+  if (objectStart === -1) {
+    return null;
+  }
+  let depth = 0;
+  let inString = false;
+  let quote = "";
+  let escaped = false;
+  for (let i = objectStart; i < html.length; i++) {
+    const char = html[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === quote) {
+        inString = false;
+        quote = "";
+      }
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      inString = true;
+      quote = char;
+      continue;
+    }
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return html.slice(objectStart, i + 1);
+      }
+    }
+  }
+  return null;
+}
+function parseFallbackPConfig(html) {
+  const match = html.match(/"pConfig"\s*:\s*\{\s*"publicKey"\s*:\s*"([^"]+)"\s*,\s*"privateKey"\s*:\s*\[(.*?)\]\s*\}/s);
+  if (!match) {
+    return null;
+  }
+  let privateKeys = [];
+  try {
+    privateKeys = JSON.parse("[" + match[2] + "]");
+  } catch (e) {
+    return null;
+  }
+  if (!match[1] || !privateKeys.length) {
+    return null;
+  }
+  return {
+    publicKey: match[1],
+    privateKey: privateKeys[0]
+  };
+}
+function extractPConfigFromInjectJson(injectJson) {
+  const config = safeGet(injectJson, "config[0]", null);
+  const pConfig = config ? config.pConfig : null;
+  if (!pConfig) return null;
+  const publicKey = pConfig.publicKey;
+  const privateKey = Array.isArray(pConfig.privateKey) ? pConfig.privateKey[0] : pConfig.privateKey;
+  if (!publicKey || !privateKey) {
+    return null;
+  }
+  return { publicKey, privateKey };
+}
+function extractPConfigFromHtml(html) {
+  const objectLiteral = extractAssignedObjectLiteral(html, "injectJson");
+  if (objectLiteral) {
+    try {
+      const injectJson = JSON.parse(objectLiteral);
+      const signingConfig = extractPConfigFromInjectJson(injectJson);
+      if (signingConfig) {
+        return signingConfig;
+      }
+    } catch (error) {
+      log("warn", "[Aiyifan] \u89E3\u6790 injectJson \u5931\u8D25\uFF0C\u56DE\u9000\u5230 pConfig \u63D0\u53D6: " + (error.message || "\u672A\u77E5\u9519\u8BEF"));
+    }
+  }
+  return parseFallbackPConfig(html);
+}
+function normalizeQueryValue(value) {
+  if (value === void 0 || value === null) {
+    return null;
+  }
+  return String(value);
+}
+function isSigningParam(key) {
+  return key === "vv" || key === "pub";
+}
+function splitQueryString(queryString) {
+  if (!queryString) {
+    return [];
+  }
+  return queryString.split("&").filter(Boolean).map(function(pair) {
+    const equalsIndex = pair.indexOf("=");
+    const rawKey = equalsIndex === -1 ? pair : pair.slice(0, equalsIndex);
+    const rawValue = equalsIndex === -1 ? "" : pair.slice(equalsIndex + 1);
+    function safeDecode(str) {
+      try {
+        return decodeURIComponent(str.replace(/\+/g, "%20"));
+      } catch (e) {
+        return str;
+      }
+    }
+    const key = safeDecode(rawKey);
+    const value = safeDecode(rawValue);
+    return [key, value];
+  });
+}
+function getQueryEntries(input) {
+  if (!input) {
+    return [];
+  }
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return [];
+    }
+    let queryString = trimmed;
+    const queryIndex = trimmed.indexOf("?");
+    if (queryIndex !== -1) {
+      const hashIndex = trimmed.indexOf("#", queryIndex);
+      queryString = trimmed.slice(queryIndex + 1, hashIndex === -1 ? void 0 : hashIndex);
+    } else if (trimmed.charAt(0) === "?") {
+      queryString = trimmed.slice(1);
+    }
+    return splitQueryString(queryString);
+  }
+  if (typeof input === "object" && input !== null) {
+    if (typeof input.entries === "function") {
+      try {
+        var entries = input.entries();
+        if (Array.isArray(entries)) {
+          return entries;
+        }
+        var result = [];
+        if (typeof input.forEach === "function") {
+          input.forEach(function(value, key) {
+            result.push([key, normalizeQueryValue(value)]);
+          });
+          return result.filter(function(item) {
+            return item[1] !== null;
+          });
+        }
+      } catch (e) {
+      }
+    }
+    return Object.keys(input).map(function(key) {
+      return [key, normalizeQueryValue(input[key])];
+    }).filter(function(item) {
+      return item[1] !== null;
+    });
+  }
+  return [];
+}
+function buildCanonicalQuery(input) {
+  return getQueryEntries(input).filter(function(item) {
+    return !isSigningParam(item[0]);
+  }).map(function(item) {
+    return item[0] + "=" + item[1];
+  }).join("&");
+}
+function computeAiyifanVv(input, signingConfig) {
+  const query = buildCanonicalQuery(input);
+  const raw = signingConfig.publicKey + "&" + query.toLowerCase() + "&" + signingConfig.privateKey;
+  return md5(raw);
+}
+function normalizeJsonPayload(data) {
+  if (typeof data === "string") {
+    return JSON.parse(data);
+  }
+  return data;
+}
+function isSignedRequestSuccessful(payload) {
+  var ret = safeGet(payload, "ret", null);
+  var code = safeGet(payload, "data.code", null);
+  return ret === 200 && code === 0;
+}
+function getFailureMessage(payload, status) {
+  var msg = safeGet(payload, "data.msg", null) || safeGet(payload, "msg", null);
+  return msg || "HTTP " + status;
+}
+var AiyifanSigningProvider = class {
+  constructor(options) {
+    options = options || {};
+    this.proxyUrlBuilder = options.proxyUrlBuilder || function(url) {
+      return globals.makeProxyUrl(url);
+    };
+    this.userAgent = options.userAgent || DEFAULT_USER_AGENT;
+    this.configPageUrl = options.configPageUrl || DEFAULT_CONFIG_PAGE_URL;
+    this.ttlMs = options.ttlMs || AIYIFAN_SIGNING_CONFIG_TTL_MS;
+    this.now = options.now || function() {
+      return Date.now();
+    };
+    this.signingConfig = null;
+    this.signingConfigFetchedAt = 0;
+  }
+  async getSigningConfig(forceRefresh) {
+    forceRefresh = forceRefresh || false;
+    var now = this.now();
+    var cacheValid = this.signingConfig && now - this.signingConfigFetchedAt < this.ttlMs;
+    if (!forceRefresh && cacheValid) {
+      return this.signingConfig;
+    }
+    var response = await Widget.http.get(this.proxyUrlBuilder(this.configPageUrl), {
+      headers: {
+        "User-Agent": this.userAgent,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      }
+    });
+    var html = typeof response.data === "string" ? response.data : String(response.data || "");
+    var signingConfig = extractPConfigFromHtml(html);
+    if (!signingConfig) {
+      throw new Error("\u672A\u80FD\u4ECE\u684C\u9762\u7AD9\u9875\u9762\u89E3\u6790\u5230 pConfig");
+    }
+    this.signingConfig = signingConfig;
+    this.signingConfigFetchedAt = now;
+    log("info", "[Aiyifan] \u5DF2\u66F4\u65B0\u684C\u9762\u7AD9\u7B7E\u540D\u914D\u7F6E: " + signingConfig.publicKey.slice(0, 12) + "...");
+    return signingConfig;
+  }
+  buildSignedParams(baseParams, signingConfig) {
+    var result = {};
+    for (var key in baseParams) {
+      if (baseParams.hasOwnProperty(key)) {
+        result[key] = baseParams[key];
+      }
+    }
+    result.vv = computeAiyifanVv(baseParams, signingConfig);
+    result.pub = signingConfig.publicKey;
+    return result;
+  }
+  async signedGetJson(api, baseParams, headers, logPrefix, forceRefresh) {
+    headers = headers || {};
+    logPrefix = logPrefix || "Aiyifan";
+    forceRefresh = forceRefresh || false;
+    var signingConfig = await this.getSigningConfig(forceRefresh);
+    var signedParams = this.buildSignedParams(baseParams, signingConfig);
+    var requestUrl = updateQueryString(api, signedParams);
+    var response = await Widget.http.get(this.proxyUrlBuilder(requestUrl), { headers });
+    var payload;
+    try {
+      payload = normalizeJsonPayload(response.data);
+    } catch (error) {
+      if (!forceRefresh) {
+        log("warn", "[" + logPrefix + "] \u54CD\u5E94\u65E0\u6CD5\u89E3\u6790\u4E3A JSON\uFF0C\u5237\u65B0\u7B7E\u540D\u914D\u7F6E\u540E\u91CD\u8BD5: " + (error.message || "\u672A\u77E5\u9519\u8BEF"));
+        return this.signedGetJson(api, baseParams, headers, logPrefix, true);
+      }
+      throw error;
+    }
+    var statusCode = response.status != null ? response.status : 200;
+    if (statusCode !== 200 || !isSignedRequestSuccessful(payload)) {
+      if (!forceRefresh) {
+        log("warn", "[" + logPrefix + "] \u5F53\u524D\u7B7E\u540D\u8BF7\u6C42\u5931\u8D25\uFF0C\u5237\u65B0 pConfig \u540E\u91CD\u8BD5: " + getFailureMessage(payload, statusCode));
+        return this.signedGetJson(api, baseParams, headers, logPrefix, true);
+      }
+      throw new Error(getFailureMessage(payload, statusCode));
+    }
+    return {
+      data: payload,
+      vv: signedParams.vv,
+      signingConfig
+    };
+  }
+};
+
 // danmu_api/sources/aiyifan.js
 var AiyifanSource = class extends BaseSource {
   constructor() {
     super();
-    this.PUBLIC_KEY = "CJStD3SqE3GrCouoCpbVIb1VCJOmBZ4sBZ8mE2uoDJHVDpKrP69cEMKtCZ0qD31bP68qDJ9bCJOvDZ4oDM4sOJ1VCJTcCpOuCpHYCpOmDZLcOJTaD3GrDZ5ZP68qOJOpDc6";
-    this.SALT = "StD3JStD3SqE3GrCouoC";
     this.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36";
     this.SEARCH_API = "https://rankv21.tripdata.app/v3/list/briefsearch";
     this.PLAYLIST_API = "https://m10.yfsp.tv/v3/video/languagesplaylist";
     this.VIDEO_API = "https://m10.yfsp.tv/v3/video/play";
     this.DANMU_API = "https://m10.yfsp.tv/api/video/getBarrage";
     this.DOMAIN_API = "https://www.yfsp.tv/play";
+    this.CONFIG_PAGE_API = "https://www.yfsp.tv/";
+    this.signingProvider = new AiyifanSigningProvider({
+      userAgent: this.USER_AGENT,
+      configPageUrl: this.CONFIG_PAGE_API
+    });
+    this.inflightDanmuRequests = /* @__PURE__ */ new Map();
   }
-  /**
-   * 计算接口签名 vv
-   */
-  computeVv(params) {
-    const sortedParams = Object.keys(params).map((k) => `${k}=${params[k]}`).join("&");
-    const raw = this.PUBLIC_KEY + "&" + sortedParams.toLowerCase() + "&" + this.SALT;
-    return md5(raw);
+  extractEpisodeRequestKey(id) {
+    try {
+      return new URL(id).searchParams.get("id") ?? id;
+    } catch {
+      return id;
+    }
   }
   /**
    * 搜索电视剧
@@ -16044,21 +16349,13 @@ var AiyifanSource = class extends BaseSource {
       taxis: 0,
       cid: "0,1,4,152"
     };
-    const vv = this.computeVv(baseParams);
-    const params = {
-      ...baseParams,
-      vv,
-      pub: this.PUBLIC_KEY
-    };
     const headers = {
       "User-Agent": this.USER_AGENT,
       "Accept": "application/json"
     };
     log("info", `[\u64AD\u653E\u5217\u8868] \u8BF7\u6C42 vid: ${vid2}`);
     try {
-      const urlWithParams = updateQueryString(this.PLAYLIST_API, params);
-      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      const { data } = await this.signingProvider.signedGetJson(this.PLAYLIST_API, baseParams, headers, "\u64AD\u653E\u5217\u8868");
       const episodes = [];
       const infoList = data.data?.info || [];
       for (const info of infoList) {
@@ -16090,23 +16387,15 @@ var AiyifanSource = class extends BaseSource {
       device: 0,
       isMasterSupport: 1
     };
-    const vv = this.computeVv(baseParams);
-    const params = {
-      ...baseParams,
-      vv,
-      pub: this.PUBLIC_KEY
-    };
     const headers = {
       "User-Agent": this.USER_AGENT,
       "Accept": "application/json"
     };
     const epInfo = epId ? `(ID:${epId})` : "";
     log("info", `[\u89C6\u9891\u4FE1\u606F] \u8BF7\u6C42 key: ${epKey} ${epInfo}`);
-    log("info", `[\u89C6\u9891\u4FE1\u606F] vv\u7B7E\u540D: ${vv.substring(0, 16)}...`);
     try {
-      const urlWithParams = updateQueryString(this.VIDEO_API, params);
-      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      const { data, vv } = await this.signingProvider.signedGetJson(this.VIDEO_API, baseParams, headers, "\u89C6\u9891\u4FE1\u606F");
+      log("info", `[\u89C6\u9891\u4FE1\u606F] vv\u7B7E\u540D: ${vv.substring(0, 16)}...`);
       return data.data || {};
     } catch (error) {
       log("error", `[\u89C6\u9891\u4FE1\u606F\u5931\u8D25] \u9519\u8BEF: ${error.message}`);
@@ -16140,21 +16429,13 @@ var AiyifanSource = class extends BaseSource {
       size,
       uniqueKey
     };
-    const vv = this.computeVv(baseParams);
-    const params = {
-      ...baseParams,
-      vv,
-      pub: this.PUBLIC_KEY
-    };
     const headers = {
       "User-Agent": this.USER_AGENT
     };
     log("info", `[\u5F39\u5E55] \u8BF7\u6C42 uniqueKey: ${uniqueKey}`);
-    log("info", `[\u5F39\u5E55] vv\u7B7E\u540D: ${vv.substring(0, 16)}...`);
     try {
-      const urlWithParams = updateQueryString(this.DANMU_API, params);
-      const response = await Widget.http.get(globals.makeProxyUrl(urlWithParams), { headers });
-      const data = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+      const { data, vv } = await this.signingProvider.signedGetJson(this.DANMU_API, baseParams, headers, "\u5F39\u5E55");
+      log("info", `[\u5F39\u5E55] vv\u7B7E\u540D: ${vv.substring(0, 16)}...`);
       const danmuList = data.data?.info || [];
       log("info", `[\u5F39\u5E55] \u83B7\u53D6\u5230 ${danmuList.length} \u6761\u5F39\u5E55`);
       return danmuList;
@@ -16282,25 +16563,39 @@ var AiyifanSource = class extends BaseSource {
    */
   async getEpisodeDanmu(id) {
     log("info", `[Aiyifan] \u83B7\u53D6\u5F39\u5E55: ${id}`);
-    const videoId = new URL(id).searchParams.get("id") ?? id;
-    const videoInfo = await this.getVideoInfo(videoId);
-    if (!videoInfo) {
-      log("error", "\u83B7\u53D6\u89C6\u9891\u4FE1\u606F\u5931\u8D25");
-      return [];
+    const requestKey = this.extractEpisodeRequestKey(id);
+    const inflightRequest = this.inflightDanmuRequests.get(requestKey);
+    if (inflightRequest) {
+      log("info", `[Aiyifan] \u590D\u7528\u8FDB\u884C\u4E2D\u7684\u5F39\u5E55\u8BF7\u6C42: ${requestKey}`);
+      return await inflightRequest;
     }
-    const uniqueKey = this.extractUniqueKey(videoInfo);
-    if (!uniqueKey) {
-      log("error", "\u672A\u83B7\u53D6\u5230uniqueKey");
-      return [];
+    const requestPromise = (async () => {
+      const videoId = requestKey;
+      const videoInfo = await this.getVideoInfo(videoId);
+      if (!videoInfo) {
+        log("error", "\u83B7\u53D6\u89C6\u9891\u4FE1\u606F\u5931\u8D25");
+        return [];
+      }
+      const uniqueKey = this.extractUniqueKey(videoInfo);
+      if (!uniqueKey) {
+        log("error", "\u672A\u83B7\u53D6\u5230uniqueKey");
+        return [];
+      }
+      const danmuList = await this.fetchBarrage(uniqueKey);
+      if (danmuList.length === 0) {
+        log("info", "\u672A\u83B7\u53D6\u5230\u5F39\u5E55");
+        return [];
+      }
+      danmuList.sort((a, b) => (a.second || 0) - (b.second || 0));
+      log("info", `[Aiyifan] \u83B7\u53D6\u5230 ${danmuList.length} \u6761\u5F39\u5E55`);
+      return danmuList;
+    })();
+    this.inflightDanmuRequests.set(requestKey, requestPromise);
+    try {
+      return await requestPromise;
+    } finally {
+      this.inflightDanmuRequests.delete(requestKey);
     }
-    const danmuList = await this.fetchBarrage(uniqueKey);
-    if (danmuList.length === 0) {
-      log("info", "\u672A\u83B7\u53D6\u5230\u5F39\u5E55");
-      return [];
-    }
-    danmuList.sort((a, b) => (a.second || 0) - (b.second || 0));
-    log("info", `[Aiyifan] \u83B7\u53D6\u5230 ${danmuList.length} \u6761\u5F39\u5E55`);
-    return danmuList;
   }
   /**
    * 获取某集的弹幕分片列表
@@ -17666,7 +17961,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.18.1" : Globals.VERSION;
+var wv = true ? "1.18.2" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
