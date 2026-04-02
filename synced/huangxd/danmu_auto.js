@@ -1041,7 +1041,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.18.2",
+  VERSION: "1.18.3",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -7154,6 +7154,41 @@ var Kan360Source = class extends BaseSource {
       return [];
     }
   }
+  // 获取某站点的总集数
+  async getNumber(cat, id, site) {
+    try {
+      const url = `https://api.web.360kan.com/v1/detail?cat=${cat}&id=${id}&site=${site}`;
+      const res = await Widget.http.get(url, {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+      });
+      const result = res.data;
+      if (result && result.data && result.data.allupinfo) {
+        return Number(result.data.allupinfo[site]);
+      }
+    } catch (error) {
+      log("error", "getNumber error:", error && error.message ? error.message : error);
+    }
+    return null;
+  }
+  // 获取 allepidetail（start..end）
+  async get360Detail(cat, id, site, start2, end2) {
+    try {
+      const url = `https://api.web.360kan.com/v1/detail?cat=${cat}&id=${id}&start=${start2}&end=${end2}&site=${site}`;
+      const res = await Widget.http.get(url, {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+      });
+      return res.data;
+    } catch (error) {
+      log("error", "get360Detail error:", error && error.message ? error.message : error);
+    }
+    return null;
+  }
   async search(keyword) {
     try {
       const response = await Widget.http.get(
@@ -7204,14 +7239,40 @@ var Kan360Source = class extends BaseSource {
             }
           }
         } else if (anime.cat_name === "\u7535\u89C6\u5267" || anime.cat_name === "\u52A8\u6F2B") {
-          if (globals.vodAllowedPlatforms.includes(anime.seriesSite)) {
-            for (let i = 0; i < anime.seriesPlaylinks.length; i++) {
-              const item = anime.seriesPlaylinks[i];
-              links.push({
-                "name": (i + 1).toString(),
-                "url": item.url,
-                "title": `\u3010${anime.seriesSite}\u3011 \u7B2C${i + 1}\u96C6`
-              });
+          let cat = 0;
+          if (anime.cat_name === "\u7535\u89C6\u5267") cat = 2;
+          else if (anime.cat_name === "\u52A8\u6F2B") cat = 4;
+          let number = null;
+          if (Array.isArray(anime.seriesPlaylinks) && anime.seriesPlaylinks.length > 0) {
+            if (globals.vodAllowedPlatforms.includes(anime.seriesSite)) {
+              for (let i = 0; i < anime.seriesPlaylinks.length; i++) {
+                const item = anime.seriesPlaylinks[i];
+                links.push({
+                  "name": (i + 1).toString(),
+                  "url": item.url,
+                  "title": `\u3010${anime.seriesSite}\u3011 \u7B2C${i + 1}\u96C6`
+                });
+              }
+            }
+          } else if (anime.playlinks && typeof anime.playlinks === "object") {
+            for (const siteKey of Object.keys(anime.playlinks)) {
+              if (!globals.vodAllowedPlatforms.includes(siteKey)) continue;
+              try {
+                const detailId = anime.en_id;
+                const siteNumber = await this.getNumber(cat, detailId, siteKey);
+                const detail = await this.get360Detail(cat, detailId, siteKey, 1, siteNumber);
+                if (detail && detail.data && detail.data.allepidetail && detail.data.allepidetail[siteKey]) {
+                  for (const ep of detail.data.allepidetail[siteKey]) {
+                    links.push({
+                      name: ep.playlink_num,
+                      url: ep.url,
+                      title: `\u3010${siteKey}\u3011 \u7B2C${ep.playlink_num}\u96C6`
+                    });
+                  }
+                }
+              } catch (e) {
+                log("error", `[360kan] failed to fetch detail for site ${siteKey}: ${e && e.message ? e.message : e}`);
+              }
             }
           }
         } else if (anime.cat_name === "\u7EFC\u827A") {
@@ -12734,7 +12795,7 @@ var DandanSource = class extends BaseSource {
             log("info", "[Dandan] TMDB\u8F6C\u6362\u672A\u8FD4\u56DE\u7ED3\u679C\uFF0C\u53D6\u6D88\u65E5\u8BED\u539F\u540D\u641C\u7D22");
             return { success: false, source: "tmdb" };
           }
-          const { title: tmdbTitle } = tmdbResult2;
+          const { title: tmdbTitle, cnAlias } = tmdbResult2;
           log("info", `[Dandan] \u4F7F\u7528\u65E5\u8BED\u539F\u540D\u901A\u8FC7 episodes \u63A5\u53E3\u8FDB\u884C\u641C\u7D22: ${tmdbTitle}`);
           const resp = await Widget.http.get(`https://api.danmaku.weeblify.app/ddp/v1?path=/v2/search/episodes?anime=${encodeURIComponent(tmdbTitle)}`, {
             headers: {
@@ -12754,6 +12815,7 @@ var DandanSource = class extends BaseSource {
           const animes = resp.data.animes;
           for (const anime of animes) {
             anime.isTmdbSource = true;
+            anime._tmdbCnAlias = cnAlias;
           }
           log("info", `dandanSearchresp (tmdb): ${JSON.stringify(animes)}`);
           log("info", `[Dandan] \u8FD4\u56DE ${animes.length} \u6761\u7ED3\u679C (source: tmdb)`);
@@ -12858,6 +12920,11 @@ var DandanSource = class extends BaseSource {
       log("error", "[Dandan] sourceAnimes is not a valid array");
       return [];
     }
+    sourceAnimes.forEach((anime) => {
+      anime.title = anime.animeTitle;
+    });
+    const cnAlias = sourceAnimes.length > 0 ? sourceAnimes[0]._tmdbCnAlias : null;
+    smartTitleReplace(sourceAnimes, cnAlias);
     const initialCount = sourceAnimes.length;
     const existingIds = /* @__PURE__ */ new Set();
     const queue = [];
@@ -12867,11 +12934,16 @@ var DandanSource = class extends BaseSource {
     }
     while (queue.length > 0) {
       const currentBatch = queue.splice(0, queue.length);
+      const newlyAddedRelateds = currentBatch.filter((a) => a.isRelated && !a._displayTitle);
+      if (newlyAddedRelateds.length > 0) {
+        newlyAddedRelateds.forEach((a) => a.title = a.animeTitle);
+        smartTitleReplace(newlyAddedRelateds, cnAlias);
+      }
       await Promise.all(currentBatch.map(async (anime) => {
         try {
           const details = await this.getEpisodes(anime.animeId);
           const eps = details.episodes;
-          const aliases = details.titles;
+          const apiAliases = details.titles || [];
           const similarity = this.calculateSimilarity(queryTitle, anime.animeTitle);
           if (similarity >= 0.1 && details.relateds && Array.isArray(details.relateds)) {
             for (const rel of details.relateds) {
@@ -12889,7 +12961,7 @@ var DandanSource = class extends BaseSource {
               }
             }
           }
-          const allTitles = [anime.animeTitle, ...aliases];
+          const allTitles = [anime.animeTitle, ...apiAliases];
           let isMatch = false;
           if (anime.isRelated || anime.isTmdbSource) {
             const querySeason = getExplicitSeasonNumber(queryTitle);
@@ -12927,6 +12999,20 @@ var DandanSource = class extends BaseSource {
             });
           }
           if (links.length > 0) {
+            const baseQueryTitle = cleanSearchQuery(queryTitle);
+            const matchedApiAlias = apiAliases.find((alias) => {
+              if (!alias) return false;
+              return alias.toLowerCase() === baseQueryTitle.toLowerCase();
+            });
+            if (matchedApiAlias) {
+              smartTitleReplace([anime], matchedApiAlias);
+              log("info", `[Dandan] \u547D\u4E2D API \u5B98\u65B9\u522B\u540D: \u641C\u7D22\u8BCD "${baseQueryTitle}" \u5339\u914D\u5230 "${matchedApiAlias}", \u5DF2\u5C06\u539F\u6807\u9898 "${anime.animeTitle}" \u66FF\u6362\u5C55\u793A`);
+            }
+            const displayTitle = anime._displayTitle || anime.animeTitle;
+            const finalAliases = [...apiAliases];
+            if (anime.animeTitle && anime.animeTitle !== displayTitle && !finalAliases.includes(anime.animeTitle)) {
+              finalAliases.push(anime.animeTitle);
+            }
             const resolvedType = details.type || anime.type || "tvseries";
             const resolvedTypeDescription = details.typeDescription || anime.typeDescription || "TV\u52A8\u753B";
             const resolvedStartDate = anime.startDate || (eps.length > 0 ? eps[0].airDate : null);
@@ -12934,8 +13020,8 @@ var DandanSource = class extends BaseSource {
             let transformedAnime = {
               animeId: anime.animeId,
               bangumiId: String(anime.animeId),
-              animeTitle: `${anime.animeTitle}(${yearStr})\u3010${resolvedTypeDescription}\u3011from dandan`,
-              aliases,
+              animeTitle: `${displayTitle}(${yearStr})\u3010${resolvedTypeDescription}\u3011from dandan`,
+              aliases: finalAliases,
               type: resolvedType,
               typeDescription: resolvedTypeDescription,
               imageUrl: details.imageUrl || anime.imageUrl,
@@ -17961,7 +18047,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.18.2" : Globals.VERSION;
+var wv = true ? "1.18.3" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
