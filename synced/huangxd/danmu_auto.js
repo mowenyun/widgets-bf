@@ -636,7 +636,7 @@ var Envs = class {
   static resolveEpisodeTitleFilter() {
     const defaultFilter = (
       // [1] 基础物料与口语词防御，保护: 企划书, 预告犯, 被抢先了, 抢先一步, 化学反应, 一直拍, 单纯享
-      "(\u7279\u522B|\u60CA\u559C|\u7EB3\u51C9)?\u4F01\u5212(?!(\u4E66|\u6848|\u90E8))|\u5408\u4F19\u4EBA\u624B\u8BB0|\u8D85\u524D(\u8425\u4E1A|vlog)?|\u901F\u89C8|vlog|(?<!(Chain|Chemical|Nuclear|\u8FDE\u9501|\u5316\u5B66|\u6838|\u751F\u5316|\u751F\u7406|\u5E94\u6FC0))reaction|(?<!(\u5355))\u7EAF\u4EAB|\u52A0\u66F4(\u7248|\u7BC7)?|\u62A2\u5148(\u770B|\u7248|\u96C6|\u7BC7)?|(?<!(\u88AB|\u4E89|\u8C01))\u62A2[\u5148\u9C9C](?!(\u4E00\u6B65|\u624B|\u653B|\u4E86|\u544A|\u8A00|\u673A|\u8BDD))|\u62A2\u9C9C|\u9884\u544A(?!(\u51FD|\u4FE1|\u4E66|\u72AF))|(?<!(\u6B7B\u4EA1|\u6050\u6016|\u7075\u5F02|\u602A\u8C08))\u82B1\u7D6E(\u72EC\u5BB6)?|(?<!(\u4E00|\u76F4))\u76F4\u62CD|(\u5236\u4F5C|\u62CD\u6444|\u5E55\u540E|\u82B1\u7D6E|\u672A\u64AD|\u72EC\u5BB6|\u6F14\u5458|\u5BFC\u6F14|\u4E3B\u521B|\u6740\u9752|\u63A2\u73ED|\u6536\u5B98|\u5F00\u64AD|\u5148\u5BFC|\u5F69\u86CB|NG|\u56DE\u987E|\u9AD8\u5149|\u4E2A\u4EBA|\u4E3B\u521B)\u7279\u8F91|(?<!(\u884C\u52A8|\u8BA1\u5212|\u6E38\u620F|\u4EFB\u52A1|\u5371\u673A|\u795E\u79D8|\u9EC4\u91D1))\u5F69\u86CB|(?<!(\u5ACC\u7591\u4EBA|\u8BC1\u4EBA|\u5BB6\u5C5E|\u5F8B\u5E08|\u8B66\u65B9|\u51F6\u624B|\u6B7B\u8005))\u4E13\u8BBF|(?<!(\u8BC1\u4EBA))\u91C7\u8BBF(?!(\u5438\u8840\u9B3C|\u9B3C))|(\u6B63\u5F0F|\u89D2\u8272|\u5148\u5BFC|\u6982\u5FF5|\u9996\u66DD|\u5B9A\u6863|\u5267\u60C5|\u52A8\u753B|\u5BA3\u4F20|\u4E3B\u9898\u66F2|\u5370\u8C61)[\\s\\.]*[Pp\uFF30\uFF50][Vv\uFF36\uFF56]|(?<!(\u9E26|\u96EA|\u7EB8|\u76F8|\u7167|\u56FE|\u540D|\u5927))\u7247\u82B1|(?<!(\u9000\u5C45|\u56DE\u5F52|\u8D70\u5411|\u8F6C\u6218|\u9690\u8EAB|\u85CF\u8EAB))\u5E55\u540E(?!(\u4E3B\u8C0B|\u4E3B\u4F7F|\u9ED1\u624B|\u771F\u51F6|\u73A9\u5BB6|\u8001\u677F|\u91D1\u4E3B|\u82F1\u96C4|\u529F\u81E3|\u63A8\u624B|\u5927\u4F6C|\u64CD\u7EB5|\u4EA4\u6613|\u7B56\u5212|\u535A\u5F08|BOSS|\u771F\u76F8))(\u6545\u4E8B|\u82B1\u7D6E|\u72EC\u5BB6)?|\u884D\u751F(?!(\u54C1|\u7269|\u517D))|\u756A\u5916(?!(\u5730|\u4EBA))|\u76F4\u64AD(\u966A\u770B|\u56DE\u987E)?|\u76F4\u64AD(?!(.*(\u4E8B\u4EF6|\u6740\u4EBA|\u81EA\u6740|\u8C0B\u6740|\u72AF\u7F6A|\u73B0\u573A|\u6E38\u620F|\u6311\u6218)))|\u672A\u64AD(\u7247\u6BB5)?|\u4F1A\u5458(\u4E13\u4EAB|\u52A0\u957F|\u5C0A\u4EAB|\u4E13\u5C5E|\u7248)?|(?<!(\u63D0\u53D6|\u5438\u6536|\u751F\u547D|\u9B54\u6CD5|\u4FEE\u62A4|\u7F8E\u767D))\u7CBE\u534E|\u770B\u70B9|\u901F\u770B|\u89E3\u8BFB(?!.*(\u5BC6\u6587|\u5BC6\u7801|\u5BC6\u7535|\u7535\u62A5|\u6863\u6848|\u4E66\u4FE1|\u9057\u4E66|\u7891\u6587|\u4EE3\u7801|\u4FE1\u53F7|\u6697\u53F7|\u8BAF\u606F|\u8C1C\u9898|\u4EBA\u5FC3|\u5507\u8BED|\u771F\u76F8|\u8C1C\u56E2|\u68A6\u5883))|(?<!(\u6848\u60C5|\u4EBA\u751F|\u6B7B\u524D|\u5386\u53F2|\u4E16\u7EAA))\u56DE\u987E|\u5F71\u8BC4|\u89E3\u8BF4|\u5410\u69FD|(?<!(\u5E74\u7EC8|\u5B63\u5EA6|\u5E93\u5B58|\u8D44\u4EA7|\u7269\u8D44|\u8D22\u52A1|\u6536\u83B7|\u6218\u5229))\u76D8\u70B9|\u62CD\u6444\u82B1\u7D6E|\u5236\u4F5C\u82B1\u7D6E|\u5E55\u540E\u82B1\u7D6E|\u672A\u64AD\u82B1\u7D6E|\u72EC\u5BB6\u82B1\u7D6E|\u82B1\u7D6E\u7279\u8F91|\u5148\u5BFC\u9884\u544A|\u7EC8\u6781\u9884\u544A|\u6B63\u5F0F\u9884\u544A|\u5B98\u65B9\u9884\u544A|\u5F69\u86CB\u7247\u6BB5|\u5220\u51CF\u7247\u6BB5|\u672A\u64AD\u7247\u6BB5|\u756A\u5916\u5F69\u86CB|\u7CBE\u5F69\u7247\u6BB5|\u7CBE\u5F69\u770B\u70B9|\u7CBE\u5F69\u96C6\u9526|\u770B\u70B9\u89E3\u6790|\u770B\u70B9\u9884\u544A|NG\u955C\u5934|NG\u82B1\u7D6E|\u756A\u5916\u7BC7|\u756A\u5916\u7279\u8F91|\u5236\u4F5C\u7279\u8F91|\u62CD\u6444\u7279\u8F91|\u5E55\u540E\u7279\u8F91|\u5BFC\u6F14\u7279\u8F91|\u6F14\u5458\u7279\u8F91|\u7247\u5C3E\u66F2|(?<!(\u751F\u547D|\u751F\u6D3B|\u60C5\u611F|\u7231\u60C5|\u4E00\u6BB5|\u5C0F|\u610F\u5916))\u63D2\u66F2|\u9AD8\u5149\u56DE\u987E|\u80CC\u666F\u97F3\u4E50|OST|\u97F3\u4E50MV|\u6B4C\u66F2MV|\u524D\u5B63\u56DE\u987E|\u5267\u60C5\u56DE\u987E|\u5F80\u671F\u56DE\u987E|\u5185\u5BB9\u603B\u7ED3|\u5267\u60C5\u76D8\u70B9|\u7CBE\u9009\u5408\u96C6|\u526A\u8F91\u5408\u96C6|\u6DF7\u526A\u89C6\u9891|\u72EC\u5BB6\u4E13\u8BBF|\u6F14\u5458\u8BBF\u8C08|\u5BFC\u6F14\u8BBF\u8C08|\u4E3B\u521B\u8BBF\u8C08|\u5A92\u4F53\u91C7\u8BBF|\u53D1\u5E03\u4F1A\u91C7\u8BBF|\u966A\u770B(\u8BB0)?|\u8BD5\u770B\u7248|\u77ED\u5267|\u7CBE\u7F16|(?<!(Love|Disney|One|C|Note|S\\d+|\\+|&|\\s))Plus|\u72EC\u5BB6\u7248|(?<!(\u5BFC\u6F14|\u52A0\u957F|\u5468\u5E74))\u7279\u522B\u7248(?!(\u56FE|\u753B))|\u77ED\u7247|(?<!(\u65B0\u95FB|\u7D27\u6025|\u4E34\u65F6|\u53EC\u5F00|\u7834\u574F|\u5927\u95F9|\u6F84\u6E05|\u9053\u6B49|\u65B0\u54C1|\u4EA7\u54C1|\u4E8B\u6545))\u53D1\u5E03\u4F1A|\u89E3\u5FE7\u5C40|\u8D70\u5FC3\u5C40|\u706B\u9505\u5C40|\u5DC5\u5CF0\u65F6\u523B|\u575E\u91CC\u90FD\u77E5\u9053|\u798F\u6301\u76EE\u6807\u575E\u6C11|\u798F\u5229(?!(\u9662|\u4F1A|\u4E3B\u4E49|\u8BFE))\u7BC7|(\u798F\u5229|\u52A0\u66F4|\u756A\u5916|\u5F69\u86CB|\u884D\u751F|\u7279\u522B|\u6536\u5B98|\u6E38\u620F|\u6574\u86CA|\u65E5\u5E38)\u7BC7|\u72EC\u5BB6(?!(\u8BB0\u5FC6|\u8BD5\u7231|\u62A5\u9053|\u79D8\u65B9|\u5360\u6709|\u5BA0\u7231|\u6069\u5BA0))|.{2,}(?<!(\u5E02|\u5206|\u8B66|\u603B|\u7701|\u536B|\u836F|\u653F|\u76D1|\u7ED3|\u5927|\u5F00|\u7834|\u5E03|\u50F5|\u56F0|\u9A97|\u8D4C|\u80DC|\u8D25|\u5B9A|\u4E71|\u5371|\u8FF7|\u8C1C|\u5165|\u6405|\u8BBE|\u4E2D|\u6B8B|\u5E73|\u548C|\u7EC8|\u53D8|\u5BF9|\u5B89|\u505A|\u4E66|\u753B|\u5BDF|\u52A1|\u6848|\u901A|\u4FE1|\u80B2|\u5546|\u8C61|\u6E90|\u4E1A|\u51B0))\u5C40(?!(\u957F|\u5EA7|\u52BF|\u9762|\u90E8|\u5185|\u5916|\u4E2D|\u9650|\u4FC3|\u6C14))|(?<!(\u91CD\u75C7|\u9694\u79BB|\u5B9E\u9A8C|\u5FC3\u7406|\u5BA1\u8BAF|\u5355\u5411|\u672F\u540E))\u89C2\u5BDF\u5BA4|\u4E0A\u73ED\u90A3\u70B9\u4E8B\u513F|\u5468top|\u8D5B\u6BB5|VLOG|(?<!(\u5927\u6848|\u8981\u6848|\u5211\u4FA6|\u4FA6\u67E5|\u7834\u6848|\u6863\u6848|\u98CE\u4E91|\u5386\u53F2|\u6218\u4E89|\u63A2\u6848|\u81EA\u7136|\u4EBA\u6587|\u79D1\u5B66|\u533B\u5B66|\u5730\u7406|\u5B87\u5B99|\u8D5B\u4E8B|\u4E16\u754C\u676F|\u5965\u8FD0))\u5168\u7EAA\u5F55|\u5F00\u64AD|\u5148\u5BFC|\u603B\u5BA3|\u5C55\u6F14|\u96C6\u9526|\u65C5\u884C\u65E5\u8BB0|\u7CBE\u5F69\u5206\u4EAB|\u5267\u60C5\u63ED\u79D8(?!(\u8005|\u4EBA))"
+      "(\u7279\u522B|\u60CA\u559C|\u7EB3\u51C9)?\u4F01\u5212(?!(\u4E66|\u6848|\u90E8))|\u5408\u4F19\u4EBA\u624B\u8BB0|\u8D85\u524D(\u8425\u4E1A|vlog)?|\u901F\u89C8|vlog|(?<!(Chain|Chemical|Nuclear|\u8FDE\u9501|\u5316\u5B66|\u6838|\u751F\u5316|\u751F\u7406|\u5E94\u6FC0))reaction|(?<!(\u5355))\u7EAF\u4EAB|\u52A0\u66F4(\u7248|\u7BC7)?|\u62A2\u5148(\u770B|\u7248|\u96C6|\u7BC7)?|(?<!(\u88AB|\u4E89|\u8C01))\u62A2[\u5148\u9C9C](?!(\u4E00\u6B65|\u624B|\u653B|\u4E86|\u544A|\u8A00|\u673A|\u8BDD))|\u62A2\u9C9C|\u9884\u544A(?!(\u51FD|\u4FE1|\u4E66|\u72AF))|(?<!(\u6B7B\u4EA1|\u6050\u6016|\u7075\u5F02|\u602A\u8C08))\u82B1\u7D6E(\u72EC\u5BB6)?|(?<!(\u4E00|\u76F4))\u76F4\u62CD|(\u5236\u4F5C|\u62CD\u6444|\u5E55\u540E|\u82B1\u7D6E|\u672A\u64AD|\u72EC\u5BB6|\u6F14\u5458|\u5BFC\u6F14|\u4E3B\u521B|\u6740\u9752|\u63A2\u73ED|\u6536\u5B98|\u5F00\u64AD|\u5148\u5BFC|\u5F69\u86CB|NG|\u56DE\u987E|\u9AD8\u5149|\u4E2A\u4EBA|\u4E3B\u521B)\u7279\u8F91|(?<!(\u884C\u52A8|\u8BA1\u5212|\u6E38\u620F|\u4EFB\u52A1|\u5371\u673A|\u795E\u79D8|\u9EC4\u91D1))\u5F69\u86CB|(?<!(\u5ACC\u7591\u4EBA|\u8BC1\u4EBA|\u5BB6\u5C5E|\u5F8B\u5E08|\u8B66\u65B9|\u51F6\u624B|\u6B7B\u8005))\u4E13\u8BBF|(?<!(\u8BC1\u4EBA))\u91C7\u8BBF(?!(\u5438\u8840\u9B3C|\u9B3C))|(\u6B63\u5F0F|\u89D2\u8272|\u5148\u5BFC|\u6982\u5FF5|\u9996\u66DD|\u5B9A\u6863|\u5267\u60C5|\u52A8\u753B|\u5BA3\u4F20|\u4E3B\u9898\u66F2|\u5370\u8C61)[\\s\\.]*[Pp\uFF30\uFF50][Vv\uFF36\uFF56]|(?<!(\u9E26|\u96EA|\u7EB8|\u76F8|\u7167|\u56FE|\u540D|\u5927))\u7247\u82B1|(?<!(\u9000\u5C45|\u56DE\u5F52|\u8D70\u5411|\u8F6C\u6218|\u9690\u8EAB|\u85CF\u8EAB|\u7684))\u5E55\u540E(?!(\u4E3B\u8C0B|\u4E3B\u4F7F|\u9ED1\u624B|\u771F\u51F6|\u73A9\u5BB6|\u8001\u677F|\u91D1\u4E3B|\u82F1\u96C4|\u529F\u81E3|\u63A8\u624B|\u5927\u4F6C|\u64CD\u7EB5|\u4EA4\u6613|\u7B56\u5212|\u535A\u5F08|BOSS|\u771F\u76F8))(\u6545\u4E8B|\u82B1\u7D6E|\u72EC\u5BB6)?|\u884D\u751F(?!(\u54C1|\u7269|\u517D))|\u756A\u5916(?!(\u5730|\u4EBA))|\u76F4\u64AD(\u966A\u770B|\u56DE\u987E)?|\u76F4\u64AD(?!(.*(\u4E8B\u4EF6|\u6740\u4EBA|\u81EA\u6740|\u8C0B\u6740|\u72AF\u7F6A|\u73B0\u573A|\u6E38\u620F|\u6311\u6218)))|\u672A\u64AD(\u7247\u6BB5)?|\u4F1A\u5458(\u4E13\u4EAB|\u52A0\u957F|\u5C0A\u4EAB|\u4E13\u5C5E|\u7248)?|(?<!(\u63D0\u53D6|\u5438\u6536|\u751F\u547D|\u9B54\u6CD5|\u4FEE\u62A4|\u7F8E\u767D))\u7CBE\u534E|\u770B\u70B9|\u901F\u770B|\u89E3\u8BFB(?!.*(\u5BC6\u6587|\u5BC6\u7801|\u5BC6\u7535|\u7535\u62A5|\u6863\u6848|\u4E66\u4FE1|\u9057\u4E66|\u7891\u6587|\u4EE3\u7801|\u4FE1\u53F7|\u6697\u53F7|\u8BAF\u606F|\u8C1C\u9898|\u4EBA\u5FC3|\u5507\u8BED|\u771F\u76F8|\u8C1C\u56E2|\u68A6\u5883))|(?<!(\u6848\u60C5|\u4EBA\u751F|\u6B7B\u524D|\u5386\u53F2|\u4E16\u7EAA))\u56DE\u987E|\u5F71\u8BC4|\u89E3\u8BF4|\u5410\u69FD|(?<!(\u5E74\u7EC8|\u5B63\u5EA6|\u5E93\u5B58|\u8D44\u4EA7|\u7269\u8D44|\u8D22\u52A1|\u6536\u83B7|\u6218\u5229))\u76D8\u70B9|\u62CD\u6444\u82B1\u7D6E|\u5236\u4F5C\u82B1\u7D6E|\u5E55\u540E\u82B1\u7D6E|\u672A\u64AD\u82B1\u7D6E|\u72EC\u5BB6\u82B1\u7D6E|\u82B1\u7D6E\u7279\u8F91|\u5148\u5BFC\u9884\u544A|\u7EC8\u6781\u9884\u544A|\u6B63\u5F0F\u9884\u544A|\u5B98\u65B9\u9884\u544A|\u5F69\u86CB\u7247\u6BB5|\u5220\u51CF\u7247\u6BB5|\u672A\u64AD\u7247\u6BB5|\u756A\u5916\u5F69\u86CB|\u7CBE\u5F69\u7247\u6BB5|\u7CBE\u5F69\u770B\u70B9|\u7CBE\u5F69\u96C6\u9526|\u770B\u70B9\u89E3\u6790|\u770B\u70B9\u9884\u544A|NG\u955C\u5934|NG\u82B1\u7D6E|\u756A\u5916\u7BC7|\u756A\u5916\u7279\u8F91|\u5236\u4F5C\u7279\u8F91|\u62CD\u6444\u7279\u8F91|\u5E55\u540E\u7279\u8F91|\u5BFC\u6F14\u7279\u8F91|\u6F14\u5458\u7279\u8F91|\u7247\u5C3E\u66F2|(?<!(\u751F\u547D|\u751F\u6D3B|\u60C5\u611F|\u7231\u60C5|\u4E00\u6BB5|\u5C0F|\u610F\u5916))\u63D2\u66F2|\u9AD8\u5149\u56DE\u987E|\u80CC\u666F\u97F3\u4E50|OST|\u97F3\u4E50MV|\u6B4C\u66F2MV|\u524D\u5B63\u56DE\u987E|\u5267\u60C5\u56DE\u987E|\u5F80\u671F\u56DE\u987E|\u5185\u5BB9\u603B\u7ED3|\u5267\u60C5\u76D8\u70B9|\u7CBE\u9009\u5408\u96C6|\u526A\u8F91\u5408\u96C6|\u6DF7\u526A\u89C6\u9891|\u72EC\u5BB6\u4E13\u8BBF|\u6F14\u5458\u8BBF\u8C08|\u5BFC\u6F14\u8BBF\u8C08|\u4E3B\u521B\u8BBF\u8C08|\u5A92\u4F53\u91C7\u8BBF|\u53D1\u5E03\u4F1A\u91C7\u8BBF|\u966A\u770B(\u8BB0)?|\u8BD5\u770B\u7248|\u77ED\u5267|\u7CBE\u7F16|(?<!(Love|Disney|One|C|Note|S\\d+|\\+|&|\\s))Plus|\u72EC\u5BB6\u7248|(?<!(\u5BFC\u6F14|\u52A0\u957F|\u5468\u5E74))\u7279\u522B\u7248(?!(\u56FE|\u753B))|\u77ED\u7247|(?<!(\u65B0\u95FB|\u7D27\u6025|\u4E34\u65F6|\u53EC\u5F00|\u7834\u574F|\u5927\u95F9|\u6F84\u6E05|\u9053\u6B49|\u65B0\u54C1|\u4EA7\u54C1|\u4E8B\u6545))\u53D1\u5E03\u4F1A|\u89E3\u5FE7\u5C40|\u8D70\u5FC3\u5C40|\u706B\u9505\u5C40|\u5DC5\u5CF0\u65F6\u523B|\u575E\u91CC\u90FD\u77E5\u9053|\u798F\u6301\u76EE\u6807\u575E\u6C11|\u798F\u5229(?!(\u9662|\u4F1A|\u4E3B\u4E49|\u8BFE))\u7BC7|(\u798F\u5229|\u52A0\u66F4|\u756A\u5916|\u5F69\u86CB|\u884D\u751F|\u7279\u522B|\u6536\u5B98|\u6E38\u620F|\u6574\u86CA|\u65E5\u5E38)\u7BC7|\u72EC\u5BB6(?!(\u8BB0\u5FC6|\u8BD5\u7231|\u62A5\u9053|\u79D8\u65B9|\u5360\u6709|\u5BA0\u7231|\u6069\u5BA0))|.{2,}(?<!(\u5E02|\u5206|\u8B66|\u603B|\u7701|\u536B|\u836F|\u653F|\u76D1|\u7ED3|\u5927|\u5F00|\u7834|\u5E03|\u50F5|\u56F0|\u9A97|\u8D4C|\u80DC|\u8D25|\u5B9A|\u4E71|\u5371|\u8FF7|\u8C1C|\u5165|\u6405|\u8BBE|\u4E2D|\u6B8B|\u5E73|\u548C|\u7EC8|\u53D8|\u5BF9|\u5B89|\u505A|\u4E66|\u753B|\u5BDF|\u52A1|\u6848|\u901A|\u4FE1|\u80B2|\u5546|\u8C61|\u6E90|\u4E1A|\u51B0))\u5C40(?!(\u957F|\u5EA7|\u52BF|\u9762|\u90E8|\u5185|\u5916|\u4E2D|\u9650|\u4FC3|\u6C14))|(?<!(\u91CD\u75C7|\u9694\u79BB|\u5B9E\u9A8C|\u5FC3\u7406|\u5BA1\u8BAF|\u5355\u5411|\u672F\u540E))\u89C2\u5BDF\u5BA4|\u4E0A\u73ED\u90A3\u70B9\u4E8B\u513F|\u5468top|\u8D5B\u6BB5|VLOG|(?<!(\u5927\u6848|\u8981\u6848|\u5211\u4FA6|\u4FA6\u67E5|\u7834\u6848|\u6863\u6848|\u98CE\u4E91|\u5386\u53F2|\u6218\u4E89|\u63A2\u6848|\u81EA\u7136|\u4EBA\u6587|\u79D1\u5B66|\u533B\u5B66|\u5730\u7406|\u5B87\u5B99|\u8D5B\u4E8B|\u4E16\u754C\u676F|\u5965\u8FD0))\u5168\u7EAA\u5F55|\u5F00\u64AD|\u5148\u5BFC|\u603B\u5BA3|\u5C55\u6F14|\u96C6\u9526|\u65C5\u884C\u65E5\u8BB0|\u7CBE\u5F69\u5206\u4EAB|\u5267\u60C5\u63ED\u79D8(?!(\u8005|\u4EBA))|(?:^|\u3011\\s*|\\]\\s*)(?:[SC]|SP|OP|ED|PV)\\d+(?:[\\s:\uFF1A\\.\\-]|$)"
     );
     const customFilter = this.get("EPISODE_TITLE_FILTER", "", "string", false).trim();
     let keywords = customFilter || defaultFilter;
@@ -1008,6 +1008,7 @@ __publicField(Envs, "DEFAULT_AI_MATCH_PROMPT", `\u4F60\u662F\u4E00\u4E2A\u4E13\u
 - animes: \u5019\u9009\u52A8\u6F2B\u5217\u8868
   - animeId: \u52A8\u6F2Bid
     animeTitle: \u52A8\u6F2B\u6807\u9898\uFF0C(\u5E74\u4EFD)\u524D\u9762\u624D\u662F\u771F\u5B9E\u7684\u6807\u9898
+	aliases: \u52A8\u6F2B\u6807\u9898\u7684\u522B\u540D\uFF0C\u89C6\u60C5\u51B5\u53EF\u4EE5\u4F5C\u4E3A(\u52A8\u6F2B\u6807\u9898)\u770B\u5F85
     type: \u7C7B\u578B
     startDate: \u53D1\u5E03\u65E5\u671F\uFF0C\u6709\u5E74\u4EFD
     episodeCount: \u603B\u96C6\u6570
@@ -1041,7 +1042,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.18.3",
+  VERSION: "1.18.4",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -4182,42 +4183,41 @@ async function getTmdbAlternativeTitles(mediaType, tmdbId, options = {}) {
   const url = `${mediaType}/${tmdbId}/alternative_titles?api_key=${globals.tmdbApiKey}`;
   return await tmdbApiGet(url, options);
 }
-function extractChineseTitleFromAlternatives(altData, mediaType) {
-  if (!altData || !altData.data) return null;
-  const titles = altData.data.results || altData.data.titles || [];
-  if (!Array.isArray(titles) || titles.length === 0) {
-    return null;
-  }
-  const priorityRegions = ["CN", "TW", "HK", "SG"];
-  for (const region of priorityRegions) {
-    const match = titles.find((t) => {
-      const iso = t.iso_3166_1 || t.iso_639_1;
-      const title = t.title || t.name || "";
-      return iso === region && title && !isNonChinese(title);
-    });
+function extractChineseTitleFromAlternatives(altData, mediaType, queryTitle = "") {
+  const titles = altData?.data?.results || altData?.data?.titles || [];
+  if (!titles.length) return null;
+  const cleanQuery = (queryTitle || "").toLowerCase().trim();
+  const getStr = (t) => t.title || t.name || "";
+  const priorityRules = [
+    // 1. 最高优先级：精确命中用户搜索词
+    (t) => cleanQuery && getStr(t).toLowerCase().trim() === cleanQuery,
+    // 2. 地区优先级：按 CN > TW > HK > SG 顺序映射出 4 个规则函数
+    ...["CN", "TW", "HK", "SG"].map(
+      (region) => (t) => (t.iso_3166_1 || t.iso_639_1) === region && !isNonChinese(getStr(t))
+    ),
+    // 3. 兜底优先级：任何包含中文的别名
+    (t) => !isNonChinese(getStr(t))
+  ];
+  for (const rule of priorityRules) {
+    const match = titles.find(rule);
     if (match) {
-      const chineseTitle = match.title || match.name;
-      log("info", `[TMDB] \u4ECE\u522B\u540D\u4E2D\u627E\u5230\u4E2D\u6587\u6807\u9898 (${region}): ${chineseTitle}`);
-      return chineseTitle;
+      const bestMatchTitle = getStr(match);
+      log("info", `[TMDB] \u6309\u4F18\u5148\u7EA7\u7B56\u7565\u6210\u529F\u63D0\u53D6\u6700\u4F73\u4E2D\u6587\u522B\u540D: ${bestMatchTitle}`);
+      return bestMatchTitle;
     }
-  }
-  const anyChineseTitle = titles.find((t) => {
-    const title = t.title || t.name || "";
-    return title && !isNonChinese(title);
-  });
-  if (anyChineseTitle) {
-    const title = anyChineseTitle.title || anyChineseTitle.name;
-    log("info", `[TMDB] \u4ECE\u522B\u540D\u4E2D\u627E\u5230\u4E2D\u6587\u6807\u9898 (\u5176\u4ED6\u5730\u533A): ${title}`);
-    return title;
   }
   return null;
 }
-async function getChineseTitleForResult(result, signal) {
+async function getChineseTitleForResult(result, signal, queryTitle = "") {
   const resultTitle = result.name || result.title || "";
-  if (!isNonChinese(resultTitle)) {
+  if (queryTitle && resultTitle.toLowerCase().trim() === queryTitle.toLowerCase().trim()) {
     return resultTitle;
   }
-  log("info", `[TMDB] \u68C0\u6D4B\u5230\u975E\u4E2D\u6587\u6807\u9898 "${resultTitle}", \u5C1D\u8BD5\u83B7\u53D6\u4E2D\u6587\u522B\u540D`);
+  const needsAlternative = isNonChinese(resultTitle) || queryTitle && resultTitle.toLowerCase().trim() !== queryTitle.toLowerCase().trim();
+  if (!needsAlternative) {
+    return resultTitle;
+  }
+  log("info", `[TMDB] \u5C1D\u8BD5\u83B7\u53D6\u4E2D\u6587\u522B\u540D\u4EE5\u5BFB\u627E\u66F4\u4F18\u5339\u914D (\u5F53\u524D\u6807\u9898: "${resultTitle}")`);
   const mediaType = result.media_type || (result.name ? "tv" : "movie");
   try {
     if (signal && signal.aborted) {
@@ -4227,7 +4227,7 @@ async function getChineseTitleForResult(result, signal) {
     if (signal && signal.aborted) {
       throw new DOMException("Aborted", "AbortError");
     }
-    const chineseTitle = extractChineseTitleFromAlternatives(altResp, mediaType);
+    const chineseTitle = extractChineseTitleFromAlternatives(altResp, mediaType, queryTitle);
     if (chineseTitle) {
       log("info", `[TMDB] \u5C06\u4F7F\u7528\u4E2D\u6587\u522B\u540D\u8FDB\u884C\u76F8\u4F3C\u5339\u914D: ${chineseTitle}`);
       return chineseTitle;
@@ -4384,10 +4384,11 @@ async function getTmdbJaOriginalTitle(title, signal = null, sourceLabel = "Unkno
           }
           let chineseTitle;
           let finalScore;
-          if (skipAlternativeFetch || !isNonChinese(resultTitle)) {
+          const isExactMatch = resultTitle.toLowerCase().trim() === cleanTitle.toLowerCase().trim();
+          if (skipAlternativeFetch || isExactMatch) {
             chineseTitle = resultTitle;
             finalScore = initialScore;
-            if (skipAlternativeFetch && isNonChinese(resultTitle)) {
+            if (skipAlternativeFetch && isExactMatch) {
               log("info", `[TMDB] \u5339\u914D\u68C0\u67E5 "${resultTitle}" - \u76F8\u4F3C\u5EA6: ${(finalScore * 100).toFixed(2)}% (\u5DF2\u627E\u5230\u5B8C\u5168\u5339\u914D\uFF0C\u8DF3\u8FC7\u522B\u540D\u641C\u7D22)`);
             } else {
               log("info", `[TMDB] \u5339\u914D\u68C0\u67E5 "${resultTitle}" - \u76F8\u4F3C\u5EA6: ${(finalScore * 100).toFixed(2)}%`);
@@ -4395,7 +4396,7 @@ async function getTmdbJaOriginalTitle(title, signal = null, sourceLabel = "Unkno
           } else {
             if (alternativeTitleFetchCount < MAX_ALTERNATIVE_FETCHES) {
               try {
-                chineseTitle = await getChineseTitleForResult(result, backgroundSignal);
+                chineseTitle = await getChineseTitleForResult(result, backgroundSignal, cleanTitle);
                 if (chineseTitle !== resultTitle) {
                   alternativeTitleFetchCount++;
                 }
@@ -4501,35 +4502,11 @@ async function getTmdbJaOriginalTitle(title, signal = null, sourceLabel = "Unkno
     return null;
   }
 }
-var SUFFIX_PATTERNS = [
-  /(\s+|^)(?:第)?(\d+|[一二三四五六七八九十]+)[季期部]/,
-  /(\s+|^)season\s*\d+/i,
-  /(\s+|^)s\d+/i,
-  /(\s+|^)part\s*\d+/i,
-  /(\s+|^)the\s+final\s+season/i,
-  /(\s+|^)movie(?![a-z])/i,
-  // 负向预查，防止误匹配单词内部
-  /(\s+|^)film(?![a-z])/i,
-  /(\s+|^)ova(?![a-z])/i,
-  /(\s+|^)oad(?![a-z])/i,
-  /(\s+|^)sp(?![a-z])/i,
-  /[:：]\s*.+/,
-  /[~～].+/,
-  /\s+.*篇/,
-  /.*外传/
-];
+var SUFFIX_PATTERN = /(?:\s+|^)(?:第?(?:\d+|[一二三四五六七八九十]+)[季期部]|season\s*\d+|s\d+|part\s*\d+|the\s+final\s+season|(?:movie|film|ova|oad|sp)(?![a-z]))|[:：~～]|\s+.*?篇|外传/i;
 var SEPARATOR_REGEX = /[ :：~～]/;
 function detectSuffixStart(title) {
-  let minIndex = title.length;
-  for (const pattern of SUFFIX_PATTERNS) {
-    const match = title.match(pattern);
-    if (match && match.index !== void 0) {
-      if (match.index < minIndex) {
-        minIndex = match.index;
-      }
-    }
-  }
-  return minIndex;
+  const match = title.match(SUFFIX_PATTERN);
+  return match ? match.index : title.length;
 }
 function cleanSearchQuery(title) {
   const limit = detectSuffixStart(title);
@@ -7189,6 +7166,65 @@ var Kan360Source = class extends BaseSource {
     }
     return null;
   }
+  // 使用 episodesv2 接口获取剧集分集（电视剧/动漫）
+  async getEpisodesV2(cat, entId, site) {
+    try {
+      const sParam = JSON.stringify([{ cat_id: String(cat), ent_id: String(entId), site }]);
+      const url = `https://api.so.360kan.com/episodesv2?v_ap=1&s=${encodeURIComponent(sParam)}`;
+      const response = await Widget.http.get(url, {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+      });
+      let data = response.data;
+      if (typeof data === "string") {
+        const firstParen = data.indexOf("(");
+        const lastParen = data.lastIndexOf(")");
+        if (firstParen !== -1 && lastParen !== -1 && lastParen > firstParen) {
+          const jsonText = data.substring(firstParen + 1, lastParen);
+          try {
+            data = JSON.parse(jsonText);
+          } catch (e) {
+            log("error", `getEpisodesV2 JSON parse error: ${e.message}`);
+            return [];
+          }
+        } else {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            log("error", `getEpisodesV2 unexpected response format`);
+            return [];
+          }
+        }
+      }
+      if (!data) return [];
+      if (data.code === 0 && Array.isArray(data.data) && data.data.length > 0) {
+        const seriesHTML = data.data[0].seriesHTML || {};
+        const seriesPlaylinks = seriesHTML.seriesPlaylinks || seriesHTML.series_playlinks || [];
+        const results = [];
+        for (let i = 0; i < seriesPlaylinks.length; i++) {
+          const item = seriesPlaylinks[i];
+          if (!item) continue;
+          if (typeof item === "string") {
+            results.push({ name: (i + 1).toString(), url: item, sort: (i + 1).toString() });
+          } else if (typeof item === "object") {
+            const urlField = item.url;
+            const numField = i + 1;
+            results.push({ name: String(numField), url: urlField || "" });
+          }
+        }
+        return results.filter((r) => r.url);
+      }
+      return [];
+    } catch (error) {
+      log("error", "getEpisodesV2 error:", {
+        message: error && error.message ? error.message : String(error),
+        stack: error && error.stack ? error.stack : void 0
+      });
+      return [];
+    }
+  }
   async search(keyword) {
     try {
       const response = await Widget.http.get(
@@ -7259,19 +7295,36 @@ var Kan360Source = class extends BaseSource {
               if (!globals.vodAllowedPlatforms.includes(siteKey)) continue;
               try {
                 const detailId = anime.en_id;
-                const siteNumber = await this.getNumber(cat, detailId, siteKey);
-                const detail = await this.get360Detail(cat, detailId, siteKey, 1, siteNumber);
-                if (detail && detail.data && detail.data.allepidetail && detail.data.allepidetail[siteKey]) {
-                  for (const ep of detail.data.allepidetail[siteKey]) {
+                const eps = await this.getEpisodesV2(cat, detailId, siteKey);
+                if (eps && eps.length > 0) {
+                  for (const ep of eps) {
                     links.push({
-                      name: ep.playlink_num,
+                      name: ep.name,
                       url: ep.url,
-                      title: `\u3010${siteKey}\u3011 \u7B2C${ep.playlink_num}\u96C6`
+                      title: `\u3010${siteKey}\u3011 \u7B2C${ep.name}\u96C6`,
+                      sort: ep.name
                     });
+                  }
+                } else {
+                  try {
+                    const siteNumber = await this.getNumber(cat, detailId, siteKey);
+                    const detail = await this.get360Detail(cat, detailId, siteKey, 1, siteNumber);
+                    if (detail && detail.data && detail.data.allepidetail && detail.data.allepidetail[siteKey]) {
+                      for (const ep of detail.data.allepidetail[siteKey]) {
+                        links.push({
+                          name: ep.playlink_num,
+                          url: ep.url,
+                          title: `\u3010${siteKey}\u3011 \u7B2C${ep.playlink_num}\u96C6`,
+                          sort: ep.playlink_num
+                        });
+                      }
+                    }
+                  } catch (e) {
+                    log("error", `[360kan] fallback detail fetch failed for site ${siteKey}: ${e && e.message ? e.message : e}`);
                   }
                 }
               } catch (e) {
-                log("error", `[360kan] failed to fetch detail for site ${siteKey}: ${e && e.message ? e.message : e}`);
+                log("error", `[360kan] failed to fetch episodesv2 for site ${siteKey}: ${e && e.message ? e.message : e}`);
               }
             }
           }
@@ -12934,11 +12987,6 @@ var DandanSource = class extends BaseSource {
     }
     while (queue.length > 0) {
       const currentBatch = queue.splice(0, queue.length);
-      const newlyAddedRelateds = currentBatch.filter((a) => a.isRelated && !a._displayTitle);
-      if (newlyAddedRelateds.length > 0) {
-        newlyAddedRelateds.forEach((a) => a.title = a.animeTitle);
-        smartTitleReplace(newlyAddedRelateds, cnAlias);
-      }
       await Promise.all(currentBatch.map(async (anime) => {
         try {
           const details = await this.getEpisodes(anime.animeId);
@@ -12999,15 +13047,6 @@ var DandanSource = class extends BaseSource {
             });
           }
           if (links.length > 0) {
-            const baseQueryTitle = cleanSearchQuery(queryTitle);
-            const matchedApiAlias = apiAliases.find((alias) => {
-              if (!alias) return false;
-              return alias.toLowerCase() === baseQueryTitle.toLowerCase();
-            });
-            if (matchedApiAlias) {
-              smartTitleReplace([anime], matchedApiAlias);
-              log("info", `[Dandan] \u547D\u4E2D API \u5B98\u65B9\u522B\u540D: \u641C\u7D22\u8BCD "${baseQueryTitle}" \u5339\u914D\u5230 "${matchedApiAlias}", \u5DF2\u5C06\u539F\u6807\u9898 "${anime.animeTitle}" \u66FF\u6362\u5C55\u793A`);
-            }
             const displayTitle = anime._displayTitle || anime.animeTitle;
             const finalAliases = [...apiAliases];
             if (anime.animeTitle && anime.animeTitle !== displayTitle && !finalAliases.includes(anime.animeTitle)) {
@@ -18047,7 +18086,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.18.3" : Globals.VERSION;
+var wv = true ? "1.18.4" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
