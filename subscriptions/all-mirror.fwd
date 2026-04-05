@@ -99,7 +99,7 @@
       "requiredVersion": "0.0.1",
       "version": "2.0.0",
       "author": "Autism",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/Bangumi_v2.0.0.js"
+      "url": "https://raw.githubusercontent.com/opix-maker/Forward/refs/heads/main/js/Bangumi_v2.0.0.js"
     },
     {
       "id": "imdb_discovery_final_v2",
@@ -108,7 +108,7 @@
       "requiredVersion": "0.0.1",
       "version": "2.0.0",
       "author": "Autism",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/IMDb.js"
+      "url": "https://raw.githubusercontent.com/opix-maker/Forward/refs/heads/main/js/IMDb.js"
     },
     {
       "id": "person.movie.tmdb",

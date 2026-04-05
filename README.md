@@ -24,7 +24,7 @@
 ### ec Widgets (`ec`)
 - 来源：`https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd`
 - Widgets：`14`
-- 成功镜像 js：`12`
+- 成功镜像 js：`10`
 
 ### ti Widgets (`ti`)
 - 来源：`https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd`
