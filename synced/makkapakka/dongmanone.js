@@ -1,8 +1,6 @@
 // =========================================================================
-// 核心配置与全局数据 (Bangumi 增强源)
+// 核心配置 (Bangumi 增强源 - 纯动态爬取版)
 // =========================================================================
-const BASE_DATA_URL = "https://raw.githubusercontent.com/opix-maker/Forward/main";
-const RECENT_DATA_URL = `${BASE_DATA_URL}/recent_data.json`;
 
 const currentYear = new Date().getFullYear();
 const startYear = Math.max(currentYear + 1, 2026); 
@@ -11,10 +9,6 @@ for (let year = startYear; year >= 1940; year--) {
     yearOptions.push({ title: `${year}`, value: `${year}` });
 }
 
-let globalData = null;
-let dataFetchPromise = null;
-const archiveFetchPromises = {};
-
 // =========================================================================
 // Widget Metadata (全境聚合版)
 // =========================================================================
@@ -22,8 +16,8 @@ var WidgetMetadata = {
     id: "anime_omni_fix_pro",
     title: "二次元全境聚合",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    description: "一站式聚合多平台动漫榜单 (纯享TMDB海报版)。",
-    version: "2.4.2", // 🚀 升级：找回经典“Bangumi追番日历”并接入严格TMDB映射
+    description: "一站式聚合多平台动漫榜单 (纯享TMDB海报版 - 实时爬取)。",
+    version: "2.5.0", // 🚀 升级：彻底剥离外部JSON，全线转为官方API与实时网页爬取
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
 
@@ -74,11 +68,11 @@ var WidgetMetadata = {
         },
         {
             title: "Bangumi 近期热门",
-            description: "按作品类型浏览近期热门内容",
+            description: "实时爬取 Bangumi 近期热门浏览榜",
             requiresWebView: false,
             functionName: "fetchRecentHot",
             type: "video",
-            cacheDuration: 500000,
+            cacheDuration: 7200,
             params: [
                 { name: "category", title: "分类", type: "enumeration", value: "anime", enumOptions: [ { title: "动画", value: "anime" } ] },
                 { name: "page", title: "页码", type: "page", value: "1" }
@@ -86,11 +80,11 @@ var WidgetMetadata = {
         },
         {
             title: "Bangumi 年度/季度榜单",
-            description: "按年份、季度/全年及作品类型浏览排行",
+            description: "实时爬取 Bangumi 年月检索数据",
             requiresWebView: false,
             functionName: "fetchAirtimeRanking",
             type: "video",
-            cacheDuration: 1000000,
+            cacheDuration: 7200,
             params: [
                 { name: "category", title: "分类", type: "enumeration", value: "anime", enumOptions: [ { title: "动画", value: "anime" }, { title: "三次元", value: "real" } ] },
                 { 
@@ -108,11 +102,11 @@ var WidgetMetadata = {
         },
         {
             title: "Bangumi 每日放送 (高级筛选)",
-            description: "查看指定范围的放送（数据来自Bangumi API）",
+            description: "调用 Bangumi 官方 API 实时获取每日放送数据",
             requiresWebView: false,
             functionName: "fetchDailyCalendarApi",
             type: "video",
-            cacheDuration: 20000,
+            cacheDuration: 7200,
             params: [
                 {
                     name: "filterType",
@@ -249,7 +243,6 @@ function parseDate(dateStr) {
 async function searchTmdbAnimeStrict(title1, title2, year) {
     async function doSearch(query) {
         if (!query || typeof query !== 'string') return null;
-        // 清洗季数和特殊字符，提高命中率
         const cleanQuery = query.replace(/第[一二三四五六七八九十\d]+[季章]/g, "").replace(/Season \d+/i, "").trim();
         
         try {
@@ -260,7 +253,6 @@ async function searchTmdbAnimeStrict(title1, title2, year) {
             let res = await Widget.tmdb.get("/search/tv", { params });
             let candidates = res.results || [];
             
-            // 降级：如果带年份没搜到，去掉年份重搜！(专门拯救 2026 没来得及录入年份的新番)
             if (candidates.length === 0 && year) {
                 delete params.first_air_date_year;
                 res = await Widget.tmdb.get("/search/tv", { params });
@@ -303,14 +295,12 @@ async function sanitizeAndEnsureTmdb(items) {
     if (!items || !Array.isArray(items)) return [];
     const promises = items.map(async (item) => {
         
-        // 提取待搜标题和年份
         const title = item.name_cn || item.title || item.name;
-        const subTitle = item.title !== title ? item.title : null; // 日文原名作备用
+        const subTitle = item.title !== title ? item.title : null; 
         const rawDate = item.releaseDate || item.description || item.air_date || item.info || "";
         const yearMatch = rawDate.match(/(\d{4})/);
         const year = yearMatch ? yearMatch[1] : null;
 
-        // 直接用 TMDB 严格动画搜索映射！
         const tmdbMatch = await searchTmdbAnimeStrict(title, subTitle, year);
         
         if (tmdbMatch) {
@@ -329,16 +319,13 @@ async function sanitizeAndEnsureTmdb(items) {
             };
         }
         
-        // 🔪 核心修改：如果找不到匹配的 TMDB 数据，直接丢掉！不要空占位！
         return null; 
     });
     
-    // 过滤掉所有被标记为 null 的条目
     const results = await Promise.all(promises);
     return results.filter(Boolean);
 }
 
-/** 简单的本地 TMDB 构建器（提供给无需映射的模块使用） */
 function buildTmdbItem(item, forceType) {
     const isMovie = forceType === "movie" || item.title;
     return {
@@ -356,7 +343,6 @@ function buildTmdbItem(item, forceType) {
     };
 }
 
-/** 原版UI标准组件生成器 */
 function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, genreText, subTitle, desc }) {
     return {
         id: String(id),
@@ -399,10 +385,7 @@ async function loadBangumiCalendar(params = {}) {
             const cleanTitle = (item.name_cn || item.name).replace(/第[一二三四五六七八九十\d]+[季章]/g, "").trim();
             const year = item.air_date ? item.air_date.substring(0, 4) : null;
             
-            // 核心：严格 TMDB 动画匹配
             const tmdbItem = await searchTmdbAnimeStrict(cleanTitle, item.name, year);
-            
-            // 🔪 宁缺毋滥：找不到 TMDB 数据直接丢弃
             if (!tmdbItem) return null;
 
             return buildItem({
@@ -425,91 +408,37 @@ async function loadBangumiCalendar(params = {}) {
 }
 
 
-async function fetchAndCacheGlobalData() {
-    if (globalData) return globalData;
-    if (dataFetchPromise) return await dataFetchPromise;
-
-    dataFetchPromise = (async () => {
-        try {
-            const response = await Widget.http.get(RECENT_DATA_URL, { headers: { 'Cache-Control': 'no-cache' } });
-            globalData = response.data;
-            globalData.dynamic = {};
-            return globalData;
-        } catch (e) {
-            globalData = { airtimeRanking: {}, recentHot: {}, dailyCalendar: {}, dynamic: {} };
-            return globalData;
-        }
-    })();
-    return await dataFetchPromise;
-}
-
-// --- 模块 1：Bangumi 榜单 (经过严格TMDB洗涤并丢弃残次品) ---
+// --- 模块 1：Bangumi 榜单 (纯动态爬取版) ---
 
 async function fetchRecentHot(params = {}) {
-    await fetchAndCacheGlobalData();
-    const category = "anime";
+    const category = params.category || "anime";
     const page = parseInt(params.page || "1", 10);
-    const pages = globalData.recentHot?.[category] || [];
-    
-    const rawItems = pages[page - 1] || [];
-    // 🛡️ 洗脱 Bangumi 封面，重铸 TMDB 护甲！找不到直接抛弃！
+    // 直接爬取 Bangumi 原站浏览器热门
+    const url = `https://bgm.tv/${category}/browser?sort=rank&page=${page}`; 
+    const rawItems = await DynamicDataProcessor.processBangumiPage(url, category);
+    // 🛡️ 洗脱 Bangumi 封面，重铸 TMDB 护甲！
     return await sanitizeAndEnsureTmdb(rawItems);
 }
 
 async function fetchAirtimeRanking(params = {}) {
-    await fetchAndCacheGlobalData();
     const category = params.category || "anime";
     const year = params.year || `${new Date().getFullYear()}`;
     const month = params.month || "all";
     const sort = params.sort || "collects";
     const page = parseInt(params.page || "1", 10);
 
-    const isArchiveYear = !globalData.airtimeRanking[category]?.[year];
-    if (isArchiveYear) {
-        if (!archiveFetchPromises[year]) {
-            archiveFetchPromises[year] = (async () => {
-                try {
-                    const archiveUrl = `${BASE_DATA_URL}/archive/${year}.json`;
-                    const response = await Widget.http.get(archiveUrl, { headers: { 'Cache-Control': 'no-cache' } });
-                    const archiveYearData = response.data;
-                    if (!globalData.airtimeRanking[category]) globalData.airtimeRanking[category] = {};
-                    globalData.airtimeRanking[category][year] = archiveYearData.airtimeRanking[category][year];
-                } catch (e) {
-                    if (!globalData.airtimeRanking[category]) globalData.airtimeRanking[category] = {};
-                    globalData.airtimeRanking[category][year] = 'failed'; 
-                }
-            })();
-        }
-        await archiveFetchPromises[year];
-    }
-
-    try {
-        const pages = globalData.airtimeRanking[category][year][month][sort];
-        if (pages && pages[page - 1]) return await sanitizeAndEnsureTmdb(pages[page - 1]);
-    } catch (e) {}
-
-    const dynamicKey = `airtime-${category}-${year}-${month}-${sort}-${page}`;
-    if (globalData.dynamic[dynamicKey]) return await sanitizeAndEnsureTmdb(globalData.dynamic[dynamicKey]);
+    // 直接构造归档/榜单 URL 并爬取
+    const monthStr = month === "all" ? "" : `/${month}`;
+    const url = `https://bgm.tv/${category}/browser/airtime/${year}${monthStr}?sort=${sort}&page=${page}`;
     
-    let url = `https://bgm.tv/${category}/browser/airtime/${year}/${month}?sort=${sort}&page=${page}`;
-    const results = await DynamicDataProcessor.processBangumiPage(url, category);
-    globalData.dynamic[dynamicKey] = results;
-    return await sanitizeAndEnsureTmdb(results);
+    const rawItems = await DynamicDataProcessor.processBangumiPage(url, category);
+    return await sanitizeAndEnsureTmdb(rawItems);
 }
 
 async function fetchDailyCalendarApi(params = {}) {
-    await fetchAndCacheGlobalData();
-    let items = globalData.dailyCalendar?.all_week || [];
-    if (items.length === 0 && !archiveFetchPromises['daily']) {
-        archiveFetchPromises['daily'] = (async () => {
-            const dynamicItems = await DynamicDataProcessor.processDailyCalendar();
-            if(!globalData.dailyCalendar) globalData.dailyCalendar = {};
-            globalData.dailyCalendar.all_week = dynamicItems;
-        })();
-    }
-    if (archiveFetchPromises['daily']) await archiveFetchPromises['daily'];
+    // 直接调用 Bangumi 官方日历 API
+    const items = await DynamicDataProcessor.processDailyCalendar();
     
-    items = globalData.dailyCalendar?.all_week || [];
     const { filterType = "today", specificWeekday = "1", dailySortOrder = "popularity_rat_bgm" } = params;
     const JS_DAY_TO_BGM_API_ID = { 0: 7, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
     
@@ -532,8 +461,9 @@ async function fetchDailyCalendarApi(params = {}) {
     let sortedResults = [...filteredByDay];
     if (dailySortOrder !== "default") {
         sortedResults.sort((a, b) => {
-            if (dailySortOrder === "popularity_rat_bgm") return (b.bgm_rating_total || 0) - (a.bgm_rating_total || 0);
-            if (dailySortOrder === "score_bgm_desc") return (b.bgm_score || 0) - (a.bgm_score || 0);
+            // 根据官方 API 数据结构提取排序字段
+            if (dailySortOrder === "popularity_rat_bgm") return (b.rating?.total || 0) - (a.rating?.total || 0);
+            if (dailySortOrder === "score_bgm_desc") return (b.rating?.score || 0) - (a.rating?.score || 0);
             if (dailySortOrder === "airdate_desc") {
                 const dateA = a.air_date || 0;
                 const dateB = b.air_date || 0;
@@ -542,11 +472,10 @@ async function fetchDailyCalendarApi(params = {}) {
             return 0;
         });
     }
-    // 🛡️ 洗脱 Bangumi 封面并丢弃残次品
     return await sanitizeAndEnsureTmdb(sortedResults);
 }
 
-// --- 模块 2：第三方直接抓取模块 (本身已实现宁缺毋滥) ---
+// --- 模块 2：第三方直接抓取模块 ---
 
 async function loadBilibiliRank(params = {}) {
     const { sort_by = "1", page = 1 } = params; 
@@ -558,15 +487,14 @@ async function loadBilibiliRank(params = {}) {
         const pageSize = 20;
         const slicedList = fullList.slice((page - 1) * pageSize, page * pageSize);
 
-        // 使用严格 TMDB 匹配，杜绝封面不一致，找不到返回 null
         const promises = slicedList.map(async (item) => {
             const cleanTitle = item.title.replace(/第[一二三四五六七八九十\d]+[季章]/g, "").trim();
             const tmdbItem = await searchTmdbAnimeStrict(cleanTitle, item.title, null);
-            if (!tmdbItem) return null; // 🔪 找不到直接丢掉
+            if (!tmdbItem) return null; 
             return buildTmdbItem(tmdbItem);
         });
         const results = await Promise.all(promises);
-        return results.filter(Boolean); // 彻底过滤掉 null
+        return results.filter(Boolean); 
     } catch (e) { return []; }
 }
 
@@ -592,7 +520,7 @@ async function loadAniListRanking(params = {}) {
         const data = res.data?.data?.Page?.media || [];
         const promises = data.map(async (media) => {
             const tmdbItem = await searchTmdbAnimeStrict(media.title.native || media.title.romaji, media.title.english, media.seasonYear);
-            if (!tmdbItem) return null; // 🔪 找不到直接丢掉
+            if (!tmdbItem) return null; 
             return buildTmdbItem(tmdbItem);
         });
         const results = await Promise.all(promises);
@@ -611,7 +539,7 @@ async function loadMalRanking(params = {}) {
         const data = res.data?.data || [];
         const promises = data.map(async (item) => {
             const tmdbItem = await searchTmdbAnimeStrict(item.title_japanese || item.title, item.title_english, null);
-            if (!tmdbItem) return null; // 🔪 找不到直接丢掉
+            if (!tmdbItem) return null; 
             return buildTmdbItem(tmdbItem);
         });
         const results = await Promise.all(promises);

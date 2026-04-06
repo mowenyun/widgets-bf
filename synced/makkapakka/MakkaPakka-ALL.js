@@ -1,8 +1,6 @@
 // =========================================================================
-// 1. 全局配置与缓存变量 (必须置于顶部)
+// 1. 全局配置与纯净内存缓存 (必须置于顶部)
 // =========================================================================
-const BASE_DATA_URL = "https://raw.githubusercontent.com/opix-maker/Forward/main";
-const RECENT_DATA_URL = `${BASE_DATA_URL}/recent_data.json`;
 
 const currentYear = new Date().getFullYear();
 const startYear = Math.max(currentYear + 1, 2026); 
@@ -11,9 +9,11 @@ for (let year = startYear; year >= 1940; year--) {
     yearOptions.push({ title: `${year}`, value: `${year}` });
 }
 
-let globalData = null;
-let dataFetchPromise = null;
-const archiveFetchPromises = {};
+// 🚀 全新的纯净内存缓存（仅用于动态网页刮削，彻底废弃旧版 JSON 请求）
+const ScrapingCache = {
+    airtime: {},
+    daily: []
+};
 
 const DEFAULT_TRAKT_ID = "95b59922670c84040db3632c7aac6f33704f6ffe5cbf3113a056e37cb45cb482";
 
@@ -32,7 +32,6 @@ function getGlobalGenreText(ids) {
 
 // 统一 UI 卡片构建工厂
 function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, genreText, subTitle, desc }) {
-    // 💡 核心修改1：去掉星星和评分的拼接，如果有日期和副标题，只用 "·" 将它们连接起来
     const baseInfo = [date, subTitle].filter(Boolean).join(" · ");
     const overview = desc ? `\n${desc}` : "\n暂无简介";
 
@@ -43,13 +42,10 @@ function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, ge
         mediaType: type,
         title: title,
         genreTitle: genreText || (type === "tv" ? "剧集" : "电影"), 
-        // 优化：防止把评分去掉后多出来空行
         description: baseInfo ? (baseInfo + overview) : (desc || "暂无简介"),
         releaseDate: date,
         posterPath: poster ? `https://image.tmdb.org/t/p/w500${poster}` : "",
         backdropPath: backdrop ? `https://image.tmdb.org/t/p/w780${backdrop}` : "",
-        // 💡 核心修改2：注释掉原生的 rating 属性，防止 Forward App 底层自带的评分组件渲染出来
-        // rating: parseFloat(rating) || 0,
         subTitle: subTitle
     };
 }
@@ -62,7 +58,7 @@ var WidgetMetadata = {
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.2", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
+    version: "1.3.0", // 🚀 更新：彻底拔除旧废弃源，接入专属独立数据源，动态刮削纯净化
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
     
@@ -253,7 +249,6 @@ var WidgetMetadata = {
             cacheDuration: 3600,
             params: [
                 {
-                    // 🚀 核心修改：利用 sort_by 将“内容分类”推至右上角
                     name: "sort_by", title: "内容分类", type: "enumeration", value: "tv_drama",
                     enumOptions: [ 
                         { title: "📺 电视剧", value: "tv_drama" }, 
@@ -263,7 +258,6 @@ var WidgetMetadata = {
                     ]
                 },
                 {
-                    // 将原来的平台选择降级为普通左侧下拉框
                     name: "platform", title: "播出平台", type: "enumeration", value: "2007",
                     enumOptions: [
                         { title: "腾讯视频", value: "2007" }, { title: "爱奇艺", value: "1330" }, { title: "优酷", value: "1419" }, { title: "芒果TV", value: "1631" }, { title: "Bilibili", value: "1605" }, { title: "Netflix", value: "213" }, { title: "Disney+", value: "2739" }, { title: "HBO", value: "49" }, { title: "Apple TV+", value: "2552" }
@@ -310,7 +304,6 @@ var WidgetMetadata = {
 // 3. 路由与各分类底层
 // =========================================================================
 
-// --- 模块 1 路由 ---
 async function routeAnimeOmni(params) {
     const source = params.anime_source || "cal";
     let subParams = { page: params.page || 1 };
@@ -333,7 +326,6 @@ async function routeAnimeOmni(params) {
     return [];
 }
 
-// --- 模块 3 路由 ---
 async function routeMovieOmni(params) {
     const source = params.movie_source || "general";
     let subParams = { page: params.page || 1 };
@@ -344,7 +336,6 @@ async function routeMovieOmni(params) {
     return [];
 }
 
-// --- 模块 5 路由 ---
 async function routeTrendsHub(params) {
     const hubSource = params.hub_source || "imdb";
     const page = params.page || 1;
@@ -376,7 +367,6 @@ async function routeTrendsHub(params) {
     return [];
 }
 
-// --- 模块 3：全能电影榜底层 ---
 const MOVIE_GENRE_MAP = {
     16: "动画", 10759: "动作冒险", 35: "喜剧", 18: "剧情", 14: "奇幻", 878: "科幻", 9648: "悬疑", 
     10749: "爱情", 27: "恐怖", 10765: "科幻奇幻", 80: "犯罪", 99: "纪录片", 10751: "家庭", 
@@ -390,7 +380,6 @@ function movie_getGenreText(ids) {
 function movie_buildItem(item) {
     if (!item) return null;
     const releaseDate = item.release_date || "";
-    const score = item.vote_average ? item.vote_average.toFixed(1) : "0.0";
     return {
         id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: "movie",
         title: item.title, releaseDate: releaseDate, genreTitle: movie_getGenreText(item.genre_ids),    
@@ -400,6 +389,7 @@ function movie_buildItem(item) {
         description: `电影\n${item.overview || "暂无简介"}`
     };
 }
+
 async function loadGeneralMovies(params) {
     const sortBy = params.sort_by || "popular";
     let endpoint = "/movie/popular";
@@ -428,7 +418,6 @@ async function loadGenreMovies(params) {
     } catch (e) { return []; }
 }
 
-// --- 模块 2：全球影剧类别底层 ---
 const ADVANCED_GENRE_MAP = {
     "all": { movie: "", tv: "" }, "scifi": { movie: "878", tv: "10765" }, "mystery": { movie: "9648", tv: "9648" }, "horror": { movie: "27", tv: "27" }, "crime": { movie: "80", tv: "80" },
     "action": { movie: "28", tv: "10759" }, "comedy": { movie: "35", tv: "35" }, "romance": { movie: "10749", tv: "10749" }, "drama": { movie: "18", tv: "18" }, "fantasy": { movie: "14", tv: "10765" }, "animation": { movie: "16", tv: "16" }, "documentary": { movie: "99", tv: "99" }
@@ -447,23 +436,18 @@ async function fetchGenreRankData(mediaType, genre, region, sort_rule, page) {
         const today = new Date(); today.setMonth(today.getMonth() + 1); const maxDate = today.toISOString().split('T')[0];
         if (mediaType === "movie") queryParams["primary_release_date.lte"] = maxDate; else queryParams["first_air_date.lte"] = maxDate;
     }
-try {
+    try {
         const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: queryParams });
         return (res.results || []).map(item => {
             const date = item.release_date || item.first_air_date || ""; 
-            // 💡 删除了 const score = ... 这行，因为用不到了
-            
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.title || item.name,
                 genreTitle: getGlobalGenreText(item.genre_ids),
                 releaseDate: date,
-                // 💡 修改1：去掉 subTitle 里的 " ${score} | "，只保留纯年份
                 subTitle: `${date ? date.substring(0, 4) : "未知"}`, 
-                // 💡 修改2：去掉 description 里的 " ·  ${score}"，只保留完整日期和简介
                 description: `${date}\n${item.overview || "暂无简介"}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-                // 💡 修改3：彻底删除了 rating: parseFloat(score) || 0, 这一行
                 _popularity: item.popularity || 0,
                 _date: date || "1970-01-01"
             };
@@ -499,7 +483,6 @@ async function loadGenreRank(params = {}) {
     }
 }
 
-// --- 模块 4：全球综艺频道底层 ---
 async function loadVarietyShows(params = {}) {
     const page = parseInt(params.page) || 1;
     const region = params.sort_by || "cn";
@@ -535,33 +518,26 @@ async function loadVarietyShows(params = {}) {
         queryParams.sort_by = "vote_average.desc"; queryParams["vote_count.gte"] = 15; 
     }
 
-try {
+    try {
         const res = await Widget.tmdb.get("/discover/tv", { params: queryParams });
         const items = res.results || [];
         if (items.length === 0) return page === 1 ? [{ id: "empty", type: "text", title: "暂无综艺数据" }] : [];
         return items.map(item => {
             const date = item.release_date || item.first_air_date || ""; 
-            // 💡 删除了 const score = ... 这一行
-            
             let genreLabel = getGlobalGenreText(item.genre_ids);
             if (genreLabel === "影视") genreLabel = "综艺";
-
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: "tv", title: item.title || item.name,
                 genreTitle: genreLabel, releaseDate: date, 
-                // 💡 修改1：去掉了 " ${score} | "
                 subTitle: `${date ? date.substring(0, 4) : "未知"}`, 
-                // 💡 修改2：去掉了 " ·  ${score}"
                 description: `${date}\n${item.overview || "暂无简介"}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
-                // 💡 修改3：删除了尾部的 ", rating: parseFloat(score) || 0"
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : ""
             };
         });
     } catch (e) { return [{ id: "err", type: "text", title: "加载失败" }]; }
 }
 
-// --- 模块 5：影剧风向标底层 ---
 const RT_URLS = {
     "rt_movies_theater": "https://www.rottentomatoes.com/browse/movies_in_theaters/sort:popular?minTomato=75",
     "rt_movies_home": "https://www.rottentomatoes.com/browse/movies_at_home/sort:popular?minTomato=75",
@@ -608,15 +584,12 @@ async function searchRtTmdb(rtItem, rank) {
         if (rtItem.popcornScore) scores.push(`🍿 ${rtItem.popcornScore}%`);
         const customSub = scores.join("  ") || "烂番茄认证";
         const dateStr = match.first_air_date || match.release_date || "";
-        // 💡 删除了 const score = ... 这行
         
         return {
             id: String(match.id), tmdbId: match.id, type: "tmdb", mediaType: rtItem.mediaType, title: `${rank}. ${match.name || match.title}`, 
             genreTitle: getGlobalGenreText(match.genre_ids) || (rtItem.mediaType === "movie" ? "电影" : "剧集"),
-            // 💡 修改1：去掉了 description 里的 " ·  ${score}"
             description: `${dateStr}\n原名: ${rtItem.title}`, releaseDate: dateStr, subTitle: customSub, 
             posterPath: match.poster_path ? `https://image.tmdb.org/t/p/w500${match.poster_path}` : "", 
-            // 💡 修改2：删除了代码末尾的 ", rating: match.vote_average"
             backdropPath: match.backdrop_path ? `https://image.tmdb.org/t/p/w780${match.backdrop_path}` : ""
         };
     } catch (e) { return null; }
@@ -626,18 +599,13 @@ function buildImdbItem(item, forceType) {
     if (!item) return null;
     const type = forceType || item.media_type || (item.title ? "movie" : "tv");
     const fullDate = item.release_date || item.first_air_date || ""; 
-    // 💡 删除了 const score = ... 这行
-
     return {
         id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: type, title: item.title || item.name,
-        // 💡 修改1：去掉星星拼接，有日期就只显示日期
         subTitle: fullDate || "", 
-        // 💡 修改2：去掉 description 里的星星
         description: fullDate ? `${fullDate}\n${item.overview || "暂无简介"}` : (item.overview || "暂无简介"),
         releaseDate: fullDate, 
         posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
         backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-        // 💡 修改3：彻底删除了 rating 和 _rating 这两个会导致底层渲染评分的字段
         year: fullDate.substring(0, 4), 
         genreTitle: getGlobalGenreText(item.genre_ids) || (type === "tv" ? "剧集" : "电影")
     };
@@ -700,10 +668,8 @@ async function handleTraktList(listType, traktType, traktClientId, page) {
                 id: String(d.id), tmdbId: d.id, type: "tmdb", mediaType: mediaType, title: d.name || d.title || subject.title,
                 genreTitle: getGlobalGenreText(d.genres?.map(g => g.id)), releaseDate: d.first_air_date || d.release_date || "",
                 subTitle: stats, 
-                // 💡 修改1：去掉了 description 里的 " ·  ${d.vote_average?.toFixed(1)}"
                 description: `${d.first_air_date || d.release_date || ""}\n${d.overview || "暂无简介"}`,
                 posterPath: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : "", 
-                // 💡 修改2：删除了代码末尾的 ", rating: d.vote_average"
                 backdropPath: d.backdrop_path ? `https://image.tmdb.org/t/p/w780${d.backdrop_path}` : ""
             };
         } catch (e) { return null; }
@@ -763,11 +729,8 @@ async function fetchDoubanAndMap(tag, type, page) {
     }
 }
 
-// --- 模块 6：平台分流片库底层 ---
 async function loadPlatformMatrix(params = {}) {
-    // 💡 这里的 category 接收的是右上角的 sort_by (内容分类)
     const category = params.sort_by || "tv_drama";
-    // 💡 这里的 platformId 接收的是左侧的 platform (播出平台)
     const platformId = params.platform || "2007";
     const sort = params.sort || "popularity.desc";
     const page = params.page || 1;
@@ -795,23 +758,17 @@ async function loadPlatformMatrixData(mediaType, params) {
         if (!res.results || res.results.length === 0) return params.page === 1 ? [{ id: "empty", type: "text", title: "暂无流媒体数据" }] : [];
         return res.results.map(item => {
             const date = item.first_air_date || item.release_date || "";
-            // 💡 删除了 const score = ... 这行
-            
             return {
                 id: String(item.id), tmdbId: item.id, type: "tmdb", mediaType: mediaType, title: item.name || item.title, date: date, releaseDate: date,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-                // 💡 修改1：彻底移除了 rating: parseFloat(score) 这一行
                 genreTitle: getGlobalGenreText(item.genre_ids),
-                // 💡 修改2：移除了原本只有星星的 subTitle
-                // 💡 修改3：去掉了 description 里的 " ·  ${score}"
                 description: `${date}\n${item.overview || "暂无简介"}`
             };
         });
     } catch (e) { return [{ id: "err", type: "text", title: "流媒体拉取失败" }]; }
 }
 
-// --- 模块 7：串流平台 TOP10 底层 (FlixPatrol) ---
 async function loadOfficialTop10(params = {}) {
     const region = params.sort_by || "united-states"; 
     const platform = params.platform || "netflix";
@@ -868,16 +825,13 @@ async function searchTmdbForTop10(queryTitle, mediaType, rank) {
         if (data && data.results && data.results.length > 0) {
             let item = data.results[0];
             const date = item.first_air_date || item.release_date || ""; 
-            // 💡 删除了 const score = ... 这行
             
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.name || item.title,
                 releaseDate: date, year: date.substring(0, 4), genreTitle: getGlobalGenreText(item.genre_ids),
                 subTitle: `TOP ${rank}`, posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "",
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-                // 💡 修改1：去掉了 description 里的 " |  ${score}"
                 description: `TOP ${rank}\n${item.overview || "暂无简介"}`
-                // 💡 修改2：删除了代码末尾的 ", rating: item.vote_average || 0"
             };
         }
     } catch (e) {} return null;
@@ -890,23 +844,15 @@ async function fetchTmdbFallback_Top10(platform, region, mediaType) {
         const data = await Widget.tmdb.get(`/discover/${mediaType}`, { params: { watch_region: regionMap[region] || "US", with_watch_providers: providerMap[platform] || "8", sort_by: "popularity.desc", page: 1, language: "zh-CN" } });
         return (data.results || []).slice(0, 10).map((item, index) => {
             const date = item.first_air_date || item.release_date || ""; 
-            // 💡 删除了 const score = ... 这行
-            
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.name || item.title,
                 releaseDate: date, year: date.substring(0, 4), genreTitle: getGlobalGenreText(item.genre_ids), subTitle: `TOP ${index + 1}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-                // 💡 修改1：去掉了 description 里的 " |  ${score}"
                 description: `TOP ${index + 1}\n${item.overview || "暂无简介"}`
-                // 💡 修改2：删除了代码末尾的 ", rating: item.vote_average || 0"
             };
         });
     } catch (e) { return []; }
 }
-
-// =========================================================================
-// 9. 动漫底层映射逻辑区 (模块1的基石，完全保留)
-// =========================================================================
 
 const GENRE_MAP = {
     16: "动画", 10759: "动作冒险", 35: "喜剧", 18: "剧情", 14: "奇幻", 
@@ -979,7 +925,6 @@ async function searchTmdbAnimeStrict(title1, title2, year) {
 async function sanitizeAndEnsureTmdb(items) {
     if (!items || !Array.isArray(items)) return [];
     const promises = items.map(async (item) => {
-        
         const title = item.name_cn || item.title || item.name;
         const subTitle = item.title !== title ? item.title : null; 
         const rawDate = item.releaseDate || item.description || item.air_date || item.info || "";
@@ -1051,88 +996,78 @@ async function loadBangumiCalendar(params = {}) {
     } catch (e) { return []; }
 }
 
-async function fetchAndCacheGlobalData() {
-    if (globalData) return globalData;
-    if (dataFetchPromise) return await dataFetchPromise;
-
-    dataFetchPromise = (async () => {
-        try {
-            const response = await Widget.http.get(RECENT_DATA_URL, { headers: { 'Cache-Control': 'no-cache' } });
-            globalData = response.data;
-            globalData.dynamic = {};
-            return globalData;
-        } catch (e) {
-            globalData = { airtimeRanking: {}, recentHot: {}, dailyCalendar: {}, dynamic: {} };
-            return globalData;
-        }
-    })();
-    return await dataFetchPromise;
-}
-
+// =========================================================================
+// 🚀🚀🚀 全新：接入专属 JSON 抓取源 (Bangumi 近期热门)
+// =========================================================================
 async function fetchRecentHot(params = {}) {
-    await fetchAndCacheGlobalData();
-    const category = "anime";
-    const page = parseInt(params.page || "1", 10);
-    const pages = globalData.recentHot?.[category] || [];
+    const url = "https://raw.githubusercontent.com/MakkaPakka518/List/refs/heads/main/data/bangumi-hot.json";
     
-    const rawItems = pages[page - 1] || [];
-    return await sanitizeAndEnsureTmdb(rawItems);
+    try {
+        const res = await Widget.http.get(url);
+        const data = res.data || {};
+        const hotList = data.hot_anime || [];
+
+        if (hotList.length === 0) {
+            return [{ id: "empty", type: "text", title: "暂无数据", description: "获取到的热门列表为空" }];
+        }
+
+        // 分页支持
+        const page = parseInt(params.page || "1", 10);
+        const pageSize = 20;
+        const start = (page - 1) * pageSize;
+        const pageItems = hotList.slice(start, start + pageSize);
+
+        return pageItems.map((item, index) => {
+            // 智能过滤简介：去除原数据自带的第一行（年份·评分·国家），防止和原生排版重复
+            const descLines = (item.description || "").split('\n');
+            const pureDesc = descLines.length > 1 ? descLines.slice(1).join('\n') : item.description;
+
+            return buildItem({
+                id: item.id,
+                tmdbId: item.tmdbId,
+                type: item.mediaType || "tv",
+                title: item.title,
+                date: item.releaseDate || "",
+                poster: item.posterPath,
+                backdrop: item.backdropPath,
+                genreText: item.genreTitle,
+                subTitle: `🔥 热度 TOP ${start + index + 1}`,
+                desc: pureDesc || "暂无简介"
+            });
+        });
+        
+    } catch (error) {
+        return [{ id: "error", type: "text", title: "网络异常", description: "获取热门列表失败" }];
+    }
 }
 
+// =========================================================================
+// 🌐 纯净刮削引擎 (彻底抛弃老旧 GitHub 数据请求)
+// =========================================================================
 async function fetchAirtimeRanking(params = {}) {
-    await fetchAndCacheGlobalData();
     const category = params.category || "anime";
     const year = params.year || `${new Date().getFullYear()}`;
     const month = params.month || "all";
     const sort = params.sort || "collects";
     const page = parseInt(params.page || "1", 10);
 
-    const isArchiveYear = !globalData.airtimeRanking[category]?.[year];
-    if (isArchiveYear) {
-        if (!archiveFetchPromises[year]) {
-            archiveFetchPromises[year] = (async () => {
-                try {
-                    const archiveUrl = `${BASE_DATA_URL}/archive/${year}.json`;
-                    const response = await Widget.http.get(archiveUrl, { headers: { 'Cache-Control': 'no-cache' } });
-                    const archiveYearData = response.data;
-                    if (!globalData.airtimeRanking[category]) globalData.airtimeRanking[category] = {};
-                    globalData.airtimeRanking[category][year] = archiveYearData.airtimeRanking[category][year];
-                } catch (e) {
-                    if (!globalData.airtimeRanking[category]) globalData.airtimeRanking[category] = {};
-                    globalData.airtimeRanking[category][year] = 'failed'; 
-                }
-            })();
-        }
-        await archiveFetchPromises[year];
+    const cacheKey = `airtime-${category}-${year}-${month}-${sort}-${page}`;
+    if (ScrapingCache.airtime[cacheKey]) {
+        return await sanitizeAndEnsureTmdb(ScrapingCache.airtime[cacheKey]);
     }
-
-    try {
-        const pages = globalData.airtimeRanking[category][year][month][sort];
-        if (pages && pages[page - 1]) return await sanitizeAndEnsureTmdb(pages[page - 1]);
-    } catch (e) {}
-
-    const dynamicKey = `airtime-${category}-${year}-${month}-${sort}-${page}`;
-    if (globalData.dynamic[dynamicKey]) return await sanitizeAndEnsureTmdb(globalData.dynamic[dynamicKey]);
     
     let url = `https://bgm.tv/${category}/browser/airtime/${year}/${month}?sort=${sort}&page=${page}`;
     const results = await DynamicDataProcessor.processBangumiPage(url, category);
-    globalData.dynamic[dynamicKey] = results;
+    ScrapingCache.airtime[cacheKey] = results;
     return await sanitizeAndEnsureTmdb(results);
 }
 
 async function fetchDailyCalendarApi(params = {}) {
-    await fetchAndCacheGlobalData();
-    let items = globalData.dailyCalendar?.all_week || [];
-    if (items.length === 0 && !archiveFetchPromises['daily']) {
-        archiveFetchPromises['daily'] = (async () => {
-            const dynamicItems = await DynamicDataProcessor.processDailyCalendar();
-            if(!globalData.dailyCalendar) globalData.dailyCalendar = {};
-            globalData.dailyCalendar.all_week = dynamicItems;
-        })();
+    if (!ScrapingCache.daily || ScrapingCache.daily.length === 0) {
+        ScrapingCache.daily = await DynamicDataProcessor.processDailyCalendar();
     }
-    if (archiveFetchPromises['daily']) await archiveFetchPromises['daily'];
+    let items = ScrapingCache.daily || [];
     
-    items = globalData.dailyCalendar?.all_week || [];
     const { filterType = "today", specificWeekday = "1", dailySortOrder = "popularity_rat_bgm" } = params;
     const JS_DAY_TO_BGM_API_ID = { 0: 7, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
     
