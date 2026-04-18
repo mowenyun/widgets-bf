@@ -1083,7 +1083,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.18.6",
+  VERSION: "1.18.8",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -3019,9 +3019,9 @@ function validateType(value, expectedType) {
 }
 function extractSeasonNumberFromAnimeTitle(animeTitle) {
   if (!animeTitle) return { season: null, baseTitle: null };
-  const normalizedAnimeTitle = normalizeSpaces(animeTitle);
-  const match = normalizedAnimeTitle.match(/^(.*?)\(\d{4}\)/);
-  const titleWithoutYear = match ? match[1].trim() : normalizedAnimeTitle.split("(")[0].trim();
+  const match = animeTitle.match(/^(.*?)\(\d{4}\)/);
+  const rawTitleWithoutYear = match ? match[1].trim() : animeTitle.split("(")[0].trim();
+  const titleWithoutYear = normalizeSpaces(rawTitleWithoutYear);
   const explicitSeasonMatch = titleWithoutYear.match(/第\s*([0-9一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾]+)\s*[季期部]/);
   if (explicitSeasonMatch) {
     return {
@@ -7711,6 +7711,11 @@ async function searchDoubanTitles(keyword, count = 20) {
   const url = `/search?q=${keyword}&start=0&count=${count}&type=movie`;
   return await doubanApiGet(url);
 }
+async function searchDoubanTitlesByPublic(keyword, count = 20) {
+  const url = `/movie/search`;
+  const data = { q: keyword, start: 0, count };
+  return await doubanApiPost(url, data);
+}
 async function getDoubanDetail(doubanId) {
   const url = `/movie/${doubanId}?for_mobile=1`;
   return await doubanApiGet(url);
@@ -7866,8 +7871,20 @@ var DoubanSource = class extends BaseSource {
   }
   async search(keyword) {
     try {
-      const response = await searchDoubanTitles(keyword);
-      const data = response.data;
+      let response = await searchDoubanTitles(keyword);
+      let data = response?.data;
+      if (!data || !data?.subjects?.items?.length && !data?.smart_box?.length) {
+        log("info", "searchDoubanTitles failed or empty, trying searchDoubanTitlesByPublic");
+        const fallbackResponse = await searchDoubanTitlesByPublic(keyword);
+        const fallbackData = fallbackResponse?.data;
+        if (fallbackData?.subjects?.length > 0) {
+          data = {
+            subjects: {
+              items: fallbackData.subjects.map((item) => this.convertToOriginalFormat(item))
+            }
+          };
+        }
+      }
       let tmpAnimes = [];
       if (data?.subjects?.items?.length > 0) {
         tmpAnimes = [...tmpAnimes, ...data.subjects.items];
@@ -7885,6 +7902,50 @@ var DoubanSource = class extends BaseSource {
       });
       return [];
     }
+  }
+  // 将 searchDoubanTitlesByPublic 返回的数据格式转换为原格式
+  convertToOriginalFormat(item) {
+    const typeMap2 = {
+      "movie": "\u7535\u5F71",
+      "tv": "\u7535\u89C6\u5267"
+    };
+    const typeName = typeMap2[item.subtype] || item.subtype;
+    const originalImageUrl = item.images?.large || item.images?.medium || item.images?.small || "";
+    let coverUrl = "";
+    if (originalImageUrl) {
+      const match = originalImageUrl.match(/\/(p\d+)\.jpg/);
+      if (match && match[1]) {
+        const imageId = match[1];
+        coverUrl = `https://qnmob3.doubanio.com/view/photo/large/public/${imageId}.jpg?imageView2/0/q/80/w/9999/h/120/format/jpg`;
+      }
+    }
+    const directors = item.directors?.map((d) => d.name).join(" ") || "";
+    const casts = item.casts?.slice(0, 3).map((c) => c.name).join(" ") || "";
+    const cardSubtitle = `${item.year} / ${item.genres?.join(" / ") || ""} / ${directors}${casts ? " / " + casts : ""}`;
+    return {
+      layout: "subject",
+      type_name: typeName,
+      target_id: String(item.id),
+      target: {
+        rating: {
+          count: item.collect_count || 0,
+          max: item.rating?.max || 10,
+          star_count: item.rating?.stars ? parseInt(item.rating.stars) / 10 : 0,
+          value: item.rating?.average || 0
+        },
+        controversy_reason: "",
+        title: item.title,
+        abstract: "",
+        has_linewatch: false,
+        uri: `douban://douban.com/${item.subtype === "movie" ? "movie" : "tv"}/${item.id}`,
+        cover_url: coverUrl,
+        year: String(item.year || ""),
+        card_subtitle: cardSubtitle,
+        id: String(item.id),
+        null_rating_reason: ""
+      },
+      target_type: item.subtype === "movie" ? "movie" : "tv"
+    };
   }
   async getEpisodes(id) {
   }
@@ -17365,13 +17426,13 @@ async function resolveMergedDuration(url) {
   }
 }
 function matchSeason(anime, queryTitle, season) {
-  const normalizedAnimeTitle = normalizeSpaces(anime.animeTitle);
+  const match = anime.animeTitle.match(/^(.*?)\(\d{4}\)/);
+  const originalTitle = match ? match[1].trim() : anime.animeTitle.split("(")[0].trim();
+  const normalizedAnimeTitle = normalizeSpaces(originalTitle);
   const normalizedQueryTitle = normalizeSpaces(queryTitle);
   if (normalizedAnimeTitle.includes(normalizedQueryTitle)) {
-    const match = normalizedAnimeTitle.match(/^(.*?)\(\d{4}\)/);
-    const title = match ? match[1].trim() : normalizedAnimeTitle.split("(")[0].trim();
-    if (title.startsWith(normalizedQueryTitle)) {
-      const afterTitle = title.substring(normalizedQueryTitle.length).trim();
+    if (normalizedAnimeTitle.startsWith(normalizedQueryTitle)) {
+      const afterTitle = normalizedAnimeTitle.substring(normalizedQueryTitle.length).trim();
       if (afterTitle === "" && season === 1) {
         return true;
       }
@@ -18067,7 +18128,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.18.6" : Globals.VERSION;
+var wv = true ? "1.18.8" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
