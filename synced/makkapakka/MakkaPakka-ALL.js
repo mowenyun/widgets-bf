@@ -58,7 +58,7 @@ var WidgetMetadata = {
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.3.0", // 🚀 更新：彻底拔除旧废弃源，接入专属独立数据源，动态刮削纯净化
+    version: "1.3.1", // 🚀 更新：彻底拔除旧废弃源，接入专属独立数据源，动态刮削纯净化
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
     
@@ -557,19 +557,74 @@ async function loadRottenTomatoesTrends(listType, page) {
 }
 
 async function fetchRottenTomatoesList(type) {
+    const RT_URLS = {
+        "rt_movies_theater": "https://www.rottentomatoes.com/browse/movies_in_theaters/sort:popular?minTomato=75",
+        "rt_movies_home": "https://www.rottentomatoes.com/browse/movies_at_home/sort:popular?minTomato=75",
+        "rt_movies_best": "https://www.rottentomatoes.com/browse/movies_at_home/sort:critic_highest?minTomato=90",
+        "rt_tv_popular": "https://www.rottentomatoes.com/browse/tv_series_browse/sort:popular?minTomato=75",
+        "rt_tv_new": "https://www.rottentomatoes.com/browse/tv_series_browse/sort:newest?minTomato=75"
+    };
     const url = RT_URLS[type] || RT_URLS["rt_movies_home"];
+    
     try {
-        const res = await Widget.http.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-        const $ = Widget.html.load(res.data || "");
-        const items = [];
-        $('[data-qa="discovery-media-list-item"]').each((i, el) => {
-            const $el = $(el);
-            const title = $el.find('[data-qa="discovery-media-list-item-title"]').text().trim();
-            if (!title) return;
-            const scoreEl = $el.find('score-pairs');
-            items.push({ title: title, tomatoScore: scoreEl.attr('critics-score') || "", popcornScore: scoreEl.attr('audiencescore') || "", mediaType: type.includes("tv") ? "tv" : "movie" });
+        const res = await Widget.http.get(url, { 
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" } 
         });
-        return items;
+        const html = typeof res === 'string' ? res : (res.data || "");
+        const $ = Widget.html.load(html);
+        const items = [];
+        
+        // 🚀 同步：逆向DOM树遍历解析
+        const titleNodes = $('[data-qa="discovery-media-list-item-title"], [data-qa="list-item-title"], .js-tile-link .p--small');
+        
+        if (titleNodes.length > 0) {
+            titleNodes.each((i, el) => {
+                const title = $(el).text().trim();
+                if (!title) return;
+
+                // 像爬树一样往上找：匹配最稳定的卡片容器
+                let container = $(el).parent();
+                for (let level = 0; level < 5; level++) {
+                    if (container.find('score-board, score-pairs, score-pairs-deprecated').length > 0) break;
+                    if (container.length === 0) break;
+                    container = container.parent();
+                }
+
+                let tomatoScore = "";
+                let popcornScore = "";
+                
+                // 兼容最新版 <score-board> 和老版标签
+                const scoreTags = ['score-board', 'score-pairs', 'score-pairs-deprecated'];
+                for (const tag of scoreTags) {
+                    const scoreEl = container.find(tag);
+                    if (scoreEl.length > 0) {
+                        tomatoScore = scoreEl.attr('tomatometerscore') || scoreEl.attr('critics-score') || scoreEl.attr('criticsscore') || "";
+                        popcornScore = scoreEl.attr('audiencescore') || scoreEl.attr('audience-score') || "";
+                        break;
+                    }
+                }
+
+                items.push({
+                    title: title,
+                    tomatoScore: tomatoScore,
+                    popcornScore: popcornScore,
+                    mediaType: type.includes("tv") ? "tv" : "movie"
+                });
+            });
+        }
+
+        // 去重防御
+        const uniqueItems = [];
+        const seen = new Set();
+        for (const item of items) {
+            const cleanTitle = item.title.replace(/\s+/g, ' ').trim();
+            if (cleanTitle && !seen.has(cleanTitle)) {
+                seen.add(cleanTitle);
+                item.title = cleanTitle;
+                uniqueItems.push(item);
+            }
+        }
+        return uniqueItems;
     } catch (e) { return []; }
 }
 
@@ -794,26 +849,38 @@ async function loadOfficialTop10(params = {}) {
 }
 
 async function fetchFlixPatrolData(platform, region, mediaType) {
-    const url = region === "world" ? `https://flixpatrol.com/top10/${platform}/` : `https://flixpatrol.com/top10/${platform}/${region}/`;
+    const url = `https://flixpatrol.com/top10/${platform}/${region}/`;
     try {
-        const res = await Widget.http.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+        const res = await Widget.http.get(url, { 
+            headers: { "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1" } 
+        });
         const html = typeof res === 'string' ? res : (res.data || "");
-        if (!html) return [];
         const $ = Widget.html.load(html);
         const tables = $('.card-table tbody');
+        if (tables.length === 0) return [];
         
-        let targetTable = null;
-        if (tables.length >= 2) targetTable = mediaType === "movie" ? tables.eq(0) : tables.eq(1);
-        else if (tables.length === 1) targetTable = tables.eq(0);
-        else return [];
+        // 🚀 同步：修正后的平台表格索引逻辑
+        let tableIndex = 0;
+        if (platform === "disney") {
+            tableIndex = mediaType === "all" ? 0 : (mediaType === "movie" ? 1 : 2);
+        } else if (platform === "hbo") {
+            tableIndex = mediaType === "movie" ? 0 : 1;
+        } else {
+            tableIndex = mediaType === "movie" ? 0 : (mediaType === "tv" ? 1 : 2);
+        }
 
+        if (tableIndex >= tables.length) tableIndex = tables.length - 1;
+
+        const targetTable = tables.eq(tableIndex);
         const titles = [];
         targetTable.find('tr').each((i, el) => {
             if (i >= 10) return; 
             const textLink = $(el).find('a.hover\\:underline').text().trim();
             const textTd = $(el).find('td').eq(2).text().trim();
             const finalTitle = textLink || textTd;
-            if (finalTitle && finalTitle.length > 1) titles.push(finalTitle.split('(')[0].trim());
+            if (finalTitle && finalTitle.length > 1) {
+                titles.push(finalTitle.split('(')[0].trim());
+            }
         });
         return titles;
     } catch (e) { return []; }
