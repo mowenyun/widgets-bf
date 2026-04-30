@@ -880,6 +880,7 @@ var Envs = class {
       "AI_MODEL": { category: "match", type: "text", description: "AI\u6A21\u578B\u540D\u79F0\uFF0C\u4E0D\u586B\u9ED8\u8BA4\u4E3Agpt-4o" },
       "AI_API_KEY": { category: "match", type: "text", description: "AI\u670D\u52A1API\u5BC6\u94A5\uFF0C\u9ED8\u8BA4\u4E3A\u7A7A\uFF0C\u9700\u624B\u52A8\u586B\u5199" },
       "AI_MATCH_PROMPT": { category: "match", type: "text", description: "AI\u81EA\u52A8\u5339\u914D\u63D0\u793A\u8BCD\u6A21\u677F\uFF0C\u4E0D\u586B\u63D0\u4F9B\u9ED8\u8BA4\u63D0\u793A\u8BCD\uFF0C\u9ED8\u8BA4\u63D0\u793A\u8BCD\u8BF7\u67E5\u770BREADME" },
+      "USE_BANGUMI_DATA": { category: "match", type: "boolean", description: "Bangumi Data \u52A0\u901F\u5339\u914D\u5F00\u5173\uFF0C\u5F00\u542F\u540E\u5C06\u52A8\u753B\u5143\u6570\u636E\u7F13\u5B58\u81F3\u672C\u5730\u6216\u5185\u5B58\u4E2D\u7ED9\u6E90\u8C03\u7528\uFF0C\u63D0\u5347\u52A8\u753B\u6E90\u7684\u68C0\u7D22\u4E0E\u5339\u914D\u901F\u5EA6\u5E76\u89E3\u9501\u9690\u85CF/\u533A\u57DF\u756A\u5267\u3002\n\u672C\u5730\u548CDocker\u90E8\u7F72\u4F7F\u7528\u65F6\u8BF7\u5148\u6302\u8F7D.cache\u76EE\u5F55\u83B7\u5F97\u6700\u4F73\u4F53\u9A8C\uFF0C\u4E91\u90E8\u7F72\u4F7F\u7528\u65F6\u4F1A\u5C06\u6570\u636E\u7F13\u5B58\u81F3\u4E34\u65F6\u5185\u5B58\u4E2D\u5982\u679C\u4F53\u9A8C\u4E0D\u4F73\u8BF7\u5173\u95ED\u3002" },
       // 弹幕配置
       "BLOCKED_WORDS": { category: "danmu", type: "text", description: "\u5C4F\u853D\u8BCD\u5217\u8868" },
       "GROUP_MINUTE": { category: "danmu", type: "number", description: "\u5206\u949F\u5185\u5408\u5E76\u53BB\u91CD\uFF080\u8868\u793A\u4E0D\u53BB\u91CD\uFF09\uFF0C\u9ED8\u8BA41", min: 0, max: 30 },
@@ -901,6 +902,7 @@ var Envs = class {
       "UPSTASH_REDIS_REST_URL": { category: "cache", type: "text", description: "Upstash Redis\u8BF7\u6C42\u94FE\u63A5" },
       "UPSTASH_REDIS_REST_TOKEN": { category: "cache", type: "text", description: "Upstash Redis\u8BBF\u95EE\u4EE4\u724C" },
       "LOCAL_REDIS_URL": { category: "cache", type: "text", description: "\u672C\u5730 Redis \u8FDE\u63A5URL\uFF0C\u793A\u4F8B\uFF1Aredis://:password@127.0.0.1:6379/0\uFF0C\u53EA\u652F\u6301\u672C\u5730\u90E8\u7F72\u548Cdocker\u90E8\u7F72" },
+      "BANGUMI_DATA_CACHE_DAYS": { category: "cache", type: "number", description: "Bangumi Data \u7F13\u5B58\u6709\u6548\u671F(\u5929)\uFF0C\u8BBE\u7F6E0\u5219\u6BCF\u6B21\u8BF7\u6C42\u65F6\u5F3A\u5236\u5F02\u6B65\u66F4\u65B0\uFF0C\u9ED8\u8BA47\u5929", min: 0, max: 30 },
       // 系统配置
       "PROXY_URL": { category: "system", type: "text", description: "\u4EE3\u7406/\u53CD\u4EE3\u5730\u5740" },
       "TMDB_API_KEY": { category: "system", type: "text", description: "TMDB API\u5BC6\u94A5" },
@@ -1006,12 +1008,16 @@ var Envs = class {
       // AI服务API密钥
       aiMatchPrompt: this.get("AI_MATCH_PROMPT", this.DEFAULT_AI_MATCH_PROMPT, "string"),
       // AI自动匹配提示词模板
+      useBangumiData: this.get("USE_BANGUMI_DATA", false, "boolean"),
+      // Bangumi Data 加速匹配开关
       rememberLastSelect: this.get("REMEMBER_LAST_SELECT", true, "boolean"),
       // 是否记住手动选择结果，用于match自动匹配时优选上次的选择（默认 true，记住）
       MAX_LAST_SELECT_MAP: this.get("MAX_LAST_SELECT_MAP", 100, "number"),
       // 记住上次选择映射缓存大小限制（默认 100）
       MAX_ANIMES: this.get("MAX_ANIMES", 100, "number"),
       // 动漫标题缓存最大数量（默认 100）
+      bangumiDataCacheDays: this.get("BANGUMI_DATA_CACHE_DAYS", 7, "number"),
+      // Bangumi Data 缓存有效期(天)，默认7天
       deployPlatformAccount: this.get("DEPLOY_PLATFROM_ACCOUNT", "", "string", true),
       // 部署平台账号ID配置（默认空）
       deployPlatformProject: this.get("DEPLOY_PLATFROM_PROJECT", "", "string", true),
@@ -1083,7 +1089,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.18.8",
+  VERSION: "1.19.1",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -2988,7 +2994,12 @@ function titleMatches(title, query) {
   if (globals.strictTitleMatch) return strictTitleMatch(title, query);
   const t = normalizeSpaces(title).toLowerCase();
   const q = normalizeSpaces(query).toLowerCase();
-  if (t.includes(q)) return true;
+  let qList = [q];
+  try {
+    qList = [.../* @__PURE__ */ new Set([query, simplized(query), traditionalized(query)])].map((kw) => normalizeSpaces(kw).toLowerCase()).filter(Boolean);
+  } catch (e) {
+  }
+  if (qList.some((kw) => t.includes(kw))) return true;
   const querySeason = getExplicitSeasonNumber(query);
   if (querySeason !== null) {
     const titleSeason = getExplicitSeasonNumber(title);
@@ -2998,10 +3009,15 @@ function titleMatches(title, query) {
       if (titleSeason !== null && titleSeason !== 1) return false;
     }
   }
-  const qSet = new Set(q);
   const tSet = new Set(t);
-  const matchCount = [...qSet].reduce((acc, char) => acc + (tSet.has(char) ? 1 : 0), 0);
-  return matchCount / qSet.size > 0.8;
+  return qList.some((kw) => {
+    if (Math.abs(t.length - kw.length) > Math.max(t.length, kw.length) * 0.7 || /^[a-zA-Z0-9]+$/.test(kw)) {
+      return false;
+    }
+    const qSet = new Set(kw);
+    const matchCount = [...qSet].reduce((acc, char) => acc + (tSet.has(char) ? 1 : 0), 0);
+    return matchCount / qSet.size > 0.8;
+  });
 }
 function validateType(value, expectedType) {
   const fieldName = value?.constructor?.name;
@@ -4147,6 +4163,7 @@ function formatDanmuResponse(danmuData, queryFormat) {
 }
 
 // danmu_api/utils/tmdb-util.js
+import { searchBangumiData } from "./bangumi-data-util.js";
 var TMDB_PENDING = /* @__PURE__ */ new Map();
 async function tmdbApiGet(url, options = {}) {
   const tmdbApi = "https://api.tmdb.org/3/";
@@ -4289,13 +4306,23 @@ async function getChineseTitleForResult(result, signal, queryTitle = "") {
   }
 }
 async function getTmdbJaOriginalTitle(title, signal = null, sourceLabel = "Unknown") {
-  if (!globals.tmdbApiKey) {
-    log("info", "[TMDB] \u672A\u914D\u7F6EAPI\u5BC6\u94A5\uFF0C\u8DF3\u8FC7TMDB\u641C\u7D22");
-    return null;
-  }
   const cleanTitle = cleanSearchQuery(title);
   if (cleanTitle !== title) {
     log("info", `[TMDB] \u4F18\u5316\u641C\u7D22\u5173\u952E\u8BCD: "${title}" -> "${cleanTitle}"`);
+  }
+  if (globals.useBangumiData) {
+    const localMatches = searchBangumiData(cleanTitle, ["tmdb", "bangumi", "anidb"]);
+    if (localMatches && localMatches.length > 0) {
+      const m = localMatches[0];
+      const displayTitle = m.titles.find((t) => t && t.includes(cleanTitle)) || m.titles[1] || m.title;
+      const jaOriginalTitle = m.title;
+      log("info", `[TMDB] \u547D\u4E2D\u672C\u5730 Bangumi Data\uFF0C\u63D0\u53D6\u539F\u540D\u6210\u529F: \u539F\u540D=${jaOriginalTitle}, \u522B\u540D=${displayTitle}`);
+      return { title: jaOriginalTitle, cnAlias: displayTitle };
+    }
+  }
+  if (!globals.tmdbApiKey) {
+    log("info", "[TMDB] \u672A\u914D\u7F6EAPI\u5BC6\u94A5\uFF0C\u8DF3\u8FC7TMDB\u7F51\u7EDC\u641C\u7D22");
+    return null;
   }
   let task = TMDB_PENDING.get(cleanTitle);
   if (!task) {
@@ -4547,7 +4574,7 @@ async function getTmdbJaOriginalTitle(title, signal = null, sourceLabel = "Unkno
     return null;
   }
 }
-var SUFFIX_PATTERN = /(?:\s+|^)(?:第?(?:\d+|[一二三四五六七八九十]+)[季期部]|season\s*\d+|s\d+|part\s*\d+|the\s+final\s+season|(?:movie|film|ova|oad|sp)(?![a-z]))|[:：~～]|\s+.*?篇|外传/i;
+var SUFFIX_PATTERN = /(?:\s+|^)(?:第?\s*(?:\d+|[一二三四五六七八九十]+)\s*[季期部]|season\s*\d+|s\d+|part\s*\d+|act\s*\d+|phase\s*\d+|the\s+final\s+season|(?:movie|film|ova|oad|sp|剧场版|劇場版|续[篇集]|外传)(?![a-z]))|[:：~～]|\s+.*?篇|(?<=\s|^)\d+$/i;
 var SEPARATOR_REGEX = /[ :：~～]/;
 function detectSuffixStart(title) {
   const match = title.match(SUFFIX_PATTERN);
@@ -4565,14 +4592,12 @@ function smartTitleReplace(animes, cnAlias) {
   log("info", `[TMDB] \u542F\u52A8\u667A\u80FD\u66FF\u6362\uFF0C\u76EE\u6807\u522B\u540D: "${cnAlias}"\uFF0C\u5F85\u5904\u7406\u6761\u76EE: ${animes.length}`);
   const baseTitles = animes.map((a) => {
     const t = a.org_title || a.title || "";
-    const limit = detectSuffixStart(t);
-    return t.substring(0, limit);
+    return t.substring(0, detectSuffixStart(t));
   });
   let lcp = "";
   if (baseTitles.length > 0) {
     const sorted = baseTitles.concat().sort();
-    const a1 = sorted[0];
-    const a2 = sorted[sorted.length - 1];
+    const a1 = sorted[0], a2 = sorted[sorted.length - 1];
     let i = 0;
     while (i < a1.length && a1.charAt(i) === a2.charAt(i)) i++;
     lcp = a1.substring(0, i);
@@ -4580,31 +4605,33 @@ function smartTitleReplace(animes, cnAlias) {
   if (lcp && lcp.length > 1) {
     log("info", `[TMDB] \u8BA1\u7B97\u51FA\u6700\u957F\u516C\u5171\u524D\u7F00 (LCP): "${lcp}"`);
   }
-  for (let i = 0; i < animes.length; i++) {
-    const anime = animes[i];
+  for (const anime of animes) {
     const originalTitle = anime.title || "";
+    if (anime.isLocalPriority || originalTitle.includes(cnAlias)) {
+      anime._displayTitle = anime._displayTitle || originalTitle;
+      continue;
+    }
     if (lcp && lcp.length > 1 && originalTitle.startsWith(lcp)) {
       const suffix = originalTitle.substring(lcp.length).trim();
-      let newTitle;
-      if (!suffix) {
-        newTitle = cnAlias;
-      } else if (suffix.match(/^[~～:：]/)) {
-        newTitle = cnAlias + suffix;
-      } else {
-        newTitle = cnAlias + " " + suffix;
-      }
-      anime._displayTitle = newTitle;
-      log("info", `[TMDB] [LCP\u6A21\u5F0F] "${originalTitle}" -> "${newTitle}"`);
+      anime._displayTitle = suffix ? `${cnAlias}${suffix.match(/^[~～:：]/) ? "" : " "}${suffix}` : cnAlias;
+      log("info", `[TMDB] [LCP\u6A21\u5F0F] "${originalTitle}" -> "${anime._displayTitle}"`);
     } else {
       const match = originalTitle.match(SEPARATOR_REGEX);
       if (match) {
+        const prefix = originalTitle.substring(0, match.index).trim();
         const suffix = originalTitle.substring(match.index);
-        const newTitle = cnAlias + suffix;
-        anime._displayTitle = newTitle;
-        log("info", `[TMDB] [\u5206\u9694\u7B26\u6A21\u5F0F] "${originalTitle}" -> "${newTitle}"`);
+        if (prefix && SUFFIX_PATTERN.test(prefix)) {
+          const subMatch = suffix.trim().match(SEPARATOR_REGEX);
+          const subSuffix = subMatch ? suffix.trim().substring(subMatch.index) : "";
+          anime._displayTitle = `${prefix} ${cnAlias}${subSuffix}`;
+          log("info", `[TMDB] [\u524D\u7F00\u4FDD\u62A4\u6A21\u5F0F] "${originalTitle}" -> "${anime._displayTitle}"`);
+        } else {
+          anime._displayTitle = cnAlias + suffix;
+          log("info", `[TMDB] [\u5206\u9694\u7B26\u6A21\u5F0F] "${originalTitle}" -> "${anime._displayTitle}"`);
+        }
       } else {
         anime._displayTitle = cnAlias;
-        log("info", `[TMDB] [\u5168\u66FF\u6A21\u5F0F] "${originalTitle}" -> "${cnAlias}"`);
+        log("info", `[TMDB] [\u5168\u66FF\u6A21\u5F0F] "${originalTitle}" -> "${anime._displayTitle}"`);
       }
     }
   }
@@ -4682,21 +4709,21 @@ function log2(level, ...args) {
 }
 var RegexStore = {
   Lang: {
-    CN: /(普通话|国语|中文配音|中配|中文|粤配|粤语|台配|台语|港配|港语|字幕|助听)(?:版)?/,
-    JP: /(日语|日配|原版|原声)(?:版)?/,
-    CN_DUB_VER: /(\(|（|\[)?(普通话|国语|中文配音|中配|中文|粤配|粤语|台配|台语|港配|港语|字幕|助听)版?(\)|）|\])?/g,
-    JP_DUB_VER: /(\(|（|\[)?(日语|日配|原版|原声)版?(\)|）|\])?/g,
-    KEYWORDS_STRONG: /(?:普通话|国语|中文配音|中配|中文|粤配|粤语|台配|台语|港配|港语|字幕|助听|日语|日配|原版|原声)(?:版)?/g,
-    CN_STD: /普通话|国语|中文配音|中配|中文|粤配|粤语|台配|台语|港配|港语|字幕|助听/g,
-    JP_STD: /日语|日配|原版|原声/g
+    CN: /(普通[话話]|[国國][语語]|中文配音|中配|中文|[粤粵][语語]配音|[粤粵]配|[粤粵][语語]|[台臺]配|[台臺][语語]|港配|港[语語]|字幕|助[听聽])(?:版)?/,
+    JP: /(日[语語]|日配|原版|原[声聲])(?:版)?/,
+    CN_DUB_VER: /(\(|（|\[)?(普通[话話]|[国國][语語]|中文配音|中配|中文|[粤粵][语語]配音|[粤粵]配|[粤粵][语語]|[台臺]配|[台臺][语語]|港配|港[语語]|字幕|助[听聽])版?(\)|）|\])?/g,
+    JP_DUB_VER: /(\(|（|\[)?(日[语語]|日配|原版|原[声聲])版?(\)|）|\])?/g,
+    KEYWORDS_STRONG: /(?:普通[话話]|[国國][语語]|中文配音|中配|中文|[粤粵][语語]配音|[粤粵]配|[粤粵][语語]|[台臺]配|[台臺][语語]|港配|港[语語]|字幕|助[听聽]|日[语語]|日配|原版|原[声聲])(?:版)?/g,
+    CN_STD: /普通[话話]|[国國][语語]|中文配音|中配|中文|[粤粵][语語]配音|[粤粵]配|[粤粵][语語]|[台臺]配|[台臺][语語]|港配|港[语語]|字幕|助[听聽]/g,
+    JP_STD: /日[语語]|日配|原版|原[声聲]/g
   },
   Season: {
     PURE_PART: /^(?:(?:第|S(?:eason)?)\s*\d+(?:季|期|部)?|(?:Part|P|第)\s*\d+(?:部分)?)$/i,
-    PART_NORM: /第(\d+)部分/g,
+    PART_NORM: /第\s*(\d+)\s*部分/g,
     PART_NORM_2: /(?:Part|P)[\s.]*(\d+)/gi,
     FINAL: /(?:The\s+)?Final\s+Season/gi,
     NORM: /(?:Season|S)\s*(\d+)/gi,
-    CN: /第([一二三四五六七八九十])季/g,
+    CN: /第\s*([一二三四五六七八九十])\s*季/g,
     ROMAN: /(\s|^)(IV|III|II|I)(\s|$)/g,
     INFO_STRONG: /(?:season|s|第)\s*[0-9一二三四五六七八九十]+\s*(?:季|期|部(?!分))?/gi,
     PART_INFO_STRONG: /(?:part|p|第)\s*\d+\s*(?:部分)?/gi,
@@ -4713,7 +4740,7 @@ var RegexStore = {
     WHITESPACE: /\s+/g,
     FROM_SUFFIX: /\s*from\s+.*$/i,
     PARENTHESES_CONTENT: /(\(|（|\[).*?(\)|）|\])/g,
-    MOVIE_KEYWORDS: /剧场版|the\s*movie|theatrical|movie|film|电影/gi,
+    MOVIE_KEYWORDS: /剧场版|劇場版|the\s*movie|theatrical|movie|film|电影/gi,
     LONE_VER_CHAR: /(\s|^)版(\s|$)/g,
     NON_ALPHANUM_CN: /[^\u4e00-\u9fa5a-zA-Z0-9]/g,
     META_SUFFIX: /(\(|（|\[)(续篇|TV版|无修|未删减|完整版)(\)|）|\])/gi,
@@ -4728,16 +4755,16 @@ var RegexStore = {
   Episode: {
     SUFFIX_DIGIT: /_\d+(?=$|\s)/g,
     FILE_NOISE: /_(\d{2,4})(?=\.)/g,
-    SEASON_PREFIX: /(?:^|\s)(?:第[0-9一二三四五六七八九十]+季|S(?:eason)?\s*\d+)(?:\s+|_)/gi,
+    SEASON_PREFIX: /(?:^|\s)(?:第\s*[0-9一二三四五六七八九十]+\s*季|S(?:eason)?\s*\d+)(?:\s+|_)/gi,
     CLEAN_SMART: /(?:^|\s)(?:EP|E|Vol|Episode|No|Part|第)\s*\d+(?:\.\d+)?(?:\s*[话話集])?(?!\s*[季期部])/gi,
     PUNCTUATION: /[!！?？,，.。、~～:：\-–—]/g,
     DANDAN_TAG: /^【(dandan|animeko)】/i,
     SPECIAL_START: /^S\d+/i,
-    MOVIE_CHECK: /剧场版|movie|film/i,
+    MOVIE_CHECK: /剧场版|劇場版|movie|film/i,
     PV_CHECK: /(pv|trailer|预告)/i,
     SPECIAL_CHECK: /^(s|o|sp|special)\d/i,
-    SEASON_MATCH: /(?:^|\s)(?:第|S)(\d+)[季S]/i,
-    NUM_STRATEGY_A: /(?:第|s)(\d+)[季s]\s*(?:第|ep|e)(\d+)/i,
+    SEASON_MATCH: /(?:^|\s)(?:第|S)\s*(\d+)\s*[季S]/i,
+    NUM_STRATEGY_A: /(?:第|s)\s*(\d+)\s*[季s]\s*(?:第|ep|e)\s*(\d+)/i,
     NUM_STRATEGY_B: /(?:ep|e|vol|episode|chapter|no|part|第)\s*(\d+(\.\d+)?)(?:\s*[话話集])?(?!\s*[季期部])/i,
     NUM_STRATEGY_C: /(?:^|\s)(?:第)?(\d+(\.\d+)?)(?:话|集|\s|$)/,
     DANDAN_IGNORE: /^[SC]\d+/i,
@@ -4760,12 +4787,12 @@ var SUFFIX_SPECIFIC_MAP = [
   { regex: /(?:\s|^)SuperS$/i, val: "S4" }
 ];
 var SEASON_PATTERNS = [
-  { regex: /(?:第)?(\d+)(?:季|期|部(?!分))/, prefix: "S" },
+  { regex: /(?:第)?\s*(\d+)\s*(?:季|期|部(?!分))/, prefix: "S" },
   { regex: /\bseason\s*(\d+)/i, prefix: "S" },
   { regex: /\bs\s*(\d+)\b/i, prefix: "S" },
   { regex: /\bpart\s*(\d+)/i, prefix: "P" },
   { regex: /\b(ova|oad)\d*\b/i, val: "OVA" },
-  { regex: /(剧场版|the\s*movie|theatrical|movie|film|电影)/i, val: "MOVIE" },
+  { regex: /(剧场版|劇場版|the\s*movie|theatrical|movie|film|电影)/i, val: "MOVIE" },
   { regex: /(续篇|续集)/, val: "SEQUEL" },
   { regex: /\b(sp|special)\d*\b/i, val: "SP" },
   { regex: /[^0-9](\d)$/, prefix: "S", useCleaned: true }
@@ -4868,7 +4895,7 @@ function cleanTitleForSimilarity(text) {
   const startBracketMatch = clean.match(/^(?:【|\[)(.+?)(?:】|\])/);
   if (startBracketMatch) {
     const content = startBracketMatch[1];
-    if (!/^(TV|剧场版|movie|film|anime|动漫|动画|AVC|HEVC|MP4|MKV)$/i.test(content)) {
+    if (!/^(TV|剧场版|劇場版|movie|film|anime|动漫|动画|AVC|HEVC|MP4|MKV)$/i.test(content)) {
       clean = clean.replace(startBracketMatch[0], content + " ");
     }
   }
@@ -5029,65 +5056,57 @@ function checkTitleSubtitleConflict(titleA, titleB, isDateValid = true) {
   }
   return false;
 }
-function extractSeasonMarkers(title, typeDesc = "") {
-  title = normalizeTitleForEngine(title);
+function extractSeasonMarkers(title, typeDesc = "", aliases = []) {
   const markers = /* @__PURE__ */ new Set();
-  const t = cleanText(title);
   const type = cleanText(typeDesc || "");
-  const tWithoutParts = t.replace(RegexStore.Season.PART_ANY, "");
-  const structMatch = tWithoutParts.match(RegexStore.Season.CN_STRUCTURE);
-  if (structMatch) {
-    const char = structMatch[1];
-    if (char === "\u627F") markers.add("S2");
-    else if (char === "\u8F6C") markers.add("S3");
-    else if (char === "\u7ED3") markers.add("S4");
-  }
-  SEASON_PATTERNS.forEach((p) => {
-    const targetText = p.useCleaned ? tWithoutParts : t;
-    const match = targetText.match(p.regex);
-    if (match) {
-      if (p.prefix) markers.add(`${p.prefix}${parseInt(match[1])}`);
-      else markers.add(p.val);
+  const processSingleTitle = (rawTitle) => {
+    const t = cleanText(normalizeTitleForEngine(rawTitle));
+    const tWithoutParts = t.replace(RegexStore.Season.PART_ANY, "");
+    const structMatch = tWithoutParts.match(RegexStore.Season.CN_STRUCTURE);
+    if (structMatch) {
+      const charMap = { "\u627F": "S2", "\u8F6C": "S3", "\u7ED3": "S4" };
+      if (charMap[structMatch[1]]) markers.add(charMap[structMatch[1]]);
     }
-  });
-  let hitSpecific = false;
-  for (const item of SUFFIX_SPECIFIC_MAP) {
-    if (item.regex.test(tWithoutParts)) {
-      markers.add(item.val);
-      hitSpecific = true;
-      break;
+    SEASON_PATTERNS.forEach((p) => {
+      const match = (p.useCleaned ? tWithoutParts : t).match(p.regex);
+      if (match) markers.add(p.prefix ? `${p.prefix}${parseInt(match[1])}` : p.val);
+    });
+    const hitSpecific = SUFFIX_SPECIFIC_MAP.some((item) => {
+      if (item.regex.test(tWithoutParts)) {
+        markers.add(item.val);
+        return true;
+      }
+    });
+    if (!hitSpecific) {
+      const ambMatch = tWithoutParts.match(RegexStore.Season.SUFFIX_AMBIGUOUS);
+      if (ambMatch) {
+        markers.add("AMBIGUOUS");
+        const sufMap = { "II": "S2", "III": "S3", "IV": "S4" };
+        const suffix = ambMatch[1].toUpperCase();
+        if (sufMap[suffix]) markers.add(sufMap[suffix]);
+      }
     }
-  }
-  if (!hitSpecific) {
-    const ambMatch = tWithoutParts.match(RegexStore.Season.SUFFIX_AMBIGUOUS);
-    if (ambMatch) {
-      markers.add("AMBIGUOUS");
-      const suffix = ambMatch[1].toUpperCase();
-      if (suffix === "II") markers.add("S2");
-      if (suffix === "III") markers.add("S3");
-      if (suffix === "IV") markers.add("S4");
+    if (RegexStore.Season.SUFFIX_SEQUEL.test(t)) markers.add("SEQUEL");
+    const cnNums = { "\u4E00": 1, "\u4E8C": 2, "\u4E09": 3, "\u56DB": 4, "\u4E94": 5, "final": 99 };
+    for (const [cn, num] of Object.entries(cnNums)) {
+      if (t.includes(`\u7B2C${cn}\u5B63`)) markers.add(`S${num}`);
     }
-  }
-  if (RegexStore.Season.SUFFIX_SEQUEL.test(t) || type.includes("\u7EED\u7BC7")) markers.add("SEQUEL");
-  if (type.includes("\u5267\u573A\u7248") || type.includes("movie") || type.includes("film") || type.includes("\u7535\u5F71")) markers.add("MOVIE");
+  };
+  [title, ...Array.isArray(aliases) ? aliases : []].filter(Boolean).forEach(processSingleTitle);
+  if (type.includes("\u7EED\u7BC7")) markers.add("SEQUEL");
+  if (/(剧场版|movie|film|电影)/i.test(type)) markers.add("MOVIE");
   if (/\b(ova|oad)\b/i.test(type)) markers.add("OVA");
   if (/\b(sp|special)\b/i.test(type)) markers.add("SP");
-  const cnNums = { "\u4E00": 1, "\u4E8C": 2, "\u4E09": 3, "\u56DB": 4, "\u4E94": 5, "final": 99 };
-  for (const [cn, num] of Object.entries(cnNums)) {
-    if (t.includes(`\u7B2C${cn}\u5B63`)) markers.add(`S${num}`);
-  }
-  const hasSeason = Array.from(markers).some((m) => m.startsWith("S"));
-  const hasPart = Array.from(markers).some((m) => m.startsWith("P"));
-  const hasAmbiguous = markers.has("AMBIGUOUS");
-  const hasSequel = markers.has("SEQUEL");
-  const isTypeSpecial = markers.has("MOVIE") || markers.has("OVA") || markers.has("SP");
+  const mArr = Array.from(markers);
+  const hasSeason = mArr.some((m) => m.startsWith("S"));
+  const hasPart = mArr.some((m) => m.startsWith("P"));
+  const isSpecial = ["MOVIE", "OVA", "SP", "SEQUEL", "AMBIGUOUS"].some((key) => markers.has(key));
   if (hasPart && !hasSeason) markers.add("S1");
-  if (!hasSeason && !hasPart && !hasAmbiguous && !hasSequel && !isTypeSpecial) markers.add("S1");
+  if (!hasSeason && !hasPart && !isSpecial) markers.add("S1");
   return markers;
 }
-function getSeasonNumber(title, typeDesc = "") {
-  title = normalizeTitleForEngine(title);
-  const markers = extractSeasonMarkers(title, typeDesc);
+function getSeasonNumber(title, typeDesc = "", aliases = []) {
+  const markers = extractSeasonMarkers(title, typeDesc, aliases);
   let maxSeason = null;
   for (const m of markers) {
     if (m.startsWith("S")) {
@@ -5166,9 +5185,9 @@ function checkMediaTypeMismatch(titleA, titleB, typeDescA, typeDescB, countA, co
   }
   return true;
 }
-function checkSeasonMismatch(titleA, titleB, typeA, typeB) {
-  const markersA = extractSeasonMarkers(titleA, typeA);
-  const markersB = extractSeasonMarkers(titleB, typeB);
+function checkSeasonMismatch(titleA, titleB, typeA, typeB, aliasesA = [], aliasesB = []) {
+  const markersA = extractSeasonMarkers(titleA, typeA, aliasesA);
+  const markersB = extractSeasonMarkers(titleB, typeB, aliasesB);
   if (markersA.size === 0 && markersB.size === 0) return false;
   const hasS2OrMore = (set) => Array.from(set).some((m) => m.startsWith("S") && parseInt(m.substring(1)) >= 2);
   const hasSequel = (set) => set.has("SEQUEL");
@@ -5193,9 +5212,9 @@ function checkSeasonMismatch(titleA, titleB, typeA, typeB) {
   }
   return false;
 }
-function hasSameSeasonMarker(titleA, titleB, typeA, typeB) {
-  const markersA = extractSeasonMarkers(titleA, typeA);
-  const markersB = extractSeasonMarkers(titleB, typeB);
+function hasSameSeasonMarker(titleA, titleB, typeA, typeB, aliasesA = [], aliasesB = []) {
+  const markersA = extractSeasonMarkers(titleA, typeA, aliasesA);
+  const markersB = extractSeasonMarkers(titleB, typeB, aliasesB);
   const seasonsA = Array.from(markersA).filter((m) => m.startsWith("S"));
   const seasonsB = Array.from(markersB).filter((m) => m.startsWith("S"));
   if (seasonsA.length > 0 && seasonsB.length > 0) return seasonsA.some((sa) => seasonsB.includes(sa));
@@ -5320,7 +5339,7 @@ function findSecondaryMatches(primaryAnime, secondaryList, collectionAnimeIds = 
   const primaryCleanForZhi = cleanText(primaryTitleForSim);
   const cleanPrimarySim = cleanTitleForSimilarity(primaryTitleForSim);
   const baseA = removeParentheses(primaryTitleForSim);
-  const markersP = extractSeasonMarkers(rawPrimaryTitle, primaryAnime.typeDescription);
+  const markersP = extractSeasonMarkers(rawPrimaryTitle, primaryAnime.typeDescription, primaryAnime.aliases);
   const seasonsP = Array.from(markersP).filter((m) => m.startsWith("S"));
   const combinedForContext = [{ animeId: primaryAnime.animeId, animeTitle: rawPrimaryTitle }, ...secondaryList];
   const ambiguousSequelsMap = detectPeerContextSequels(combinedForContext);
@@ -5380,13 +5399,13 @@ function findSecondaryMatches(primaryAnime, secondaryList, collectionAnimeIds = 
       logReason(rawSecTitle, `\u6807\u9898\u7ED3\u6784\u51B2\u7A81\u4E14\u65E5\u671F\u65E0\u6548`);
       continue;
     }
-    const isSeasonExactMatch = hasSameSeasonMarker(primaryTitleForSim, secTitleForSim, primaryAnime.typeDescription, secAnime.typeDescription);
+    const isSeasonExactMatch = hasSameSeasonMarker(primaryTitleForSim, secTitleForSim, primaryAnime.typeDescription, secAnime.typeDescription, primaryAnime.aliases, secAnime.aliases);
     const contentProbe = probeContentMatch(primaryAnime, secAnime);
     const hasMovieA = rawPrimaryTitle.search(RegexStore.Clean.MOVIE_KEYWORDS) !== -1;
     const hasMovieB = rawSecTitle.search(RegexStore.Clean.MOVIE_KEYWORDS) !== -1;
     if (hasMovieA !== hasMovieB) {
       const markersA = markersP;
-      const markersB = extractSeasonMarkers(rawSecTitle, secAnime.typeDescription);
+      const markersB = extractSeasonMarkers(rawSecTitle, secAnime.typeDescription, secAnime.aliases);
       const stripMovie = (t) => cleanTitleForSimilarity(t.replace(RegexStore.Clean.MOVIE_KEYWORDS, ""));
       const cleanA = stripMovie(rawPrimaryTitle);
       const cleanB = stripMovie(rawSecTitle);
@@ -5412,7 +5431,7 @@ function findSecondaryMatches(primaryAnime, secondaryList, collectionAnimeIds = 
         continue;
       }
     }
-    if (!isAnyCollection && checkSeasonMismatch(primaryTitleForSim, secTitleForSim, primaryAnime.typeDescription, secAnime.typeDescription)) {
+    if (!isAnyCollection && checkSeasonMismatch(primaryTitleForSim, secTitleForSim, primaryAnime.typeDescription, secAnime.typeDescription, primaryAnime.aliases, secAnime.aliases)) {
       if (contentProbe.isStrongMatch) {
         log2("info", `[Merge-Check] \u5B63\u5EA6\u51B2\u7A81\u8C41\u514D: [${rawPrimaryTitle}] vs [${rawSecTitle}] (Probe\u5F3A\u5339\u914D)`);
       } else {
@@ -5420,20 +5439,16 @@ function findSecondaryMatches(primaryAnime, secondaryList, collectionAnimeIds = 
         continue;
       }
     }
-    const secCandidates = [secTitleForSim];
-    if (secAnime.aliases && Array.isArray(secAnime.aliases)) {
-      secAnime.aliases.forEach((alias) => {
-        let cleanAlias = alias.replace(RegexStore.Clean.YEAR_TAG, "").replace(/【(电影|电视剧)】/g, "").trim();
-        if (cleanAlias) secCandidates.push(cleanAlias);
-      });
-    }
+    const cleanFn = (t) => t ? String(t).replace(RegexStore.Clean.YEAR_TAG, "").replace(/【(电影|电视剧)】/g, "").trim() : "";
+    const primaryCandidates = Array.from(new Set([primaryTitleForSim, ...primaryAnime.aliases || []].map(cleanFn).filter(Boolean)));
+    const secCandidates = Array.from(new Set([secTitleForSim, ...secAnime.aliases || []].map(cleanFn).filter(Boolean)));
     let bestScoreFull = 0, bestScoreBase = 0;
-    for (const candTitle of secCandidates) {
-      const sFull = calculateSimilarity(primaryTitleForSim, candTitle);
-      if (sFull > bestScoreFull) bestScoreFull = sFull;
-      const candBase = removeParentheses(candTitle);
-      const sBase = calculateSimilarity(baseA, candBase);
-      if (sBase > bestScoreBase) bestScoreBase = sBase;
+    for (const pCand of primaryCandidates) {
+      const pBase = removeParentheses(pCand);
+      for (const sCand of secCandidates) {
+        bestScoreFull = Math.max(bestScoreFull, calculateSimilarity(pCand, sCand));
+        bestScoreBase = Math.max(bestScoreBase, calculateSimilarity(pBase, removeParentheses(sCand)));
+      }
     }
     let score = Math.max(bestScoreFull, bestScoreBase);
     const originalScore = score;
@@ -5464,7 +5479,7 @@ function findSecondaryMatches(primaryAnime, secondaryList, collectionAnimeIds = 
   const finalResults = validCandidates.filter((candidate) => {
     if (candidate.score >= maxScore - Thresholds.TIER_DEFAULT) return true;
     if (candidate.lang === "CN" && candidate.score >= maxScore - Thresholds.TIER_CN) return true;
-    const markersC = extractSeasonMarkers(candidate.debugTitle, candidate.anime.typeDescription);
+    const markersC = extractSeasonMarkers(candidate.debugTitle, candidate.anime.typeDescription, candidate.anime.aliases);
     const hasPart = Array.from(markersC).some((m) => m.startsWith("P"));
     if (hasPart && candidate.score >= maxScore - Thresholds.TIER_PART) {
       const seasonsC = Array.from(markersC).filter((m) => m.startsWith("S"));
@@ -5821,7 +5836,7 @@ function buildSeasonLengthMap(allGroupAnimes, epFilter, collectionAnimeIds) {
       debugLogs.push(`   [\u5254\u9664] [${realAnime.source}] ${realAnime.animeTitle} (\u7C7B\u578B: \u7535\u5F71/MOVIE)`);
       continue;
     }
-    const seasonNum = getSeasonNumber(realAnime.animeTitle, realAnime.typeDescription);
+    const seasonNum = getSeasonNumber(realAnime.animeTitle, realAnime.typeDescription, realAnime.aliases);
     if (seasonNum !== null && realAnime.links) {
       const validLinks = filterEpisodes(realAnime.links, epFilter, realAnime.source).filter((item) => {
         const title = item.link.title || item.link.name || "";
@@ -5959,14 +5974,14 @@ async function processMergeTask(params) {
   if (allMatches.length > 0) {
     if (allMatches.length > 1 && (isPrimaryCollection || allMatches.some((m) => collectionAnimeIds.has(m.animeId)))) {
       allMatches.sort((a, b) => {
-        const sA = getSeasonNumber(a.animeTitle, a.typeDescription) || 1;
-        const sB = getSeasonNumber(b.animeTitle, b.typeDescription) || 1;
+        const sA = getSeasonNumber(a.animeTitle, a.typeDescription, a.aliases) || 1;
+        const sB = getSeasonNumber(b.animeTitle, b.typeDescription, b.aliases) || 1;
         if (sA !== sB) return sA - sB;
         const idxA = availableSecondaries.indexOf(a.source);
         const idxB = availableSecondaries.indexOf(b.source);
         return idxA - idxB;
       });
-      const seqLogs = allMatches.map((m) => `[${m.source}]S${getSeasonNumber(m.animeTitle, m.typeDescription) || 1}`);
+      const seqLogs = allMatches.map((m) => `[${m.source}]S${getSeasonNumber(m.animeTitle, m.typeDescription, m.aliases) || 1}`);
       log2("info", `${logPrefix} [\u5408\u96C6\u65F6\u5E8F] \u5DF2\u5C06\u8DE8\u6E90\u5339\u914D\u961F\u5217\u6309\u5B63\u6570\u5347\u5E8F\u6392\u5217\uFF0C\u4FDD\u969C\u5207\u7247\u63A8\u65AD\u4E25\u683C\u81EA\u4E3E: ${seqLogs.join(" -> ")}`);
     }
     for (const match of allMatches) {
@@ -6044,12 +6059,12 @@ async function processMergeTask(params) {
         return { sliceStart, slicedList };
       };
       if (isPrimaryCollection && !isSecondaryCollection) {
-        const secSeason = getSeasonNumber(derivedMatch.animeTitle, derivedMatch.typeDescription);
+        const secSeason = getSeasonNumber(derivedMatch.animeTitle, derivedMatch.typeDescription, derivedMatch.aliases);
         const res = performSlicing(true, filteredPLinksWithIndex, secSeason);
         activePLinks = res.slicedList;
         sliceStartP = res.sliceStart;
       } else if (!isPrimaryCollection && isSecondaryCollection) {
-        const pSeason = getSeasonNumber(pAnime.animeTitle, pAnime.typeDescription);
+        const pSeason = getSeasonNumber(pAnime.animeTitle, pAnime.typeDescription, pAnime.aliases);
         const res = performSlicing(false, filteredMLinksWithIndex, pSeason);
         activeMLinks = res.slicedList;
         sliceStartS = res.sliceStart;
@@ -6215,7 +6230,7 @@ ${mappingEntries.map((e) => e.text).join("\n")}`);
                 }
               }
               if (maxUsedIndex !== -1) {
-                const sSeason = getSeasonNumber(derivedMatch.animeTitle, derivedMatch.typeDescription) || 1;
+                const sSeason = getSeasonNumber(derivedMatch.animeTitle, derivedMatch.typeDescription, derivedMatch.aliases) || 1;
                 if (!collectionProgress.has(pAnime.animeId)) collectionProgress.set(pAnime.animeId, {});
                 const progress = collectionProgress.get(pAnime.animeId);
                 if (mergedCount >= 3) {
@@ -6231,7 +6246,7 @@ ${mappingEntries.map((e) => e.text).join("\n")}`);
                 }
               }
               if (maxUsedIndex !== -1) {
-                const pSeason = getSeasonNumber(pAnime.animeTitle, pAnime.typeDescription) || 1;
+                const pSeason = getSeasonNumber(pAnime.animeTitle, pAnime.typeDescription, pAnime.aliases) || 1;
                 if (!collectionProgress.has(match.animeId)) collectionProgress.set(match.animeId, {});
                 const progress = collectionProgress.get(match.animeId);
                 if (mergedCount >= 3) {
@@ -6290,13 +6305,13 @@ function detectCollectionCandidates(curAnimes) {
   const groups = /* @__PURE__ */ new Map();
   curAnimes.forEach((anime) => {
     const realAnime = globals.animes.find((a) => String(a.animeId) === String(anime.animeId)) || anime;
-    const markers = extractSeasonMarkers(realAnime.animeTitle, realAnime.typeDescription);
+    const markers = extractSeasonMarkers(realAnime.animeTitle, realAnime.typeDescription, realAnime.aliases);
     if (markers.has("MOVIE") || markers.has("OVA") || markers.has("SP") || markers.has("SEQUEL")) return;
     let protectedTitle = simplized(anime.animeTitle || "");
     const startBracketMatch = protectedTitle.match(/^(?:【|\[)(.+?)(?:】|\])/);
     if (startBracketMatch) {
       const content = startBracketMatch[1];
-      if (!/^(TV|剧场版|movie|film|anime|动漫|动画|AVC|HEVC|MP4|MKV)$/i.test(content)) {
+      if (!/^(TV|剧场版|劇場版|movie|film|anime|动漫|动画|AVC|HEVC|MP4|MKV)$/i.test(content)) {
         protectedTitle = protectedTitle.replace(startBracketMatch[0], content + " ");
       }
     }
@@ -6320,7 +6335,7 @@ ${itemDetails}`);
     let groupGlobalMaxSeason = 0;
     list.forEach((anime) => {
       const realAnime = globals.animes.find((a) => String(a.animeId) === String(anime.animeId)) || anime;
-      const markers = extractSeasonMarkers(realAnime.animeTitle, realAnime.typeDescription);
+      const markers = extractSeasonMarkers(realAnime.animeTitle, realAnime.typeDescription, realAnime.aliases);
       let seasonNum = 1;
       for (const m of markers) {
         if (m.startsWith("S")) {
@@ -6427,7 +6442,7 @@ async function applyMergeLogic(curAnimes, detailStore = null) {
         const pB = sourcePriorityMap.get(b.source) ?? 99;
         if (pA !== pB) return pA - pB;
         const getMediaTypePriority = (anime) => {
-          const markers = extractSeasonMarkers(anime.animeTitle, anime.typeDescription);
+          const markers = extractSeasonMarkers(anime.animeTitle, anime.typeDescription, anime.aliases);
           if (markers.has("MOVIE")) return 2;
           if (markers.has("OVA") || markers.has("SP")) return 2;
           const strictType = getStrictMediaType(anime.animeTitle, anime.typeDescription);
@@ -6437,13 +6452,13 @@ async function applyMergeLogic(curAnimes, detailStore = null) {
         const typeA = getMediaTypePriority(a);
         const typeB = getMediaTypePriority(b);
         if (typeA !== typeB) return typeA - typeB;
-        const sA = getSeasonNumber(a.animeTitle, a.typeDescription) || 1;
-        const sB = getSeasonNumber(b.animeTitle, b.typeDescription) || 1;
+        const sA = getSeasonNumber(a.animeTitle, a.typeDescription, a.aliases) || 1;
+        const sB = getSeasonNumber(b.animeTitle, b.typeDescription, b.aliases) || 1;
         return sA - sB;
       });
       const debugOrder = list.map((a) => {
-        const sNum = getSeasonNumber(a.animeTitle, a.typeDescription) || 1;
-        const typeLabel = extractSeasonMarkers(a.animeTitle, a.typeDescription).has("MOVIE") || getStrictMediaType(a.animeTitle, a.typeDescription) === "MOVIE" ? "Movie" : `S${sNum}`;
+        const sNum = getSeasonNumber(a.animeTitle, a.typeDescription, a.aliases) || 1;
+        const typeLabel = extractSeasonMarkers(a.animeTitle, a.typeDescription, a.aliases).has("MOVIE") || getStrictMediaType(a.animeTitle, a.typeDescription) === "MOVIE" ? "Movie" : `S${sNum}`;
         const pLevel = sourcePriorityMap.get(a.source) ?? "?";
         return `[P${pLevel}] [${typeLabel}] [${a.source}] ${a.animeTitle}`;
       });
@@ -6542,19 +6557,19 @@ async function applyMergeLogic(curAnimes, detailStore = null) {
         const currentPriorityIdx = sourcePriorityMap.get(pAnime.source);
         const availableSecondaries = fullPriorityList.slice(currentPriorityIdx + 1);
         if (availableSecondaries.length === 0) continue;
-        const markers = extractSeasonMarkers(pAnime.animeTitle, pAnime.typeDescription);
+        const markers = extractSeasonMarkers(pAnime.animeTitle, pAnime.typeDescription, pAnime.aliases);
         const hasPart = Array.from(markers).some((m) => m.startsWith("P"));
         let allowReuseIds = null;
         if (hasPart) {
           allowReuseIds = /* @__PURE__ */ new Set();
-          const pSeasonNum = getSeasonNumber(pAnime.animeTitle, pAnime.typeDescription) || 1;
+          const pSeasonNum = getSeasonNumber(pAnime.animeTitle, pAnime.typeDescription, pAnime.aliases) || 1;
           for (const consumedId of globalConsumedIds) {
             const consumedAnime = globals.animes.find((a) => String(a.animeId) === String(consumedId));
             if (!consumedAnime) continue;
             if (!availableSecondaries.includes(consumedAnime.source)) continue;
-            const secMarkers = extractSeasonMarkers(consumedAnime.animeTitle, consumedAnime.typeDescription);
+            const secMarkers = extractSeasonMarkers(consumedAnime.animeTitle, consumedAnime.typeDescription, consumedAnime.aliases);
             if (Array.from(secMarkers).some((m) => m.startsWith("P"))) continue;
-            const sSeasonNum = getSeasonNumber(consumedAnime.animeTitle, consumedAnime.typeDescription) || 1;
+            const sSeasonNum = getSeasonNumber(consumedAnime.animeTitle, consumedAnime.typeDescription, consumedAnime.aliases) || 1;
             if (pSeasonNum === sSeasonNum) allowReuseIds.add(consumedAnime.animeId);
           }
         }
@@ -9347,9 +9362,15 @@ var HanjutvSource = class extends BaseSource {
 };
 
 // danmu_api/sources/bahamut.js
+import { searchBangumiData as searchBangumiData2 } from "../utils/bangumi-data-util.js";
 var BahamutSource = class extends BaseSource {
   async search(keyword) {
     try {
+      let localMatches = [];
+      if (globals.useBangumiData) {
+        localMatches = searchBangumiData2(keyword, ["gamer", "gamer_hk"]);
+        log("info", `[Bahamut] Bangumi-Data \u672C\u5730\u547D\u4E2D ${localMatches.length} \u6761\u6570\u636E`);
+      }
       const traditionalizedKeyword = traditionalized(keyword);
       const tmdbSearchKeyword = keyword;
       const encodedKeyword = encodeURIComponent(traditionalizedKeyword);
@@ -9364,7 +9385,8 @@ var BahamutSource = class extends BaseSource {
             headers: {
               "Content-Type": "application/json",
               "User-Agent": "Anime/2.29.2 (7N5749MM3F.tw.com.gamer.anime; build:972; iOS 26.0.0) Alamofire/5.6.4"
-            }
+            },
+            retries: 1
           });
           if (originalResp && originalResp.data && originalResp.data.anime && originalResp.data.anime.length > 0) {
             tmdbAbortController.abort();
@@ -9409,7 +9431,8 @@ var BahamutSource = class extends BaseSource {
               "Content-Type": "application/json",
               "User-Agent": "Anime/2.29.2 (7N5749MM3F.tw.com.gamer.anime; build:972; iOS 26.0.0) Alamofire/5.6.4"
             },
-            signal: tmdbAbortController.signal
+            signal: tmdbAbortController.signal,
+            retries: 1
           });
           if (tmdbResp && tmdbResp.data && tmdbResp.data.anime && tmdbResp.data.anime.length > 0) {
             const anime = tmdbResp.data.anime;
@@ -9439,14 +9462,36 @@ var BahamutSource = class extends BaseSource {
         originalSearchPromise,
         tmdbSearchPromise
       ]);
+      let finalResults = [];
       if (originalResult.success) {
-        return originalResult.data;
+        finalResults = originalResult.data;
+      } else if (tmdbResult.success) {
+        finalResults = tmdbResult.data;
+      } else {
+        log("info", "[Bahamut] \u539F\u59CB\u641C\u7D22\u548C\u57FA\u4E8ETMDB\u7684\u641C\u7D22\u5747\u672A\u8FD4\u56DE\u4EFB\u4F55\u7ED3\u679C");
       }
-      if (tmdbResult.success) {
-        return tmdbResult.data;
+      if (finalResults.length > 0 && localMatches.length > 0) {
+        for (const item of finalResults) {
+          if (!item || !item.acg_sn) continue;
+          const matchedLocal = localMatches.find(
+            (m) => String(item.acg_sn) === String(m.siteId) || item.title && m.title === item.title
+          );
+          if (matchedLocal) {
+            const originalBahamutTitle = item.title;
+            const displayTitle = matchedLocal.titles.find((t) => t && t.includes(keyword)) || matchedLocal.titles[1] || matchedLocal.title;
+            const finalTitle = displayTitle + (matchedLocal.titleSuffix || "");
+            item.title = finalTitle;
+            item._displayTitle = finalTitle;
+            item.aliases = [...matchedLocal.titles];
+            if (originalBahamutTitle && !item.aliases.includes(originalBahamutTitle)) {
+              item.aliases.push(originalBahamutTitle);
+            }
+            item._typeStr = matchedLocal.typeStr;
+            log("info", `[Bahamut] \u7F51\u7EDC\u7ED3\u679C [${item.title}] \u6210\u529F\u5BF9\u9F50\u672C\u5730 Bangumi-Data \u6570\u636E`);
+          }
+        }
       }
-      log("info", "[Bahamut] \u539F\u59CB\u641C\u7D22\u548C\u57FA\u4E8ETMDB\u7684\u641C\u7D22\u5747\u672A\u8FD4\u56DE\u4EFB\u4F55\u7ED3\u679C");
-      return [];
+      return finalResults;
     } catch (error) {
       log("error", "getBahamutAnimes error:", {
         message: error.message,
@@ -9464,7 +9509,8 @@ var BahamutSource = class extends BaseSource {
         headers: {
           "Content-Type": "application/json",
           "User-Agent": "Anime/2.29.2 (7N5749MM3F.tw.com.gamer.anime; build:972; iOS 26.0.0) Alamofire/5.6.4"
-        }
+        },
+        retries: 1
       });
       if (!resp || !resp.data) {
         log("info", "getBahamutEposides: \u8BF7\u6C42\u5931\u8D25\u6216\u65E0\u6570\u636E\u8FD4\u56DE");
@@ -9537,7 +9583,7 @@ var BahamutSource = class extends BaseSource {
         log("info", `[Bahamut] \u547D\u4E2D\u65E5\u8BED\u5173\u952E\u8BCD\u6216TMDB\u7ED3\u679C\uFF0C\u7ED5\u8FC7\u5339\u914D\u89C4\u5219\u76F4\u63A5\u4FDD\u7559: ${itemTitle}`);
         return true;
       }
-      return bahamutTitleMatches(itemTitle, queryTitle, usedSearchTitle);
+      return bahamutTitleMatches(itemTitle, queryTitle, usedSearchTitle) || Array.isArray(item.aliases) && item.aliases.some((alias) => bahamutTitleMatches(alias, queryTitle, usedSearchTitle));
     });
     filtered.forEach((item) => {
       item._originalTitleAlias = item.title ? simplized(item.title) : "";
@@ -9566,11 +9612,11 @@ var BahamutSource = class extends BaseSource {
         if (links.length > 0) {
           let yearMatch = (anime.info || "").match(/(\d{4})/);
           const displayTitle = anime._displayTitle || simplized(anime.title);
-          const aliases = [];
-          if (anime._originalTitleAlias && anime._originalTitleAlias !== displayTitle) {
+          const aliases = Array.isArray(anime.aliases) ? [...anime.aliases] : [];
+          if (anime._originalTitleAlias && anime._originalTitleAlias !== displayTitle && !aliases.includes(anime._originalTitleAlias)) {
             aliases.push(anime._originalTitleAlias);
           }
-          let itemType = "\u52A8\u6F2B";
+          let itemType = anime._typeStr || "\u52A8\u6F2B";
           const fullTitle = epData.anime && epData.anime.title || detail && detail.title || "";
           if (fullTitle.includes("[\u96FB\u5F71]")) {
             itemType = "\u5267\u573A\u7248";
@@ -9656,6 +9702,22 @@ var BahamutSource = class extends BaseSource {
 
 // danmu_api/sources/tencent.js
 var TencentSource = class extends BaseSource {
+  extractAliasesFromHintWords(hintWords) {
+    if (!hintWords || typeof hintWords !== "string") return [];
+    const aliases = [];
+    const addAlias = (value) => {
+      const alias = String(value || "").replace(/<\/?em>/g, "").trim();
+      if (alias && !aliases.includes(alias)) aliases.push(alias);
+    };
+    const aliasMatch = hintWords.match(/(?:又名|别名)\s*[：:]\s*(.+)$/);
+    if (!aliasMatch) return aliases;
+    aliasMatch[1].split(/[、,，/|]+/).forEach(addAlias);
+    return aliases;
+  }
+  titleOrAliasMatches(anime, queryTitle) {
+    if (titleMatches(anime.title, queryTitle)) return true;
+    return Array.isArray(anime.aliases) && anime.aliases.some((alias) => titleMatches(alias, queryTitle));
+  }
   /**
    * 过滤腾讯视频搜索项
    * @param {Object} item - 搜索项
@@ -9719,10 +9781,12 @@ var TencentSource = class extends BaseSource {
       }
     }
     const episodeCount = contentType === "\u7535\u5F71" ? 1 : videoInfo.subjectDoc ? videoInfo.subjectDoc.videoNum : 0;
+    const aliases = this.extractAliasesFromHintWords(videoInfo.hintWords).filter((alias) => alias !== title);
     return {
       provider: "tencent",
       mediaId,
       title,
+      aliases,
       type: mediaType,
       year: videoInfo.year,
       imageUrl: videoInfo.imgUrl,
@@ -9962,7 +10026,7 @@ var TencentSource = class extends BaseSource {
       return [];
     }
     const processTencentAnimes = await Promise.all(
-      sourceAnimes.filter((s) => titleMatches(s.title, queryTitle)).map(async (anime) => {
+      sourceAnimes.filter((s) => this.titleOrAliasMatches(s, queryTitle)).map(async (anime) => {
         try {
           const eps = await this.getEpisodes(anime.mediaId);
           let links = [];
@@ -9995,7 +10059,8 @@ var TencentSource = class extends BaseSource {
               episodeCount: links.length,
               rating: 0,
               isFavorited: true,
-              source: "tencent"
+              source: "tencent",
+              aliases: anime.aliases || []
             };
             tmpAnimes.push(transformedAnime);
             addAnime({ ...transformedAnime, links }, detailStore);
@@ -11498,6 +11563,7 @@ var MangoSource = class extends BaseSource {
 };
 
 // danmu_api/sources/bilibili.js
+import { searchBangumiData as searchBangumiData3 } from "../utils/bangumi-data-util.js";
 var _BilibiliSource = class _BilibiliSource extends BaseSource {
   // 解析 b23.tv 短链接
   async resolveB23Link(shortUrl) {
@@ -11633,6 +11699,7 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
         const resultItem = {
           provider: "bilibili",
           mediaId,
+          mdId: item.media_id ? `md${item.media_id}` : null,
           title: cleanedTitle,
           org_title: cleanedOrgTitle,
           type: mediaType,
@@ -11678,32 +11745,114 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
     return "\u7535\u89C6\u5267";
   }
   async search(keyword) {
+    let localMatches = [];
+    if (globals.useBangumiData) {
+      localMatches = searchBangumiData3(keyword, [
+        "bilibili",
+        "bilibili_hk_mo_tw",
+        "bilibili_hk_mo",
+        "bilibili_tw"
+      ]);
+      log("info", `[Bilibili] Bangumi-Data \u672C\u5730\u547D\u4E2D ${localMatches.length} \u6761\u6570\u636E`);
+    }
+    const localOverseas = localMatches.filter(
+      (m) => ["bilibili_hk_mo_tw", "bilibili_hk_mo", "bilibili_tw"].includes(m.matchedSiteKey)
+    );
     try {
       log("info", `[Bilibili] \u5F00\u59CB\u641C\u7D22: ${keyword}`);
       const mixinKey = await this._getWbiMixinKey();
-      const searchTypes = ["media_bangumi", "media_ft"];
-      const searchPromises = searchTypes.map((type) => this._searchByType(keyword, type, mixinKey));
-      const tasks = [...searchPromises];
+      const t1 = this._searchByType(keyword, "media_bangumi", mixinKey);
+      const t2 = this._searchByType(keyword, "media_ft", mixinKey);
+      let t3 = Promise.resolve([]);
       if (this._hasBilibiliProxy()) {
         log("info", `[Bilibili] \u68C0\u6D4B\u5230\u4EE3\u7406\u914D\u7F6E\uFF0C\u542F\u7528\u6E2F\u6FB3\u53F0\u5E76\u884C\u641C\u7D22`);
-        tasks.push(this._searchOversea(keyword));
+        t3 = this._searchOversea(keyword, localOverseas.length > 0);
       }
-      const results = await Promise.all(tasks);
-      const allResults = results.flat();
-      const uniqueResults = [];
+      let networkResults = (await Promise.all([t1, t2, t3])).flat();
+      const finalResults = [];
       const seenIds = /* @__PURE__ */ new Set();
-      for (const item of allResults) {
-        if (!seenIds.has(item.mediaId)) {
-          seenIds.add(item.mediaId);
-          uniqueResults.push(item);
+      const consumedLocalMdIds = /* @__PURE__ */ new Set();
+      for (const item of networkResults) {
+        if (!item || !item.mediaId && !item.season_id) continue;
+        const matchedLocal = localMatches.find(
+          (m) => item.mdId && item.mdId === `md${m.siteId}` || item.org_title && m.title === item.org_title
+        );
+        if (matchedLocal) {
+          const displayTitle = matchedLocal.titles.find((t) => t && t.includes(keyword)) || matchedLocal.titles[1] || matchedLocal.title;
+          const finalTitle = displayTitle + (matchedLocal.titleSuffix || "");
+          item.title = finalTitle;
+          item._displayTitle = finalTitle;
+          item.aliases = [...matchedLocal.titles];
+          item.type = matchedLocal.typeStr || item.type;
+          item.isLocalPriority = true;
+          consumedLocalMdIds.add(`md${matchedLocal.siteId}`);
+          log("info", `[Bilibili] \u7F51\u7EDC\u7ED3\u679C [${item.title}] \u6210\u529F\u5BF9\u9F50\u672C\u5730 Bangumi-Data \u6570\u636E`);
+        }
+        const idKey = item.mediaId || (item.season_id ? `ss${item.season_id}` : null);
+        if (idKey && seenIds.has(idKey)) continue;
+        if (idKey) seenIds.add(idKey);
+        finalResults.push(item);
+      }
+      const missingLocalMatches = localMatches.filter((m) => !consumedLocalMdIds.has(`md${m.siteId}`));
+      if (missingLocalMatches.length > 0) {
+        log("info", `[Bilibili] \u4ECE\u672C\u5730 Bangumi-Data \u8865\u5145 ${missingLocalMatches.length} \u6761\u7F3A\u6F0F\u8BB0\u5F55\u5E76\u8BF7\u6C42\u8BE6\u60C5...`);
+        const missingPromises = missingLocalMatches.map(async (m) => {
+          const mediaInfo = await this._resolveMediaInfo(m.siteId);
+          const displayTitle = m.titles.find((t) => t && t.includes(keyword)) || m.titles[1] || m.title;
+          const finalTitle = displayTitle + (m.titleSuffix || "");
+          return {
+            provider: "bilibili",
+            mediaId: mediaInfo.seasonId || `md${m.siteId}`,
+            mdId: `md${m.siteId}`,
+            title: finalTitle,
+            org_title: m.title,
+            aliases: [...m.titles],
+            _displayTitle: finalTitle,
+            type: m.typeStr,
+            year: m.begin ? parseInt(m.begin.substring(0, 4)) : null,
+            imageUrl: mediaInfo.cover,
+            episodeCount: 0,
+            isOversea: ["bilibili_hk_mo_tw", "bilibili_hk_mo", "bilibili_tw"].includes(m.matchedSiteKey),
+            isLocalPriority: true
+          };
+        });
+        const missingResults = await Promise.all(missingPromises);
+        for (const item of missingResults) {
+          const idKey = item.mediaId;
+          if (idKey && seenIds.has(idKey)) continue;
+          if (idKey) {
+            seenIds.add(idKey);
+            finalResults.unshift(item);
+          }
         }
       }
-      log("info", `[Bilibili] \u641C\u7D22\u5B8C\u6210\uFF0C\u627E\u5230 ${uniqueResults.length} \u4E2A\u6709\u6548\u7ED3\u679C`);
-      return uniqueResults;
+      log("info", `[Bilibili] \u641C\u7D22\u5B8C\u6210\uFF0C\u627E\u5230 ${finalResults.length} \u4E2A\u6709\u6548\u7ED3\u679C`);
+      return finalResults;
     } catch (error) {
       log("error", "[Bilibili] \u641C\u7D22\u51FA\u9519:", error.message);
       return [];
     }
+  }
+  /**
+   * 将 media_id 转换为 season_id 并提取封面
+   * @param {string|number} mediaId - B站 md 号
+   * @returns {Promise<{seasonId: string|null, cover: string}>}
+   */
+  async _resolveMediaInfo(mediaId) {
+    try {
+      const res = await Widget.http.get(`https://api.bilibili.com/pgc/review/user?media_id=${mediaId}`);
+      const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+      if (data.code === 0 && data.result && data.result.media) {
+        const media = data.result.media;
+        return {
+          seasonId: `ss${media.season_id}`,
+          cover: media.cover || media.horizontal_picture || ""
+        };
+      }
+    } catch (e) {
+      log("error", `[Bilibili] \u83B7\u53D6\u5A92\u4F53\u4FE1\u606F\u5931\u8D25 (md${mediaId}):`, e.message);
+    }
+    return { seasonId: null, cover: "" };
   }
   /**
    * 获取番剧分集列表
@@ -11735,12 +11884,25 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
       log("error", `[Bilibili] \u83B7\u53D6\u756A\u5267\u5206\u96C6\u5931\u8D25 (season_id=${seasonId}): \u6240\u6709\u63A5\u53E3\u5747\u65E0\u6570\u636E`);
       return [];
     }
-    const episodes = rawEpisodes.map((ep, index) => ({
-      vid: `${ep.aid},${ep.cid}`,
-      id: ep.id,
-      title: (ep.show_title || ep.long_title || ep.title || `\u7B2C${index + 1}\u96C6`).trim(),
-      link: `https://www.bilibili.com/bangumi/play/ep${ep.id}`
-    }));
+    const episodes = rawEpisodes.map((ep, index) => {
+      let displayTitle = "";
+      if (ep.show_title) {
+        displayTitle = ep.show_title;
+      } else {
+        const epIndex = ep.title || String(index + 1);
+        const longTitle = ep.long_title || "";
+        displayTitle = /^\d+(\.\d+)?$/.test(epIndex) ? `\u7B2C${epIndex}\u8BDD` : epIndex;
+        if (longTitle && longTitle !== epIndex) {
+          displayTitle += ` ${longTitle}`;
+        }
+      }
+      return {
+        vid: `${ep.aid},${ep.cid}`,
+        id: ep.id,
+        title: displayTitle.trim(),
+        link: `https://www.bilibili.com/bangumi/play/ep${ep.id}`
+      };
+    });
     log("info", `[Bilibili] \u83B7\u53D6\u5230 ${episodes.length} \u4E2A\u756A\u5267\u5206\u96C6`);
     return episodes;
   }
@@ -11781,6 +11943,16 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
     }
   }
   async getEpisodes(id) {
+    if (id.startsWith("md")) {
+      const mediaId = id.substring(2);
+      const mediaInfo = await this._resolveMediaInfo(mediaId);
+      if (mediaInfo.seasonId) {
+        const episodes = await this._getPgcEpisodes(mediaInfo.seasonId.substring(2));
+        episodes._cover = mediaInfo.cover;
+        return episodes;
+      }
+      return [];
+    }
     if (id.startsWith("ss")) {
       const seasonId = id.substring(2);
       return await this._getPgcEpisodes(seasonId);
@@ -12279,6 +12451,7 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
         return data.data.result.filter((i) => i.url?.includes("bilibili.com") && !i.areas?.includes("\u6F2B\u6E38")).map((i) => ({
           provider: "bilibili",
           mediaId: i.season_id ? `ss${i.season_id}` : "",
+          mdId: i.media_id ? `md${i.media_id}` : null,
           title: (i.title || "").replace(/<[^>]+>/g, "").trim(),
           org_title: (i.org_title || "").replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, (match) => {
             const entities = { "&lt;": "<", "&gt;": ">", "&amp;": "&", "&quot;": '"', "&#39;": "'" };
@@ -12299,12 +12472,9 @@ var _BilibiliSource = class _BilibiliSource extends BaseSource {
     return [];
   }
   // 综合港澳台搜索入口
-  async _searchOversea(keyword) {
+  async _searchOversea(keyword, skipAnime = false) {
     const tmdbAbortController = new AbortController();
-    const searchConfigs = [
-      { appType: 7, webType: "media_bangumi" },
-      { appType: 8, webType: "media_ft" }
-    ];
+    const searchConfigs = skipAnime ? [{ appType: 8, webType: "media_ft" }] : [{ appType: 7, webType: "media_bangumi" }, { appType: 8, webType: "media_ft" }];
     const t1 = Promise.all(searchConfigs.map(async (conf, index) => {
       if (index > 0) await new Promise((r) => setTimeout(r, index * 300));
       return this._searchOverseaRequest(keyword, conf.appType, conf.webType, "Original");
@@ -12978,6 +13148,7 @@ var YoukuSource = class extends BaseSource {
 };
 
 // danmu_api/sources/dandan.js
+import { searchBangumiData as searchBangumiData4 } from "../utils/bangumi-data-util.js";
 var tencentSource = new TencentSource();
 var iqiyiSource = new IqiyiSource();
 var mangoSource = new MangoSource();
@@ -12993,6 +13164,26 @@ var DandanSource = class extends BaseSource {
    * @param {boolean} isFallback 标记当前是否处于降级搜索状态，防止无限递归
    */
   async search(keyword, isFallback = false) {
+    if (globals.useBangumiData && !isFallback) {
+      const localMatches = searchBangumiData4(keyword, ["anidb"]);
+      if (localMatches.length > 0) {
+        log("info", `[Dandan] Bangumi-Data \u672C\u5730\u547D\u4E2D ${localMatches.length} \u6761\u6570\u636E`);
+        return localMatches.map((m) => {
+          const displayTitle = m.titles.find((t) => t && t.includes(keyword)) || m.titles[1] || m.title;
+          const finalTitle = displayTitle + (m.titleSuffix || "");
+          return {
+            animeId: parseInt(m.siteId),
+            animeTitle: finalTitle,
+            type: m.typeId,
+            typeDescription: m.typeStr,
+            imageUrl: "",
+            startDate: m.begin,
+            rating: 0,
+            aliases: [...m.titles]
+          };
+        });
+      }
+    }
     try {
       log("info", `[Dandan] \u539F\u59CB\u641C\u7D22\u8BCD: ${keyword}`);
       const tmdbAbortController = new AbortController();
@@ -13002,7 +13193,8 @@ var DandanSource = class extends BaseSource {
             headers: {
               "Content-Type": "application/json",
               "User-Agent": DandanUserAgent
-            }
+            },
+            retries: 1
           });
           if (!resp || !resp.data) {
             log("info", "[Dandan] \u539F\u59CB\u641C\u7D22\u8BF7\u6C42\u5931\u8D25\u6216\u65E0\u6570\u636E\u8FD4\u56DE (source: original)");
@@ -13041,7 +13233,8 @@ var DandanSource = class extends BaseSource {
               "Content-Type": "application/json",
               "User-Agent": DandanUserAgent
             },
-            signal: tmdbAbortController.signal
+            signal: tmdbAbortController.signal,
+            retries: 1
           });
           if (!resp || !resp.data) {
             log("info", "[Dandan] \u65E5\u8BED\u539F\u540D\u641C\u7D22\u8BF7\u6C42\u5931\u8D25\u6216\u65E0\u6570\u636E\u8FD4\u56DE (source: tmdb)");
@@ -13196,7 +13389,11 @@ var DandanSource = class extends BaseSource {
               }
             }
           }
-          const allTitles = [anime.animeTitle, ...apiAliases];
+          const allTitles = [
+            anime.animeTitle,
+            ...apiAliases,
+            ...anime.aliases || []
+          ];
           let isMatch = false;
           if (anime.isRelated || anime.isTmdbSource) {
             const querySeason = getExplicitSeasonNumber(queryTitle);
@@ -13235,7 +13432,7 @@ var DandanSource = class extends BaseSource {
           }
           if (links.length > 0) {
             const displayTitle = anime._displayTitle || anime.animeTitle;
-            const finalAliases = [...apiAliases];
+            const finalAliases = [.../* @__PURE__ */ new Set([...apiAliases, ...anime.aliases || []])];
             if (anime.animeTitle && anime.animeTitle !== displayTitle && !finalAliases.includes(anime.animeTitle)) {
               finalAliases.push(anime.animeTitle);
             }
@@ -16817,6 +17014,7 @@ var AiyifanSource = class extends BaseSource {
 };
 
 // danmu_api/sources/animeko.js
+import { searchBangumiData as searchBangumiData5 } from "../utils/bangumi-data-util.js";
 var AnimekoSource = class extends BaseSource {
   /**
    * 获取标准 HTTP 请求头
@@ -16835,6 +17033,26 @@ var AnimekoSource = class extends BaseSource {
    * @returns {Promise<Array>} 转换后的搜索结果列表
    */
   async search(keyword) {
+    if (globals.useBangumiData) {
+      const localMatches = searchBangumiData5(keyword, ["bangumi"]);
+      if (localMatches.length > 0) {
+        log("info", `[Animeko] Bangumi-Data \u547D\u4E2D ${localMatches.length} \u6761\u6570\u636E`);
+        return this.transformResults(localMatches.map((m) => {
+          const displayTitle = m.titles.find((t) => t && t.includes(keyword)) || m.titles[1] || m.title;
+          const finalTitle = displayTitle + (m.titleSuffix || "");
+          return {
+            id: parseInt(m.siteId),
+            name: m.title,
+            name_cn: finalTitle,
+            imageUrl: "",
+            date: m.begin,
+            score: 0,
+            platform: m.typeStr,
+            aliases: [...m.titles]
+          };
+        }));
+      }
+    }
     try {
       const searchKeyword = keyword.replace(/[._]/g, " ").replace(/\s+/g, " ").trim();
       log("info", `[Animeko] \u5F00\u59CB\u641C\u7D22 (V0): ${searchKeyword}`);
@@ -16926,29 +17144,8 @@ var AnimekoSource = class extends BaseSource {
    */
   hasExplicitSeasonInfo(title) {
     if (!title) return false;
-    const patterns = [
-      /第\s*[0-9一二三四五六七八九十]+\s*[季期部]/i,
-      // 第2季
-      /Season\s*\d+/i,
-      // Season 2
-      /S\d+/i,
-      // S2
-      /Part\s*\d+/i,
-      // Part 2
-      /OVA/i,
-      /OAD/i,
-      /剧场版|Movie|Film/i,
-      /续篇|续集/i,
-      /SP/i,
-      /(?<!\d)\d+$/,
-      // 末尾数字
-      /\S+篇/i,
-      // 篇章标识 (如: 柱训练篇)
-      /\S+章/i,
-      /Act\s*\d+/i,
-      /Phase\s*\d+/i
-    ];
-    return patterns.some((p) => p.test(title));
+    const pattern = /第?\s*(?:\d+|[一二三四五六七八九十]+)\s*[季期部]|Season\s*\d+|S\d+|Part\s*\d+|Act\s*\d+|Phase\s*\d+|The\s+Final\s+Season|OVA|OAD|剧场版|劇場版|Movie|Film|续[篇集]|外传|SP|(?<!\d)\d+$|\S+[篇章]/i;
+    return pattern.test(title);
   }
   /**
    * 批量检查条目关系并修正标题
@@ -17042,12 +17239,12 @@ var AnimekoSource = class extends BaseSource {
       if (is3D) typeDesc = "3D" + typeDesc;
       else if (is2D) typeDesc = "2D" + typeDesc;
       const titleSuffix = item._relation_mark ? ` ${item._relation_mark}` : "";
-      const aliases = [];
+      const aliases = Array.isArray(item.aliases) ? [...item.aliases] : [];
       if (item.infobox && Array.isArray(item.infobox)) {
         item.infobox.forEach((info) => {
           if (info.key === "\u522B\u540D" && Array.isArray(info.value)) {
             info.value.forEach((v) => {
-              if (v && v.v) aliases.push(v.v);
+              if (v && v.v && !aliases.includes(v.v)) aliases.push(v.v);
             });
           }
         });
@@ -17986,7 +18183,7 @@ async function getComment(path2, queryFormat, segmentFlag, clientIp, includeDura
     let offset = null;
     if (clientIp) {
       const lastSearch = getLastSearch(clientIp);
-      if (lastSearch && lastSearch.episodeId === commentId && lastSearch.title && lastSearch.season && lastSearch.episode && episodeTitle) {
+      if (lastSearch && lastSearch.title && lastSearch.season && lastSearch.episode && episodeTitle) {
         lastTitle = lastSearch.title;
         lastSeason = lastSearch.season;
         offset = `${lastSearch.episode}:${episodeTitle}`;
@@ -18128,7 +18325,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = true ? "1.18.8" : Globals.VERSION;
+var wv = true ? "1.19.1" : Globals.VERSION;
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
