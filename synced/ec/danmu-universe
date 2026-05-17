@@ -1016,8 +1016,8 @@ var compat_ZodFirstPartyTypeKind, __webpack_modules__ = {
                             var n = t + r, i = e[n];
                             e[n] = (i << 8 | i >>> 24) & 0x00ff00ff | (i << 24 | i >>> 8) & 0xff00ff00;
                         }
-                        var o = this._hash.words, a = e[t + 0], l = e[t + 1], p = e[t + 2], h = e[t + 3], m = e[t + 4], g = e[t + 5], v = e[t + 6], y = e[t + 7], b = e[t + 8], w = e[t + 9], _ = e[t + 10], x = e[t + 11], k = e[t + 12], S = e[t + 13], O = e[t + 14], P = e[t + 15], z = o[0], I = o[1], E = o[2], j = o[3];
-                        z = u(z, I, E, j, a, 7, s[0]), j = u(j, z, I, E, l, 12, s[1]), E = u(E, j, z, I, p, 17, s[2]), I = u(I, E, j, z, h, 22, s[3]), z = u(z, I, E, j, m, 7, s[4]), j = u(j, z, I, E, g, 12, s[5]), E = u(E, j, z, I, v, 17, s[6]), I = u(I, E, j, z, y, 22, s[7]), z = u(z, I, E, j, b, 7, s[8]), j = u(j, z, I, E, w, 12, s[9]), E = u(E, j, z, I, _, 17, s[10]), I = u(I, E, j, z, x, 22, s[11]), z = u(z, I, E, j, k, 7, s[12]), j = u(j, z, I, E, S, 12, s[13]), E = u(E, j, z, I, O, 17, s[14]), I = u(I, E, j, z, P, 22, s[15]), z = c(z, I, E, j, l, 5, s[16]), j = c(j, z, I, E, v, 9, s[17]), E = c(E, j, z, I, x, 14, s[18]), I = c(I, E, j, z, a, 20, s[19]), z = c(z, I, E, j, g, 5, s[20]), j = c(j, z, I, E, _, 9, s[21]), E = c(E, j, z, I, P, 14, s[22]), I = c(I, E, j, z, m, 20, s[23]), z = c(z, I, E, j, w, 5, s[24]), j = c(j, z, I, E, O, 9, s[25]), E = c(E, j, z, I, h, 14, s[26]), I = c(I, E, j, z, b, 20, s[27]), z = c(z, I, E, j, S, 5, s[28]), j = c(j, z, I, E, p, 9, s[29]), E = c(E, j, z, I, y, 14, s[30]), I = c(I, E, j, z, k, 20, s[31]), z = d(z, I, E, j, g, 4, s[32]), j = d(j, z, I, E, b, 11, s[33]), E = d(E, j, z, I, x, 16, s[34]), I = d(I, E, j, z, O, 23, s[35]), z = d(z, I, E, j, l, 4, s[36]), j = d(j, z, I, E, m, 11, s[37]), E = d(E, j, z, I, y, 16, s[38]), I = d(I, E, j, z, _, 23, s[39]), z = d(z, I, E, j, S, 4, s[40]), j = d(j, z, I, E, a, 11, s[41]), E = d(E, j, z, I, h, 16, s[42]), I = d(I, E, j, z, v, 23, s[43]), z = d(z, I, E, j, w, 4, s[44]), j = d(j, z, I, E, k, 11, s[45]), E = d(E, j, z, I, P, 16, s[46]), I = d(I, E, j, z, p, 23, s[47]), z = f(z, I, E, j, a, 6, s[48]), j = f(j, z, I, E, y, 10, s[49]), E = f(E, j, z, I, O, 15, s[50]), I = f(I, E, j, z, g, 21, s[51]), z = f(z, I, E, j, k, 6, s[52]), j = f(j, z, I, E, h, 10, s[53]), E = f(E, j, z, I, _, 15, s[54]), I = f(I, E, j, z, l, 21, s[55]), z = f(z, I, E, j, b, 6, s[56]), j = f(j, z, I, E, P, 10, s[57]), E = f(E, j, z, I, v, 15, s[58]), I = f(I, E, j, z, S, 21, s[59]), z = f(z, I, E, j, m, 6, s[60]), j = f(j, z, I, E, x, 10, s[61]), E = f(E, j, z, I, p, 15, s[62]), I = f(I, E, j, z, w, 21, s[63]), o[0] = o[0] + z | 0, o[1] = o[1] + I | 0, o[2] = o[2] + E | 0, o[3] = o[3] + j | 0;
+                        var o = this._hash.words, a = e[t + 0], l = e[t + 1], p = e[t + 2], h = e[t + 3], m = e[t + 4], g = e[t + 5], v = e[t + 6], y = e[t + 7], b = e[t + 8], w = e[t + 9], _ = e[t + 10], x = e[t + 11], k = e[t + 12], S = e[t + 13], O = e[t + 14], P = e[t + 15], I = o[0], z = o[1], E = o[2], j = o[3];
+                        I = u(I, z, E, j, a, 7, s[0]), j = u(j, I, z, E, l, 12, s[1]), E = u(E, j, I, z, p, 17, s[2]), z = u(z, E, j, I, h, 22, s[3]), I = u(I, z, E, j, m, 7, s[4]), j = u(j, I, z, E, g, 12, s[5]), E = u(E, j, I, z, v, 17, s[6]), z = u(z, E, j, I, y, 22, s[7]), I = u(I, z, E, j, b, 7, s[8]), j = u(j, I, z, E, w, 12, s[9]), E = u(E, j, I, z, _, 17, s[10]), z = u(z, E, j, I, x, 22, s[11]), I = u(I, z, E, j, k, 7, s[12]), j = u(j, I, z, E, S, 12, s[13]), E = u(E, j, I, z, O, 17, s[14]), z = u(z, E, j, I, P, 22, s[15]), I = c(I, z, E, j, l, 5, s[16]), j = c(j, I, z, E, v, 9, s[17]), E = c(E, j, I, z, x, 14, s[18]), z = c(z, E, j, I, a, 20, s[19]), I = c(I, z, E, j, g, 5, s[20]), j = c(j, I, z, E, _, 9, s[21]), E = c(E, j, I, z, P, 14, s[22]), z = c(z, E, j, I, m, 20, s[23]), I = c(I, z, E, j, w, 5, s[24]), j = c(j, I, z, E, O, 9, s[25]), E = c(E, j, I, z, h, 14, s[26]), z = c(z, E, j, I, b, 20, s[27]), I = c(I, z, E, j, S, 5, s[28]), j = c(j, I, z, E, p, 9, s[29]), E = c(E, j, I, z, y, 14, s[30]), z = c(z, E, j, I, k, 20, s[31]), I = d(I, z, E, j, g, 4, s[32]), j = d(j, I, z, E, b, 11, s[33]), E = d(E, j, I, z, x, 16, s[34]), z = d(z, E, j, I, O, 23, s[35]), I = d(I, z, E, j, l, 4, s[36]), j = d(j, I, z, E, m, 11, s[37]), E = d(E, j, I, z, y, 16, s[38]), z = d(z, E, j, I, _, 23, s[39]), I = d(I, z, E, j, S, 4, s[40]), j = d(j, I, z, E, a, 11, s[41]), E = d(E, j, I, z, h, 16, s[42]), z = d(z, E, j, I, v, 23, s[43]), I = d(I, z, E, j, w, 4, s[44]), j = d(j, I, z, E, k, 11, s[45]), E = d(E, j, I, z, P, 16, s[46]), z = d(z, E, j, I, p, 23, s[47]), I = f(I, z, E, j, a, 6, s[48]), j = f(j, I, z, E, y, 10, s[49]), E = f(E, j, I, z, O, 15, s[50]), z = f(z, E, j, I, g, 21, s[51]), I = f(I, z, E, j, k, 6, s[52]), j = f(j, I, z, E, h, 10, s[53]), E = f(E, j, I, z, _, 15, s[54]), z = f(z, E, j, I, l, 21, s[55]), I = f(I, z, E, j, b, 6, s[56]), j = f(j, I, z, E, P, 10, s[57]), E = f(E, j, I, z, v, 15, s[58]), z = f(z, E, j, I, S, 21, s[59]), I = f(I, z, E, j, m, 6, s[60]), j = f(j, I, z, E, x, 10, s[61]), E = f(E, j, I, z, p, 15, s[62]), z = f(z, E, j, I, w, 21, s[63]), o[0] = o[0] + I | 0, o[1] = o[1] + z | 0, o[2] = o[2] + E | 0, o[3] = o[3] + j | 0;
                     },
                     _doFinalize: function() {
                         var e = this._data, r = e.words, n = 8 * this._nDataBytes, i = 8 * e.sigBytes;
@@ -10607,6 +10607,36 @@ class DoubanMatcher {
         douban_define_property(this, "logger", new Logger("豆瓣")), douban_define_property(this, "tmdbMatcher", new TmdbMatcher()), douban_define_property(this, "imdbMatcher", new ImdbMatcher()), douban_define_property(this, "fetch", new Fetch()), douban_define_property(this, "DOUBAN_API_KEY", "0ac44ae016490db2204ce0a042db2916");
     }
 }
+let LOCAL_TMDB_PLATFORM_MAP = {
+    movie: {},
+    tv: {
+        282136: {
+            series: [
+                {
+                    provider: "bilibili",
+                    idString: "seasonId=45962"
+                }
+            ]
+        }
+    }
+}, cloneProviders = (e)=>e.map(({ provider: e, idString: t, episodeNumber: r })=>void 0 === r ? {
+            provider: e,
+            idString: t
+        } : {
+            provider: e,
+            idString: t,
+            episodeNumber: r
+        }), lookupLocalMap = ({ type: e, tmdbId: t, season: r })=>{
+    var n, i, o;
+    if (!Number.isInteger(t) || t < 0) return null;
+    let a = String(t);
+    if ("movie" === e) return null != (n = LOCAL_TMDB_PLATFORM_MAP.movie[a]) ? n : null;
+    let s = LOCAL_TMDB_PLATFORM_MAP.tv[a];
+    return s ? null == r ? null != (i = s.series) ? i : null : !Number.isInteger(r) || r < 0 ? null : null != (o = s[String(r)]) ? o : null : null;
+}, getLocalEpisodeParams = (e)=>{
+    let t = lookupLocalMap(e);
+    return t ? cloneProviders(t) : [];
+};
 function src_asyncGeneratorStep(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
@@ -10665,14 +10695,14 @@ function src_object_spread_props(e, t) {
         Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
     }), e;
 }
-let widgetVersion = "0.15.1";
+let widgetVersion = "0.15.2";
 WidgetMetadata = {
     id: "baranwang.danmu.universe",
     title: "通用弹幕",
     description: "通用弹幕插件，支持腾讯、优酷、爱奇艺、哔哩哔哩、人人视频等平台",
     author: "Baran",
     version: widgetVersion,
-    site: "https://github.com/baranwang/forward-widgets/tree/main/apps/danmu-universe",
+    site: "https://github.com/baranwang/forward-widget/tree/main/apps/danmu-universe",
     requiredVersion: "0.0.2",
     globalParams: [
         {
@@ -10879,40 +10909,51 @@ WidgetMetadata = {
 };
 let checkShowEmptyAnimeTitle = (e)=>stringbool().catch(!0).parse(e.emptyAnimeTitle);
 searchDanmu = (e)=>src_async_to_generator(function*() {
-        let t = scrapers_scraper.setGlobalParams(e), { fuzzyMatch: r = "auto", type: n, episode: i } = e, o = [], a = new DoubanMatcher(), { doubanIds: s, videoPlatformInfo: l } = yield a.getEpisodeParams(e);
-        o = o.concat(l);
+        let t = scrapers_scraper.setGlobalParams(e), { fuzzyMatch: r = "auto", type: n, episode: i } = e, o = (e)=>"tv" !== n ? e : e.map((e)=>src_object_spread_props(src_object_spread({}, e), {
+                    episodeNumber: i ? parseInt(i, 10) : e.episodeNumber
+                })), a = (e)=>src_async_to_generator(function*() {
+                let t = yield scrapers_scraper.getEpisodes(...o(e));
+                return "tv" === n && i && (t = t.filter((e)=>e.episodeNumber === parseInt(i, 10))), t;
+            })(), s = (e)=>({
+                animes: e.map((e)=>{
+                    let t = `[${PROVIDER_NAMES[e.provider]}] `;
+                    return e.episodeTitle && (t += e.episodeTitle), {
+                        animeId: e.episodeId,
+                        animeTitle: t
+                    };
+                })
+            }), l = e.tmdbId ? Number(e.tmdbId) : NaN, u = "tv" === n && void 0 !== e.season ? Number(e.season) : null, c = Number.isInteger(l) ? getLocalEpisodeParams({
+            type: n,
+            tmdbId: l,
+            season: u
+        }) : [];
+        if (c.length) {
+            let e = yield a(c);
+            if (e.length) return s(e);
+        }
+        let d = [], f = new DoubanMatcher(), { doubanIds: p, videoPlatformInfo: h } = yield f.getEpisodeParams(e);
+        d = d.concat(h);
         try {
             if ((null == t ? void 0 : t.global.experimental.doubanHistory.enabled) && (null == t ? void 0 : t.global.experimental.doubanHistory.dbcl2)) {
                 let e = new DoubanHistory(t.global.experimental.doubanHistory);
-                1 === s.length && (yield e.setStatus(n, s[0], "tv" === n ? "doing" : "done"));
+                1 === p.length && (yield e.setStatus(n, p[0], "tv" === n ? "doing" : "done"));
             }
         } catch (e) {
             console.error(e);
         }
-        if (!(null == o ? void 0 : o.length) && "auto" === r || "always" === r) {
+        if (!(null == d ? void 0 : d.length) && "auto" === r || "always" === r) {
             let t = yield scrapers_scraper.getEpisodeParams(e);
-            o = o.concat(t);
+            d = d.concat(t);
         }
-        "tv" === n && (o = o.map((e)=>src_object_spread_props(src_object_spread({}, e), {
-                episodeNumber: i ? parseInt(i, 10) : void 0
-            })));
-        let u = yield scrapers_scraper.getEpisodes(...o);
-        return ("tv" === n && i && (u = u.filter((e)=>e.episodeNumber === parseInt(i, 10))), !u.length && checkShowEmptyAnimeTitle(e)) ? {
+        let m = yield a(d);
+        return !m.length && checkShowEmptyAnimeTitle(e) ? {
             animes: [
                 {
                     animeId: EMPTY_ANIME_CONFIG.ID,
                     animeTitle: EMPTY_ANIME_CONFIG.TITLE
                 }
             ]
-        } : {
-            animes: u.map((e)=>{
-                let t = `[${PROVIDER_NAMES[e.provider]}] `;
-                return e.episodeTitle && (t += e.episodeTitle), {
-                    animeId: e.episodeId,
-                    animeTitle: t
-                };
-            })
-        };
+        } : s(m);
     })(), getDetail = (e)=>src_async_to_generator(function*() {
         scrapers_scraper.setGlobalParams(e);
         let { animeId: t, type: r, episode: n } = e;
