@@ -6105,11 +6105,11 @@ class BaseScraper {
     }
     parseIdString(e) {
         var t, r;
-        let n = url_parse.qs.parse(e), i = null == (t = this.idSchema) ? void 0 : t.safeParse(n);
+        let n = (0, querystringify.parse)(e), i = null == (t = this.idSchema) ? void 0 : t.safeParse(n);
         return i ? i.success ? null != (r = i.data) ? r : null : (this.logger.error("parseIdString", e, prettifyError(i.error)), null) : (this.logger.error("parseIdString", e, "idSchema is not defined"), null);
     }
     generateIdString(e) {
-        return url_parse.qs.stringify(this.idSchema.parse(e));
+        return (0, querystringify.stringify)(this.idSchema.parse(e));
     }
     getEpisodeIndexFromTitle(e) {
         return parseEpNumber(e);
@@ -6327,13 +6327,6 @@ function set_set(e, t, r) {
 }
 let globalParamsConfigSchema = schemas_object({
     "global.content.aggregation": stringbool().catch(!0),
-    "global.content.blacklist": schemas_string().refine((e)=>{
-        try {
-            return new RegExp(e), !0;
-        } catch (e) {
-            return !1;
-        }
-    }).catch(""),
     "global.content.conversion": schemas_enum([
         "original",
         "tc2sc",
@@ -10155,9 +10148,8 @@ class scrapers_Scraper {
                     });
                 }
             }
-            let l = [], u = this.globalParams.global.content.blacklist ? new RegExp(this.globalParams.global.content.blacklist) : null;
+            let l = [];
             return o.forEach(({ item: e, count: t, provider: n })=>{
-                if (null == u ? void 0 : u.test(e.content)) return;
                 let i = t > 1 ? `${e.content} × ${t}` : e.content;
                 r && (i = r(i)), l.push({
                     cid: e.id,
@@ -10627,12 +10619,12 @@ let LOCAL_TMDB_PLATFORM_MAP = {
             idString: t,
             episodeNumber: r
         }), lookupLocalMap = ({ type: e, tmdbId: t, season: r })=>{
-    var n, i, o;
+    var n, i, o, a;
     if (!Number.isInteger(t) || t < 0) return null;
-    let a = String(t);
-    if ("movie" === e) return null != (n = LOCAL_TMDB_PLATFORM_MAP.movie[a]) ? n : null;
-    let s = LOCAL_TMDB_PLATFORM_MAP.tv[a];
-    return s ? null == r ? null != (i = s.series) ? i : null : !Number.isInteger(r) || r < 0 ? null : null != (o = s[String(r)]) ? o : null : null;
+    let s = String(t);
+    if ("movie" === e) return null != (n = LOCAL_TMDB_PLATFORM_MAP.movie[s]) ? n : null;
+    let l = LOCAL_TMDB_PLATFORM_MAP.tv[s];
+    return l ? null == r ? null != (i = l.series) ? i : null : null != (a = null != (o = l[r]) ? o : l.series) ? a : null : null;
 }, getLocalEpisodeParams = (e)=>{
     let t = lookupLocalMap(e);
     return t ? cloneProviders(t) : [];
@@ -10695,7 +10687,7 @@ function src_object_spread_props(e, t) {
         Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
     }), e;
 }
-let widgetVersion = "0.15.2";
+let widgetVersion = "0.15.3";
 WidgetMetadata = {
     id: "baranwang.danmu.universe",
     title: "通用弹幕",
@@ -10782,12 +10774,6 @@ WidgetMetadata = {
                     value: "false"
                 }
             ]
-        },
-        {
-            title: "弹幕内容过滤",
-            name: "global.content.blacklist",
-            value: "",
-            type: "input"
         },
         {
             title: "弹幕内容繁简转换",
@@ -10927,7 +10913,7 @@ searchDanmu = (e)=>src_async_to_generator(function*() {
             tmdbId: l,
             season: u
         }) : [];
-        if (c.length) {
+        if (console.log("localEpisodeParams", c), c.length) {
             let e = yield a(c);
             if (e.length) return s(e);
         }
