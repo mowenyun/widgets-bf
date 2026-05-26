@@ -273,6 +273,16 @@ def process_github_dir_source(source, skipped_items):
     local_dir = os.path.join(SYNCED_DIR, source_id)
     ensure_dir(local_dir)  # 只确保目录存在，不删除旧文件
 
+    # 🔍 步骤1：扫描本地已有的备份文件
+    local_backups = {}
+    if os.path.exists(local_dir):
+        for filename in os.listdir(local_dir):
+            if filename.endswith(".js"):
+                local_path = os.path.join(local_dir, filename)
+                local_backups[filename] = local_path
+    
+    print(f"Found {len(local_backups)} local backup(s)")
+
     api_url = f"https://api.github.com/repos/{repo}/contents/{path}?ref={branch}"
     source_url = f"https://github.com/{repo}/tree/{branch}/{path}"
 
@@ -283,7 +293,9 @@ def process_github_dir_source(source, skipped_items):
     origin_widgets = []
     mirror_widgets = []
     downloaded = 0
+    processed_files = set()  # 记录已处理的文件
 
+    # 🔄 步骤2：处理上游目录中的组件
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -294,6 +306,7 @@ def process_github_dir_source(source, skipped_items):
         if not filename.endswith(".js"):
             continue
 
+        processed_files.add(filename)
         download_url = item.get("download_url")
         if not download_url:
             add_skip(skipped_items, source_id, source_name, filename, "缺少 download_url")
@@ -301,14 +314,23 @@ def process_github_dir_source(source, skipped_items):
 
         local_path = os.path.join(local_dir, filename)
 
+        # 尝试下载
+        download_success = False
         try:
             print("Downloading:", download_url)
             download_file(download_url, local_path)
             downloaded += 1
+            download_success = True
         except Exception as e:
-            add_skip(skipped_items, source_id, source_name, filename, f"下载失败: {e}")
-            continue
+            print("Failed:", download_url, e)
+            # 下载失败，检查是否有本地备份
+            if filename in local_backups:
+                print(f"  → Using local backup: {filename}")
+            else:
+                add_skip(skipped_items, source_id, source_name, filename, f"下载失败且无本地备份: {e}")
+                continue
 
+        # 提取 metadata（无论是新下载的还是本地备份）
         metadata = None
         try:
             with open(local_path, "r", encoding="utf-8") as f:
@@ -334,6 +356,26 @@ def process_github_dir_source(source, skipped_items):
         origin_widgets.append(origin_widget)
         mirror_widgets.append(mirror_widget)
 
+    # 🎁 步骤3：添加上游已删除但本地有备份的组件（孤儿组件）
+    orphan_files = set(local_backups.keys()) - processed_files
+    if orphan_files:
+        print(f"Found {len(orphan_files)} orphan backup(s) not in upstream directory:")
+        for filename in sorted(orphan_files):
+            local_path = local_backups[filename]
+            try:
+                with open(local_path, "r", encoding="utf-8") as f:
+                    js_text = f.read()
+                metadata = extract_widget_metadata(js_text)
+                if metadata:
+                    print(f"  → Restoring orphan: {filename} ({metadata.get('title', 'Unknown')})")
+                    widget = build_widget_from_metadata(filename, local_path, metadata)
+                    # 孤儿组件只加入镜像版，不加入原地址版
+                    mirror_widgets.append(widget)
+                else:
+                    print(f"  → Skip orphan {filename}: no valid metadata")
+            except Exception as e:
+                print(f"  → Skip orphan {filename}: {e}")
+
     return {
         "id": source_id,
         "name": source_name,
@@ -341,7 +383,8 @@ def process_github_dir_source(source, skipped_items):
         "origin_widgets": origin_widgets,
         "mirror_widgets": mirror_widgets,
         "widget_count": len(origin_widgets),
-        "downloaded": downloaded
+        "downloaded": downloaded,
+        "orphan_count": len(orphan_files)
     }
 
 
