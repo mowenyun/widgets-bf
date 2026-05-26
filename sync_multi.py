@@ -175,7 +175,7 @@ def process_fwd_source(source, skipped_items):
 
     headers = build_headers(referer)
     local_dir = os.path.join(SYNCED_DIR, source_id)
-    reset_dir(local_dir)
+    ensure_dir(local_dir)  # 只确保目录存在，不删除旧文件
 
     text = download_text(source_url, headers)
     data = json.loads(text)
@@ -232,7 +232,7 @@ def process_github_dir_source(source, skipped_items):
     print(f"\n===== Processing GitHub Dir: {source_name} ({source_id}) =====")
 
     local_dir = os.path.join(SYNCED_DIR, source_id)
-    reset_dir(local_dir)
+    ensure_dir(local_dir)  # 只确保目录存在，不删除旧文件
 
     api_url = f"https://api.github.com/repos/{repo}/contents/{path}?ref={branch}"
     source_url = f"https://github.com/{repo}/tree/{branch}/{path}"
