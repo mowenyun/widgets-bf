@@ -63,7 +63,7 @@
       "requiredVersion": "0.0.2",
       "version": "1.19.6",
       "author": "huangxd",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/danmu_auto.js"
+      "url": "https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets/danmu_auto.js"
     },
     {
       "id": "forward.auto.danmu_api",
@@ -81,7 +81,7 @@
       "requiredVersion": "0.0.1",
       "version": "1.3.1",
       "author": "阿米诺斯",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/combined.js"
+      "url": "https://raw.githubusercontent.com/pack1r/ForwardWidgets/refs/heads/main/widgets/combined.js"
     },
     {
       "id": "hot_picks",
@@ -189,7 +189,7 @@
       "requiredVersion": "0.0.1",
       "version": "1.1.0",
       "author": "两块",
-      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/ec/jpyy.js"
+      "url": "https://github.com/2kuai/ForwardWidgets/raw/refs/heads/main/Widgets/jpyy.js"
     },
     {
       "id": "Bitch",

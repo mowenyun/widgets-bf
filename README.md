@@ -19,12 +19,12 @@
 ### huangxd Widgets (`huangxd`)
 - 来源：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
 - Widgets：`8`
-- 成功镜像 js：`8`
+- 成功镜像 js：`7`
 
 ### ec Widgets (`ec`)
 - 来源：`https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd`
 - Widgets：`14`
-- 成功镜像 js：`10`
+- 成功镜像 js：`11`
 
 ### ti Widgets (`ti`)
 - 来源：`https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/ti.fwd`
@@ -39,7 +39,7 @@
 ### 2kuai ForwardWidgets (`2kuai`)
 - 来源：`https://github.com/2kuai/ForwardWidgets/tree/main/Widgets`
 - Widgets：`3`
-- 成功镜像 js：`4`
+- 成功镜像 js：`3`
 
 ### custom
 - 来源：`https://github.com/mowenyun/widgets-bf/tree/main/custom`
@@ -52,7 +52,7 @@
 
 ## 跳过记录
 
-- 来源 `2kuai ForwardWidgets` / 文件 `jpyy.js` / 原因：未提取到有效的 WidgetMetadata
+- 来源 `2kuai ForwardWidgets` / 文件 `jpyy.js` / 原因：不包含 WidgetMetadata
 
 ## 使用说明
 
