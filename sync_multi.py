@@ -177,12 +177,23 @@ def process_fwd_source(source, skipped_items):
     local_dir = os.path.join(SYNCED_DIR, source_id)
     ensure_dir(local_dir)  # 只确保目录存在，不删除旧文件
 
-    # 🔍 步骤1：扫描本地已有的备份文件
+    # 🔍 步骤1：扫描本地已有的备份文件（包括无扩展名的 JS 文件）
     local_backups = {}
     if os.path.exists(local_dir):
         for filename in os.listdir(local_dir):
-            if filename.endswith(".js"):
-                local_path = os.path.join(local_dir, filename)
+            local_path = os.path.join(local_dir, filename)
+            # 检查是否是 JS 文件（有 .js 扩展名 或 包含 WidgetMetadata）
+            is_js = filename.endswith(".js")
+            if not is_js and os.path.isfile(local_path):
+                try:
+                    with open(local_path, "r", encoding="utf-8") as f:
+                        content = f.read(500)  # 只读前 500 字符检测
+                    if "WidgetMetadata" in content:
+                        is_js = True
+                except:
+                    pass
+            
+            if is_js:
                 local_backups[filename] = local_path
     
     print(f"Found {len(local_backups)} local backup(s)")
@@ -210,19 +221,47 @@ def process_fwd_source(source, skipped_items):
             if filename:
                 processed_files.add(filename)
                 local_path = os.path.join(local_dir, filename)
+                download_success = False
+                
                 try:
                     print("Downloading:", url)
                     download_file(url, local_path, headers)
-                    mirror_widget["url"] = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
-                    downloaded += 1
+                    download_success = True
                 except Exception as e:
                     print("Failed:", url, e)
                     # 下载失败，检查是否有本地备份
                     if filename in local_backups:
                         print(f"  → Using local backup: {filename}")
-                        mirror_widget["url"] = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
-                    else:
+                        download_success = True
+                
+                # 下载成功（或使用备份），检查文件是否有效
+                if download_success and os.path.exists(local_path):
+                    try:
+                        with open(local_path, "r", encoding="utf-8") as f:
+                            js_text = f.read()
+                        
+                        # 检查是否包含 WidgetMetadata（无论扩展名）
+                        if "WidgetMetadata" in js_text:
+                            metadata = extract_widget_metadata(js_text)
+                            if metadata:
+                                # 有效的 Widget JS 文件
+                                mirror_widget["url"] = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
+                                downloaded += 1
+                                print(f"  ✓ Valid widget: {metadata.get('title', filename)}")
+                            else:
+                                # 包含 WidgetMetadata 但无法提取（可能是加密）
+                                print(f"  ⚠ Contains WidgetMetadata but cannot extract (encrypted?): {filename}")
+                                mirror_widget["url"] = url
+                        else:
+                            # 不包含 WidgetMetadata
+                            print(f"  ✗ Not a valid widget file: {filename}")
+                            mirror_widget["url"] = url
+                    except Exception as e:
+                        print(f"  ✗ Cannot read file: {filename}, {e}")
                         mirror_widget["url"] = url
+                else:
+                    # 下载失败且无备份
+                    mirror_widget["url"] = url
             else:
                 add_skip(skipped_items, source_id, source_name, str(url), "无法从 url 提取文件名")
 
@@ -273,12 +312,23 @@ def process_github_dir_source(source, skipped_items):
     local_dir = os.path.join(SYNCED_DIR, source_id)
     ensure_dir(local_dir)  # 只确保目录存在，不删除旧文件
 
-    # 🔍 步骤1：扫描本地已有的备份文件
+    # 🔍 步骤1：扫描本地已有的备份文件（包括无扩展名的 JS 文件）
     local_backups = {}
     if os.path.exists(local_dir):
         for filename in os.listdir(local_dir):
-            if filename.endswith(".js"):
-                local_path = os.path.join(local_dir, filename)
+            local_path = os.path.join(local_dir, filename)
+            # 检查是否是 JS 文件（有 .js 扩展名 或 包含 WidgetMetadata）
+            is_js = filename.endswith(".js")
+            if not is_js and os.path.isfile(local_path):
+                try:
+                    with open(local_path, "r", encoding="utf-8") as f:
+                        content = f.read(500)  # 只读前 500 字符检测
+                    if "WidgetMetadata" in content:
+                        is_js = True
+                except:
+                    pass
+            
+            if is_js:
                 local_backups[filename] = local_path
     
     print(f"Found {len(local_backups)} local backup(s)")
@@ -303,9 +353,8 @@ def process_github_dir_source(source, skipped_items):
             continue
 
         filename = item.get("name", "")
-        if not filename.endswith(".js"):
-            continue
-
+        # 不再强制要求 .js 扩展名，下载后检查内容
+        
         processed_files.add(filename)
         download_url = item.get("download_url")
         if not download_url:
@@ -319,30 +368,42 @@ def process_github_dir_source(source, skipped_items):
         try:
             print("Downloading:", download_url)
             download_file(download_url, local_path)
-            downloaded += 1
             download_success = True
         except Exception as e:
             print("Failed:", download_url, e)
             # 下载失败，检查是否有本地备份
             if filename in local_backups:
                 print(f"  → Using local backup: {filename}")
-            else:
-                add_skip(skipped_items, source_id, source_name, filename, f"下载失败且无本地备份: {e}")
-                continue
+                download_success = True
+
+        if not download_success:
+            add_skip(skipped_items, source_id, source_name, filename, f"下载失败且无本地备份")
+            continue
 
         # 提取 metadata（无论是新下载的还是本地备份）
         metadata = None
         try:
             with open(local_path, "r", encoding="utf-8") as f:
                 js_text = f.read()
+            
+            # 检查是否包含 WidgetMetadata
+            if "WidgetMetadata" not in js_text:
+                print(f"  ✗ Not a widget file (no WidgetMetadata): {filename}")
+                add_skip(skipped_items, source_id, source_name, filename, "不包含 WidgetMetadata")
+                continue
+            
             metadata = extract_widget_metadata(js_text)
         except Exception as e:
             add_skip(skipped_items, source_id, source_name, filename, f"读取或解析 metadata 失败: {e}")
             continue
 
         if not metadata:
-            add_skip(skipped_items, source_id, source_name, filename, "未提取到有效的 WidgetMetadata")
+            add_skip(skipped_items, source_id, source_name, filename, "未提取到有效的 WidgetMetadata（可能是加密文件）")
             continue
+
+        # 成功提取 metadata
+        print(f"  ✓ Valid widget: {metadata.get('title', filename)}")
+        downloaded += 1
 
         mirror_widget = build_widget_from_metadata(
             js_filename=filename,
