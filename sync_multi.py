@@ -177,13 +177,25 @@ def process_fwd_source(source, skipped_items):
     local_dir = os.path.join(SYNCED_DIR, source_id)
     ensure_dir(local_dir)  # 只确保目录存在，不删除旧文件
 
+    # 🔍 步骤1：扫描本地已有的备份文件
+    local_backups = {}
+    if os.path.exists(local_dir):
+        for filename in os.listdir(local_dir):
+            if filename.endswith(".js"):
+                local_path = os.path.join(local_dir, filename)
+                local_backups[filename] = local_path
+    
+    print(f"Found {len(local_backups)} local backup(s)")
+
     text = download_text(source_url, headers)
     data = json.loads(text)
 
     origin_widgets = []
     mirror_widgets = []
     downloaded = 0
+    processed_files = set()  # 记录已处理的文件
 
+    # 🔄 步骤2：处理上游订阅文件中的组件
     for widget in data.get("widgets", []):
         if not isinstance(widget, dict):
             add_skip(skipped_items, source_id, source_name, "(unknown widget)", "widget 不是对象(dict)")
@@ -196,6 +208,7 @@ def process_fwd_source(source, skipped_items):
         if url:
             filename = os.path.basename(urlparse(url).path)
             if filename:
+                processed_files.add(filename)
                 local_path = os.path.join(local_dir, filename)
                 try:
                     print("Downloading:", url)
@@ -204,12 +217,37 @@ def process_fwd_source(source, skipped_items):
                     downloaded += 1
                 except Exception as e:
                     print("Failed:", url, e)
-                    mirror_widget["url"] = url
+                    # 下载失败，检查是否有本地备份
+                    if filename in local_backups:
+                        print(f"  → Using local backup: {filename}")
+                        mirror_widget["url"] = f"{RAW_BASE}/{local_path.replace(os.sep, '/')}"
+                    else:
+                        mirror_widget["url"] = url
             else:
                 add_skip(skipped_items, source_id, source_name, str(url), "无法从 url 提取文件名")
 
         origin_widgets.append(origin_widget)
         mirror_widgets.append(mirror_widget)
+
+    # 🎁 步骤3：添加上游已删除但本地有备份的组件（孤儿组件）
+    orphan_files = set(local_backups.keys()) - processed_files
+    if orphan_files:
+        print(f"Found {len(orphan_files)} orphan backup(s) not in upstream subscription:")
+        for filename in sorted(orphan_files):
+            local_path = local_backups[filename]
+            try:
+                with open(local_path, "r", encoding="utf-8") as f:
+                    js_text = f.read()
+                metadata = extract_widget_metadata(js_text)
+                if metadata:
+                    print(f"  → Restoring orphan: {filename} ({metadata.get('title', 'Unknown')})")
+                    widget = build_widget_from_metadata(filename, local_path, metadata)
+                    # 孤儿组件只加入镜像版，不加入原地址版
+                    mirror_widgets.append(widget)
+                else:
+                    print(f"  → Skip orphan {filename}: no valid metadata")
+            except Exception as e:
+                print(f"  → Skip orphan {filename}: {e}")
 
     return {
         "id": source_id,
@@ -218,7 +256,8 @@ def process_fwd_source(source, skipped_items):
         "origin_widgets": origin_widgets,
         "mirror_widgets": mirror_widgets,
         "widget_count": len(origin_widgets),
-        "downloaded": downloaded
+        "downloaded": downloaded,
+        "orphan_count": len(orphan_files)
     }
 
 
@@ -437,6 +476,8 @@ def generate_readme(results, total_origin, total_mirror, custom_count, skipped_i
         lines.append(f"- 来源：`{item['source_url']}`")
         lines.append(f"- Widgets：`{item['widget_count']}`")
         lines.append(f"- 成功镜像 js：`{item['downloaded']}`")
+        if item.get('orphan_count', 0) > 0:
+            lines.append(f"- 🎁 孤儿组件（上游已删但本地保留）：`{item['orphan_count']}`")
         lines.append("")
 
     lines.append("### custom")
