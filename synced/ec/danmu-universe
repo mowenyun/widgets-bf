@@ -495,8 +495,8 @@ var l, u, c, d, h, f, p, m = {
                         var n = t + r, i = e[n];
                         e[n] = (i << 8 | i >>> 24) & 0x00ff00ff | (i << 24 | i >>> 8) & 0xff00ff00;
                     }
-                    var o = this._hash.words, s = e[t + 0], l = e[t + 1], f = e[t + 2], p = e[t + 3], m = e[t + 4], g = e[t + 5], v = e[t + 6], y = e[t + 7], b = e[t + 8], w = e[t + 9], _ = e[t + 10], x = e[t + 11], k = e[t + 12], S = e[t + 13], O = e[t + 14], I = e[t + 15], P = o[0], z = o[1], E = o[2], N = o[3];
-                    P = u(P, z, E, N, s, 7, a[0]), N = u(N, P, z, E, l, 12, a[1]), E = u(E, N, P, z, f, 17, a[2]), z = u(z, E, N, P, p, 22, a[3]), P = u(P, z, E, N, m, 7, a[4]), N = u(N, P, z, E, g, 12, a[5]), E = u(E, N, P, z, v, 17, a[6]), z = u(z, E, N, P, y, 22, a[7]), P = u(P, z, E, N, b, 7, a[8]), N = u(N, P, z, E, w, 12, a[9]), E = u(E, N, P, z, _, 17, a[10]), z = u(z, E, N, P, x, 22, a[11]), P = u(P, z, E, N, k, 7, a[12]), N = u(N, P, z, E, S, 12, a[13]), E = u(E, N, P, z, O, 17, a[14]), z = u(z, E, N, P, I, 22, a[15]), P = c(P, z, E, N, l, 5, a[16]), N = c(N, P, z, E, v, 9, a[17]), E = c(E, N, P, z, x, 14, a[18]), z = c(z, E, N, P, s, 20, a[19]), P = c(P, z, E, N, g, 5, a[20]), N = c(N, P, z, E, _, 9, a[21]), E = c(E, N, P, z, I, 14, a[22]), z = c(z, E, N, P, m, 20, a[23]), P = c(P, z, E, N, w, 5, a[24]), N = c(N, P, z, E, O, 9, a[25]), E = c(E, N, P, z, p, 14, a[26]), z = c(z, E, N, P, b, 20, a[27]), P = c(P, z, E, N, S, 5, a[28]), N = c(N, P, z, E, f, 9, a[29]), E = c(E, N, P, z, y, 14, a[30]), z = c(z, E, N, P, k, 20, a[31]), P = d(P, z, E, N, g, 4, a[32]), N = d(N, P, z, E, b, 11, a[33]), E = d(E, N, P, z, x, 16, a[34]), z = d(z, E, N, P, O, 23, a[35]), P = d(P, z, E, N, l, 4, a[36]), N = d(N, P, z, E, m, 11, a[37]), E = d(E, N, P, z, y, 16, a[38]), z = d(z, E, N, P, _, 23, a[39]), P = d(P, z, E, N, S, 4, a[40]), N = d(N, P, z, E, s, 11, a[41]), E = d(E, N, P, z, p, 16, a[42]), z = d(z, E, N, P, v, 23, a[43]), P = d(P, z, E, N, w, 4, a[44]), N = d(N, P, z, E, k, 11, a[45]), E = d(E, N, P, z, I, 16, a[46]), z = d(z, E, N, P, f, 23, a[47]), P = h(P, z, E, N, s, 6, a[48]), N = h(N, P, z, E, y, 10, a[49]), E = h(E, N, P, z, O, 15, a[50]), z = h(z, E, N, P, g, 21, a[51]), P = h(P, z, E, N, k, 6, a[52]), N = h(N, P, z, E, p, 10, a[53]), E = h(E, N, P, z, _, 15, a[54]), z = h(z, E, N, P, l, 21, a[55]), P = h(P, z, E, N, b, 6, a[56]), N = h(N, P, z, E, I, 10, a[57]), E = h(E, N, P, z, v, 15, a[58]), z = h(z, E, N, P, S, 21, a[59]), P = h(P, z, E, N, m, 6, a[60]), N = h(N, P, z, E, x, 10, a[61]), E = h(E, N, P, z, f, 15, a[62]), z = h(z, E, N, P, w, 21, a[63]), o[0] = o[0] + P | 0, o[1] = o[1] + z | 0, o[2] = o[2] + E | 0, o[3] = o[3] + N | 0;
+                    var o = this._hash.words, s = e[t + 0], l = e[t + 1], f = e[t + 2], p = e[t + 3], m = e[t + 4], g = e[t + 5], v = e[t + 6], y = e[t + 7], b = e[t + 8], w = e[t + 9], _ = e[t + 10], x = e[t + 11], k = e[t + 12], O = e[t + 13], S = e[t + 14], P = e[t + 15], I = o[0], z = o[1], E = o[2], N = o[3];
+                    I = u(I, z, E, N, s, 7, a[0]), N = u(N, I, z, E, l, 12, a[1]), E = u(E, N, I, z, f, 17, a[2]), z = u(z, E, N, I, p, 22, a[3]), I = u(I, z, E, N, m, 7, a[4]), N = u(N, I, z, E, g, 12, a[5]), E = u(E, N, I, z, v, 17, a[6]), z = u(z, E, N, I, y, 22, a[7]), I = u(I, z, E, N, b, 7, a[8]), N = u(N, I, z, E, w, 12, a[9]), E = u(E, N, I, z, _, 17, a[10]), z = u(z, E, N, I, x, 22, a[11]), I = u(I, z, E, N, k, 7, a[12]), N = u(N, I, z, E, O, 12, a[13]), E = u(E, N, I, z, S, 17, a[14]), z = u(z, E, N, I, P, 22, a[15]), I = c(I, z, E, N, l, 5, a[16]), N = c(N, I, z, E, v, 9, a[17]), E = c(E, N, I, z, x, 14, a[18]), z = c(z, E, N, I, s, 20, a[19]), I = c(I, z, E, N, g, 5, a[20]), N = c(N, I, z, E, _, 9, a[21]), E = c(E, N, I, z, P, 14, a[22]), z = c(z, E, N, I, m, 20, a[23]), I = c(I, z, E, N, w, 5, a[24]), N = c(N, I, z, E, S, 9, a[25]), E = c(E, N, I, z, p, 14, a[26]), z = c(z, E, N, I, b, 20, a[27]), I = c(I, z, E, N, O, 5, a[28]), N = c(N, I, z, E, f, 9, a[29]), E = c(E, N, I, z, y, 14, a[30]), z = c(z, E, N, I, k, 20, a[31]), I = d(I, z, E, N, g, 4, a[32]), N = d(N, I, z, E, b, 11, a[33]), E = d(E, N, I, z, x, 16, a[34]), z = d(z, E, N, I, S, 23, a[35]), I = d(I, z, E, N, l, 4, a[36]), N = d(N, I, z, E, m, 11, a[37]), E = d(E, N, I, z, y, 16, a[38]), z = d(z, E, N, I, _, 23, a[39]), I = d(I, z, E, N, O, 4, a[40]), N = d(N, I, z, E, s, 11, a[41]), E = d(E, N, I, z, p, 16, a[42]), z = d(z, E, N, I, v, 23, a[43]), I = d(I, z, E, N, w, 4, a[44]), N = d(N, I, z, E, k, 11, a[45]), E = d(E, N, I, z, P, 16, a[46]), z = d(z, E, N, I, f, 23, a[47]), I = h(I, z, E, N, s, 6, a[48]), N = h(N, I, z, E, y, 10, a[49]), E = h(E, N, I, z, S, 15, a[50]), z = h(z, E, N, I, g, 21, a[51]), I = h(I, z, E, N, k, 6, a[52]), N = h(N, I, z, E, p, 10, a[53]), E = h(E, N, I, z, _, 15, a[54]), z = h(z, E, N, I, l, 21, a[55]), I = h(I, z, E, N, b, 6, a[56]), N = h(N, I, z, E, P, 10, a[57]), E = h(E, N, I, z, v, 15, a[58]), z = h(z, E, N, I, O, 21, a[59]), I = h(I, z, E, N, m, 6, a[60]), N = h(N, I, z, E, x, 10, a[61]), E = h(E, N, I, z, f, 15, a[62]), z = h(z, E, N, I, w, 21, a[63]), o[0] = o[0] + I | 0, o[1] = o[1] + z | 0, o[2] = o[2] + E | 0, o[3] = o[3] + N | 0;
                 },
                 _doFinalize: function() {
                     var t = this._data, r = t.words, n = 8 * this._nDataBytes, i = 8 * t.sigBytes;
@@ -1144,7 +1144,7 @@ var l, u, c, d, h, f, p, m = {
                     if (e < 0) return y;
                     if (e >= p) return k;
                 } else {
-                    if (e <= -m) return S;
+                    if (e <= -m) return O;
                     if (e + 1 >= m) return x;
                 }
                 return e < 0 ? l(-e, t).neg() : u(e % f | 0, e / f | 0, t);
@@ -1187,17 +1187,17 @@ var l, u, c, d, h, f, p, m = {
             r.MAX_VALUE = x;
             var k = u(-1, -1, !0);
             r.MAX_UNSIGNED_VALUE = k;
-            var S = u(0, -2147483648, !1);
-            r.MIN_VALUE = S;
-            var O = r.prototype;
-            O.toInt = function() {
+            var O = u(0, -2147483648, !1);
+            r.MIN_VALUE = O;
+            var S = r.prototype;
+            S.toInt = function() {
                 return this.unsigned ? this.low >>> 0 : this.low;
-            }, O.toNumber = function() {
+            }, S.toNumber = function() {
                 return this.unsigned ? (this.high >>> 0) * f + (this.low >>> 0) : this.high * f + (this.low >>> 0);
-            }, O.toString = function(e) {
+            }, S.toString = function(e) {
                 if ((e = e || 10) < 2 || 36 < e) throw RangeError("radix");
                 if (this.isZero()) return "0";
-                if (this.isNegative()) if (!this.eq(S)) return "-" + this.neg().toString(e);
+                if (this.isNegative()) if (!this.eq(O)) return "-" + this.neg().toString(e);
                 else {
                     var t = l(e), r = this.div(t), n = r.mul(t).sub(this);
                     return r.toString(e) + n.toInt().toString(e);
@@ -1208,68 +1208,68 @@ var l, u, c, d, h, f, p, m = {
                     for(; u.length < 6;)u = "0" + u;
                     a = "" + u + a;
                 }
-            }, O.getHighBits = function() {
+            }, S.getHighBits = function() {
                 return this.high;
-            }, O.getHighBitsUnsigned = function() {
+            }, S.getHighBitsUnsigned = function() {
                 return this.high >>> 0;
-            }, O.getLowBits = function() {
+            }, S.getLowBits = function() {
                 return this.low;
-            }, O.getLowBitsUnsigned = function() {
+            }, S.getLowBitsUnsigned = function() {
                 return this.low >>> 0;
-            }, O.getNumBitsAbs = function() {
-                if (this.isNegative()) return this.eq(S) ? 64 : this.neg().getNumBitsAbs();
+            }, S.getNumBitsAbs = function() {
+                if (this.isNegative()) return this.eq(O) ? 64 : this.neg().getNumBitsAbs();
                 for(var e = 0 != this.high ? this.high : this.low, t = 31; t > 0 && (e & 1 << t) == 0; t--);
                 return 0 != this.high ? t + 33 : t + 1;
-            }, O.isSafeInteger = function() {
+            }, S.isSafeInteger = function() {
                 var e = this.high >> 21;
                 return !e || !this.unsigned && -1 === e && (0 !== this.low || -2097152 !== this.high);
-            }, O.isZero = function() {
+            }, S.isZero = function() {
                 return 0 === this.high && 0 === this.low;
-            }, O.eqz = O.isZero, O.isNegative = function() {
+            }, S.eqz = S.isZero, S.isNegative = function() {
                 return !this.unsigned && this.high < 0;
-            }, O.isPositive = function() {
+            }, S.isPositive = function() {
                 return this.unsigned || this.high >= 0;
-            }, O.isOdd = function() {
+            }, S.isOdd = function() {
                 return (1 & this.low) == 1;
-            }, O.isEven = function() {
+            }, S.isEven = function() {
                 return (1 & this.low) == 0;
-            }, O.equals = function(e) {
+            }, S.equals = function(e) {
                 return n(e) || (e = h(e)), (this.unsigned === e.unsigned || this.high >>> 31 != 1 || e.high >>> 31 != 1) && this.high === e.high && this.low === e.low;
-            }, O.eq = O.equals, O.notEquals = function(e) {
+            }, S.eq = S.equals, S.notEquals = function(e) {
                 return !this.eq(e);
-            }, O.neq = O.notEquals, O.ne = O.notEquals, O.lessThan = function(e) {
+            }, S.neq = S.notEquals, S.ne = S.notEquals, S.lessThan = function(e) {
                 return 0 > this.comp(e);
-            }, O.lt = O.lessThan, O.lessThanOrEqual = function(e) {
+            }, S.lt = S.lessThan, S.lessThanOrEqual = function(e) {
                 return 0 >= this.comp(e);
-            }, O.lte = O.lessThanOrEqual, O.le = O.lessThanOrEqual, O.greaterThan = function(e) {
+            }, S.lte = S.lessThanOrEqual, S.le = S.lessThanOrEqual, S.greaterThan = function(e) {
                 return this.comp(e) > 0;
-            }, O.gt = O.greaterThan, O.greaterThanOrEqual = function(e) {
+            }, S.gt = S.greaterThan, S.greaterThanOrEqual = function(e) {
                 return this.comp(e) >= 0;
-            }, O.gte = O.greaterThanOrEqual, O.ge = O.greaterThanOrEqual, O.compare = function(e) {
+            }, S.gte = S.greaterThanOrEqual, S.ge = S.greaterThanOrEqual, S.compare = function(e) {
                 if (n(e) || (e = h(e)), this.eq(e)) return 0;
                 var t = this.isNegative(), r = e.isNegative();
                 return t && !r ? -1 : !t && r ? 1 : this.unsigned ? e.high >>> 0 > this.high >>> 0 || e.high === this.high && e.low >>> 0 > this.low >>> 0 ? -1 : 1 : this.sub(e).isNegative() ? -1 : 1;
-            }, O.comp = O.compare, O.negate = function() {
-                return !this.unsigned && this.eq(S) ? S : this.not().add(b);
-            }, O.neg = O.negate, O.add = function(e) {
+            }, S.comp = S.compare, S.negate = function() {
+                return !this.unsigned && this.eq(O) ? O : this.not().add(b);
+            }, S.neg = S.negate, S.add = function(e) {
                 n(e) || (e = h(e));
                 var t, r, i = this.high >>> 16, o = 0xffff & this.high, a = this.low >>> 16, s = 0xffff & this.low, l = e.high >>> 16, c = 0xffff & e.high, d = e.low >>> 16, f = 0xffff & e.low, p = 0, m = 0;
                 return t = 0 + ((r = 0 + (s + f)) >>> 16), r &= 0xffff, t += a + d, m += t >>> 16, t &= 0xffff, m += o + c, p += m >>> 16, m &= 0xffff, p += i + l, u(t << 16 | r, (p &= 0xffff) << 16 | m, this.unsigned);
-            }, O.subtract = function(e) {
+            }, S.subtract = function(e) {
                 return n(e) || (e = h(e)), this.add(e.neg());
-            }, O.sub = O.subtract, O.multiply = function(e) {
+            }, S.sub = S.subtract, S.multiply = function(e) {
                 if (this.isZero()) return this;
                 if (n(e) || (e = h(e)), t) return u(t.mul(this.low, this.high, e.low, e.high), t.get_high(), this.unsigned);
                 if (e.isZero()) return this.unsigned ? y : v;
-                if (this.eq(S)) return e.isOdd() ? S : v;
-                if (e.eq(S)) return this.isOdd() ? S : v;
+                if (this.eq(O)) return e.isOdd() ? O : v;
+                if (e.eq(O)) return this.isOdd() ? O : v;
                 if (this.isNegative()) if (e.isNegative()) return this.neg().mul(e.neg());
                 else return this.neg().mul(e).neg();
                 if (e.isNegative()) return this.mul(e.neg()).neg();
                 if (this.lt(g) && e.lt(g)) return l(this.toNumber() * e.toNumber(), this.unsigned);
                 var r, i, o = this.high >>> 16, a = 0xffff & this.high, s = this.low >>> 16, c = 0xffff & this.low, d = e.high >>> 16, f = 0xffff & e.high, p = e.low >>> 16, m = 0xffff & e.low, b = 0, w = 0;
                 return r = 0 + ((i = 0 + c * m) >>> 16), i &= 0xffff, r += s * m, w += r >>> 16, r &= 0xffff, r += c * p, w += r >>> 16, r &= 0xffff, w += a * m, b += w >>> 16, w &= 0xffff, w += s * p, b += w >>> 16, w &= 0xffff, w += c * f, b += w >>> 16, w &= 0xffff, b += o * m + a * p + s * f + c * d, u(r << 16 | i, (b &= 0xffff) << 16 | w, this.unsigned);
-            }, O.mul = O.multiply, O.divide = function(e) {
+            }, S.mul = S.multiply, S.divide = function(e) {
                 if (n(e) || (e = h(e)), e.isZero()) throw Error("division by zero");
                 if (t) {
                     var r, i, o;
@@ -1281,9 +1281,9 @@ var l, u, c, d, h, f, p, m = {
                     if (e.gt(this.shru(1))) return w;
                     o = y;
                 } else {
-                    if (this.eq(S)) if (e.eq(b) || e.eq(_)) return S;
-                    else return e.eq(S) ? b : (r = this.shr(1).div(e).shl(1)).eq(v) ? e.isNegative() ? b : _ : (i = this.sub(e.mul(r)), o = r.add(i.div(e)));
-                    if (e.eq(S)) return this.unsigned ? y : v;
+                    if (this.eq(O)) if (e.eq(b) || e.eq(_)) return O;
+                    else return e.eq(O) ? b : (r = this.shr(1).div(e).shl(1)).eq(v) ? e.isNegative() ? b : _ : (i = this.sub(e.mul(r)), o = r.add(i.div(e)));
+                    if (e.eq(O)) return this.unsigned ? y : v;
                     if (this.isNegative()) return e.isNegative() ? this.neg().div(e.neg()) : this.neg().div(e).neg();
                     if (e.isNegative()) return this.div(e.neg()).neg();
                     o = v;
@@ -1293,39 +1293,39 @@ var l, u, c, d, h, f, p, m = {
                     d.isZero() && (d = b), o = o.add(d), i = i.sub(f);
                 }
                 return o;
-            }, O.div = O.divide, O.modulo = function(e) {
+            }, S.div = S.divide, S.modulo = function(e) {
                 return (n(e) || (e = h(e)), t) ? u((this.unsigned ? t.rem_u : t.rem_s)(this.low, this.high, e.low, e.high), t.get_high(), this.unsigned) : this.sub(this.div(e).mul(e));
-            }, O.mod = O.modulo, O.rem = O.modulo, O.not = function() {
+            }, S.mod = S.modulo, S.rem = S.modulo, S.not = function() {
                 return u(~this.low, ~this.high, this.unsigned);
-            }, O.countLeadingZeros = function() {
+            }, S.countLeadingZeros = function() {
                 return this.high ? Math.clz32(this.high) : Math.clz32(this.low) + 32;
-            }, O.clz = O.countLeadingZeros, O.countTrailingZeros = function() {
+            }, S.clz = S.countLeadingZeros, S.countTrailingZeros = function() {
                 return this.low ? i(this.low) : i(this.high) + 32;
-            }, O.ctz = O.countTrailingZeros, O.and = function(e) {
+            }, S.ctz = S.countTrailingZeros, S.and = function(e) {
                 return n(e) || (e = h(e)), u(this.low & e.low, this.high & e.high, this.unsigned);
-            }, O.or = function(e) {
+            }, S.or = function(e) {
                 return n(e) || (e = h(e)), u(this.low | e.low, this.high | e.high, this.unsigned);
-            }, O.xor = function(e) {
+            }, S.xor = function(e) {
                 return n(e) || (e = h(e)), u(this.low ^ e.low, this.high ^ e.high, this.unsigned);
-            }, O.shiftLeft = function(e) {
+            }, S.shiftLeft = function(e) {
                 return (n(e) && (e = e.toInt()), 0 == (e &= 63)) ? this : e < 32 ? u(this.low << e, this.high << e | this.low >>> 32 - e, this.unsigned) : u(0, this.low << e - 32, this.unsigned);
-            }, O.shl = O.shiftLeft, O.shiftRight = function(e) {
+            }, S.shl = S.shiftLeft, S.shiftRight = function(e) {
                 return (n(e) && (e = e.toInt()), 0 == (e &= 63)) ? this : e < 32 ? u(this.low >>> e | this.high << 32 - e, this.high >> e, this.unsigned) : u(this.high >> e - 32, this.high >= 0 ? 0 : -1, this.unsigned);
-            }, O.shr = O.shiftRight, O.shiftRightUnsigned = function(e) {
+            }, S.shr = S.shiftRight, S.shiftRightUnsigned = function(e) {
                 return (n(e) && (e = e.toInt()), 0 == (e &= 63)) ? this : e < 32 ? u(this.low >>> e | this.high << 32 - e, this.high >>> e, this.unsigned) : 32 === e ? u(this.high, 0, this.unsigned) : u(this.high >>> e - 32, 0, this.unsigned);
-            }, O.shru = O.shiftRightUnsigned, O.shr_u = O.shiftRightUnsigned, O.rotateLeft = function(e) {
+            }, S.shru = S.shiftRightUnsigned, S.shr_u = S.shiftRightUnsigned, S.rotateLeft = function(e) {
                 var t;
                 return (n(e) && (e = e.toInt()), 0 == (e &= 63)) ? this : 32 === e ? u(this.high, this.low, this.unsigned) : e < 32 ? (t = 32 - e, u(this.low << e | this.high >>> t, this.high << e | this.low >>> t, this.unsigned)) : (e -= 32, t = 32 - e, u(this.high << e | this.low >>> t, this.low << e | this.high >>> t, this.unsigned));
-            }, O.rotl = O.rotateLeft, O.rotateRight = function(e) {
+            }, S.rotl = S.rotateLeft, S.rotateRight = function(e) {
                 var t;
                 return (n(e) && (e = e.toInt()), 0 == (e &= 63)) ? this : 32 === e ? u(this.high, this.low, this.unsigned) : e < 32 ? (t = 32 - e, u(this.high << t | this.low >>> e, this.low << t | this.high >>> e, this.unsigned)) : (e -= 32, t = 32 - e, u(this.low << t | this.high >>> e, this.high << t | this.low >>> e, this.unsigned));
-            }, O.rotr = O.rotateRight, O.toSigned = function() {
+            }, S.rotr = S.rotateRight, S.toSigned = function() {
                 return this.unsigned ? u(this.low, this.high, !1) : this;
-            }, O.toUnsigned = function() {
+            }, S.toUnsigned = function() {
                 return this.unsigned ? this : u(this.low, this.high, !0);
-            }, O.toBytes = function(e) {
+            }, S.toBytes = function(e) {
                 return e ? this.toBytesLE() : this.toBytesBE();
-            }, O.toBytesLE = function() {
+            }, S.toBytesLE = function() {
                 var e = this.high, t = this.low;
                 return [
                     0xff & t,
@@ -1337,7 +1337,7 @@ var l, u, c, d, h, f, p, m = {
                     e >>> 16 & 0xff,
                     e >>> 24
                 ];
-            }, O.toBytesBE = function() {
+            }, S.toBytesBE = function() {
                 var e = this.high, t = this.low;
                 return [
                     e >>> 24,
@@ -1359,7 +1359,7 @@ var l, u, c, d, h, f, p, m = {
                 return u(Number(BigInt.asIntN(32, e)), Number(BigInt.asIntN(32, e >> BigInt(32))), t);
             }, r.fromValue = function(e, t) {
                 return "bigint" == typeof e ? r.fromBigInt(e, t) : h(e, t);
-            }, O.toBigInt = function() {
+            }, S.toBigInt = function() {
                 var e = BigInt(this.low >>> 0);
                 return BigInt(this.unsigned ? this.high >>> 0 : this.high) << BigInt(32) | e;
             }), e.default = r;
@@ -2384,14 +2384,14 @@ class k extends Error {
         super("Encountered Promise during synchronous parse. Use .parseAsync() instead.");
     }
 }
-let S = {};
-function O(e) {
-    return e && Object.assign(S, e), S;
+let O = {};
+function S(e) {
+    return e && Object.assign(O, e), O;
 }
-function I(e, t = "|") {
+function P(e, t = "|") {
     return e.map((e)=>W(e)).join(t);
 }
-function P(e, t) {
+function I(e, t) {
     return "bigint" == typeof t ? t.toString() : t;
 }
 function z(e) {
@@ -2413,12 +2413,12 @@ function N(e) {
     let t = +!!e.startsWith("^"), r = e.endsWith("$") ? e.length - 1 : e.length;
     return e.slice(t, r);
 }
-let $ = Symbol("evaluating");
-function j(e, t, r) {
+let j = Symbol("evaluating");
+function $(e, t, r) {
     let n;
     Object.defineProperty(e, t, {
         get () {
-            if (n !== $) return void 0 === n && (n = $, n = r()), n;
+            if (n !== j) return void 0 === n && (n = j, n = r()), n;
         },
         set (r) {
             Object.defineProperty(e, t, {
@@ -2579,7 +2579,7 @@ let en = (e, t)=>{
     }), Object.defineProperty(e, "issues", {
         value: t,
         enumerable: !1
-    }), e.message = JSON.stringify(t, P, 2), Object.defineProperty(e, "toString", {
+    }), e.message = JSON.stringify(t, I, 2), Object.defineProperty(e, "toString", {
         value: ()=>e.message,
         enumerable: !1
     });
@@ -2789,7 +2789,7 @@ function ef(e) {
     }
 }
 eu(eh, "adapter", void 0), eu(eh, "storageAdapter", void 0);
-let ep = /^[cC][^\s-]{8,}$/, em = /^[0-9a-z]+$/, eg = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/, ev = /^[0-9a-vA-V]{20}$/, ey = /^[A-Za-z0-9]{27}$/, eb = /^[a-zA-Z0-9_-]{21}$/, ew = /^P(?:(\d+W)|(?!.*W)(?=\d|T\d)(\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+([.,]\d+)?S)?)?)$/, e_ = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/, ex = (e)=>e ? RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${e}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`) : /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$/, ek = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/, eS = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/, eO = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})$/, eI = /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/, eP = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/, ez = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/, eE = /^[A-Za-z0-9_-]*$/, eN = /^(?=.{1,253}\.?$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[-0-9a-zA-Z]{0,61}[0-9a-zA-Z])?)*\.?$/, e$ = /^\+(?:[0-9]){6,14}[0-9]$/, ej = "(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))", eT = RegExp(`^${ej}$`);
+let ep = /^[cC][^\s-]{8,}$/, em = /^[0-9a-z]+$/, eg = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/, ev = /^[0-9a-vA-V]{20}$/, ey = /^[A-Za-z0-9]{27}$/, eb = /^[a-zA-Z0-9_-]{21}$/, ew = /^P(?:(\d+W)|(?!.*W)(?=\d|T\d)(\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+([.,]\d+)?S)?)?)$/, e_ = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/, ex = (e)=>e ? RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${e}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`) : /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$/, ek = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/, eO = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/, eS = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})$/, eP = /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/, eI = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/, ez = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/, eE = /^[A-Za-z0-9_-]*$/, eN = /^(?=.{1,253}\.?$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[-0-9a-zA-Z]{0,61}[0-9a-zA-Z])?)*\.?$/, ej = /^\+(?:[0-9]){6,14}[0-9]$/, e$ = "(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))", eT = RegExp(`^${e$}$`);
 function eA(e) {
     let t = "(?:[01]\\d|2[0-3]):[0-5]\\d";
     return "number" == typeof e.precision ? -1 === e.precision ? `${t}` : 0 === e.precision ? `${t}:[0-5]\\d` : `${t}:[0-5]\\d\\.\\d{${e.precision}}` : `${t}(?::[0-5]\\d(?:\\.\\d+)?)?`;
@@ -3217,7 +3217,7 @@ let te = (e)=>(t, r, n)=>{
         if (o instanceof Promise) throw new k();
         return o.issues.length ? {
             success: !1,
-            error: new (e ?? ei)(o.issues.map((e)=>Q(e, i, O())))
+            error: new (e ?? ei)(o.issues.map((e)=>Q(e, i, S())))
         } : {
             success: !0,
             data: o.value
@@ -3233,7 +3233,7 @@ let te = (e)=>(t, r, n)=>{
         }, i);
         return o instanceof Promise && (o = await o), o.issues.length ? {
             success: !1,
-            error: new e(o.issues.map((e)=>Q(e, i, O())))
+            error: new e(o.issues.map((e)=>Q(e, i, S())))
         } : {
             success: !0,
             data: o.value
@@ -3390,7 +3390,7 @@ let te = (e)=>(t, r, n)=>{
         precision: t.precision
     }), n = [
         "Z"
-    ], t.local && n.push(""), t.offset && n.push("([+-](?:[01]\\d|2[0-3]):[0-5]\\d)"), i = `${r}(?:${n.join("|")})`, t.pattern = RegExp(`^${ej}T(?:${i})$`)), ts.init(e, t);
+    ], t.local && n.push(""), t.offset && n.push("([+-](?:[01]\\d|2[0-3]):[0-5]\\d)"), i = `${r}(?:${n.join("|")})`, t.pattern = RegExp(`^${e$}T(?:${i})$`)), ts.init(e, t);
 }), tw = x("$ZodISODate", (e, t)=>{
     t.pattern ?? (t.pattern = eT), ts.init(e, t);
 }), t_ = x("$ZodISOTime", (e, t)=>{
@@ -3398,11 +3398,11 @@ let te = (e)=>(t, r, n)=>{
 }), tx = x("$ZodISODuration", (e, t)=>{
     t.pattern ?? (t.pattern = ew), ts.init(e, t);
 }), tk = x("$ZodIPv4", (e, t)=>{
-    t.pattern ?? (t.pattern = eS), ts.init(e, t), e._zod.onattach.push((e)=>{
+    t.pattern ?? (t.pattern = eO), ts.init(e, t), e._zod.onattach.push((e)=>{
         e._zod.bag.format = "ipv4";
     });
-}), tS = x("$ZodIPv6", (e, t)=>{
-    t.pattern ?? (t.pattern = eO), ts.init(e, t), e._zod.onattach.push((e)=>{
+}), tO = x("$ZodIPv6", (e, t)=>{
+    t.pattern ?? (t.pattern = eS), ts.init(e, t), e._zod.onattach.push((e)=>{
         e._zod.bag.format = "ipv6";
     }), e._zod.check = (r)=>{
         try {
@@ -3417,10 +3417,10 @@ let te = (e)=>(t, r, n)=>{
             });
         }
     };
-}), tO = x("$ZodCIDRv4", (e, t)=>{
-    t.pattern ?? (t.pattern = eI), ts.init(e, t);
-}), tI = x("$ZodCIDRv6", (e, t)=>{
-    t.pattern ?? (t.pattern = eP), ts.init(e, t), e._zod.check = (r)=>{
+}), tS = x("$ZodCIDRv4", (e, t)=>{
+    t.pattern ?? (t.pattern = eP), ts.init(e, t);
+}), tP = x("$ZodCIDRv6", (e, t)=>{
+    t.pattern ?? (t.pattern = eI), ts.init(e, t), e._zod.check = (r)=>{
         let [n, i] = r.value.split("/");
         try {
             if (!i) throw Error();
@@ -3438,7 +3438,7 @@ let te = (e)=>(t, r, n)=>{
         }
     };
 });
-function tP(e) {
+function tI(e) {
     if ("" === e) return !0;
     if (e.length % 4 != 0) return !1;
     try {
@@ -3451,7 +3451,7 @@ let tz = x("$ZodBase64", (e, t)=>{
     t.pattern ?? (t.pattern = ez), ts.init(e, t), e._zod.onattach.push((e)=>{
         e._zod.bag.contentEncoding = "base64";
     }), e._zod.check = (r)=>{
-        tP(r.value) || r.issues.push({
+        tI(r.value) || r.issues.push({
             code: "invalid_format",
             format: "base64",
             input: r.value,
@@ -3466,7 +3466,7 @@ let tz = x("$ZodBase64", (e, t)=>{
         !function(e) {
             if (!eE.test(e)) return !1;
             let t = e.replace(/[-_]/g, (e)=>"-" === e ? "+" : "/");
-            return tP(t.padEnd(4 * Math.ceil(t.length / 4), "="));
+            return tI(t.padEnd(4 * Math.ceil(t.length / 4), "="));
         }(r.value) && r.issues.push({
             code: "invalid_format",
             format: "base64url",
@@ -3476,8 +3476,8 @@ let tz = x("$ZodBase64", (e, t)=>{
         });
     };
 }), tN = x("$ZodE164", (e, t)=>{
-    t.pattern ?? (t.pattern = e$), ts.init(e, t);
-}), t$ = x("$ZodJWT", (e, t)=>{
+    t.pattern ?? (t.pattern = ej), ts.init(e, t);
+}), tj = x("$ZodJWT", (e, t)=>{
     ts.init(e, t), e._zod.check = (r)=>{
         !function(e, t = null) {
             try {
@@ -3499,7 +3499,7 @@ let tz = x("$ZodBase64", (e, t)=>{
             continue: !t.abort
         });
     };
-}), tj = ((e, t)=>{
+}), t$ = ((e, t)=>{
     ts.init(e, t), e._zod.check = (r)=>{
         t.fn(r.value) || r.issues.push({
             code: "invalid_format",
@@ -3528,7 +3528,7 @@ let tz = x("$ZodBase64", (e, t)=>{
         }), r;
     };
 })), tT = x("$ZodNumber", (e, t)=>{
-    eK.init(e, t), tj.init(e, t);
+    eK.init(e, t), t$.init(e, t);
 }), tA = x("$ZodBoolean", (e, t)=>{
     to.init(e, t), e._zod.pattern = eB, e._zod.parse = (r, n)=>{
         if (t.coerce) try {
@@ -3638,7 +3638,7 @@ let tR = x("$ZodObject", (e, t)=>{
             optionalKeys: new Set(n)
         };
     });
-    j(e._zod, "propValues", ()=>{
+    $(e._zod, "propValues", ()=>{
         let e = t.shape, r = {};
         for(let t in e){
             let n = e[t]._zod;
@@ -3646,7 +3646,7 @@ let tR = x("$ZodObject", (e, t)=>{
         }
         return r;
     });
-    let o = !S.jitless, a = o && F.value, s = t.catchall;
+    let o = !O.jitless, a = o && F.value, s = t.catchall;
     e._zod.parse = (l, u)=>{
         n ?? (n = i.value);
         let c = l.value;
@@ -3732,13 +3732,13 @@ function tU(e, t, r, n) {
         code: "invalid_union",
         input: t.value,
         inst: r,
-        errors: e.map((e)=>e.issues.map((e)=>Q(e, n, O())))
+        errors: e.map((e)=>e.issues.map((e)=>Q(e, n, S())))
     }), t);
 }
 let tq = x("$ZodUnion", (e, t)=>{
-    to.init(e, t), j(e._zod, "optin", ()=>t.options.some((e)=>"optional" === e._zod.optin) ? "optional" : void 0), j(e._zod, "optout", ()=>t.options.some((e)=>"optional" === e._zod.optout) ? "optional" : void 0), j(e._zod, "values", ()=>{
+    to.init(e, t), $(e._zod, "optin", ()=>t.options.some((e)=>"optional" === e._zod.optin) ? "optional" : void 0), $(e._zod, "optout", ()=>t.options.some((e)=>"optional" === e._zod.optout) ? "optional" : void 0), $(e._zod, "values", ()=>{
         if (t.options.every((e)=>e._zod.values)) return new Set(t.options.flatMap((e)=>Array.from(e._zod.values)));
-    }), j(e._zod, "pattern", ()=>{
+    }), $(e._zod, "pattern", ()=>{
         if (t.options.every((e)=>e._zod.pattern)) {
             let e = t.options.map((e)=>e._zod.pattern);
             return RegExp(`^(${e.map((e)=>N(e.source)).join("|")})$`);
@@ -3764,7 +3764,7 @@ let tq = x("$ZodUnion", (e, t)=>{
 }), tH = ((e, t)=>{
     tq.init(e, t);
     let r = e._zod.parse;
-    j(e._zod, "propValues", ()=>{
+    $(e._zod, "propValues", ()=>{
         let e = {};
         for (let r of t.options){
             let n = r._zod.propValues;
@@ -3971,7 +3971,7 @@ let tK = x("$ZodRecord", (e, t)=>{
                 r.issues.push({
                     code: "invalid_key",
                     origin: "record",
-                    issues: s.issues.map((e)=>Q(e, n, O())),
+                    issues: s.issues.map((e)=>Q(e, n, S())),
                     input: a,
                     path: [
                         a
@@ -3997,14 +3997,14 @@ function tG(e, t, r, n, i, o, a) {
         origin: "map",
         input: i,
         inst: o,
-        issues: e.issues.map((e)=>Q(e, a, O()))
+        issues: e.issues.map((e)=>Q(e, a, S()))
     })), t.issues.length && (R.has(typeof n) ? r.issues.push(...J(n, t.issues)) : r.issues.push({
         origin: "map",
         code: "invalid_element",
         input: i,
         inst: o,
         key: n,
-        issues: t.issues.map((e)=>Q(e, a, O()))
+        issues: t.issues.map((e)=>Q(e, a, S()))
     })), r.value.set(e.value, t.value);
 }
 function tY(e, t) {
@@ -4107,10 +4107,10 @@ function t0(e, t) {
     } : e;
 }
 let t1 = x("$ZodOptional", (e, t)=>{
-    to.init(e, t), e._zod.optin = "optional", e._zod.optout = "optional", j(e._zod, "values", ()=>t.innerType._zod.values ? new Set([
+    to.init(e, t), e._zod.optin = "optional", e._zod.optout = "optional", $(e._zod, "values", ()=>t.innerType._zod.values ? new Set([
             ...t.innerType._zod.values,
             void 0
-        ]) : void 0), j(e._zod, "pattern", ()=>{
+        ]) : void 0), $(e._zod, "pattern", ()=>{
         let e = t.innerType._zod.pattern;
         return e ? RegExp(`^(${N(e.source)})?$`) : void 0;
     }), e._zod.parse = (e, r)=>{
@@ -4121,15 +4121,15 @@ let t1 = x("$ZodOptional", (e, t)=>{
         return void 0 === e.value ? e : t.innerType._zod.run(e, r);
     };
 }), t2 = x("$ZodNullable", (e, t)=>{
-    to.init(e, t), j(e._zod, "optin", ()=>t.innerType._zod.optin), j(e._zod, "optout", ()=>t.innerType._zod.optout), j(e._zod, "pattern", ()=>{
+    to.init(e, t), $(e._zod, "optin", ()=>t.innerType._zod.optin), $(e._zod, "optout", ()=>t.innerType._zod.optout), $(e._zod, "pattern", ()=>{
         let e = t.innerType._zod.pattern;
         return e ? RegExp(`^(${N(e.source)}|null)$`) : void 0;
-    }), j(e._zod, "values", ()=>t.innerType._zod.values ? new Set([
+    }), $(e._zod, "values", ()=>t.innerType._zod.values ? new Set([
             ...t.innerType._zod.values,
             null
         ]) : void 0), e._zod.parse = (e, r)=>null === e.value ? e : t.innerType._zod.run(e, r);
 }), t3 = x("$ZodDefault", (e, t)=>{
-    to.init(e, t), e._zod.optin = "optional", j(e._zod, "values", ()=>t.innerType._zod.values), e._zod.parse = (e, r)=>{
+    to.init(e, t), e._zod.optin = "optional", $(e._zod, "values", ()=>t.innerType._zod.values), e._zod.parse = (e, r)=>{
         if (void 0 === e.value) return e.value = t.defaultValue, e;
         let n = t.innerType._zod.run(e, r);
         return n instanceof Promise ? n.then((e)=>t4(e, t)) : t4(n, t);
@@ -4139,9 +4139,9 @@ function t4(e, t) {
     return void 0 === e.value && (e.value = t.defaultValue), e;
 }
 let t6 = x("$ZodPrefault", (e, t)=>{
-    to.init(e, t), e._zod.optin = "optional", j(e._zod, "values", ()=>t.innerType._zod.values), e._zod.parse = (e, r)=>(void 0 === e.value && (e.value = t.defaultValue), t.innerType._zod.run(e, r));
+    to.init(e, t), e._zod.optin = "optional", $(e._zod, "values", ()=>t.innerType._zod.values), e._zod.parse = (e, r)=>(void 0 === e.value && (e.value = t.defaultValue), t.innerType._zod.run(e, r));
 }), t5 = x("$ZodNonOptional", (e, t)=>{
-    to.init(e, t), j(e._zod, "values", ()=>{
+    to.init(e, t), $(e._zod, "values", ()=>{
         let e = t.innerType._zod.values;
         return e ? new Set([
             ...e
@@ -4166,18 +4166,18 @@ function t8(e, t) {
     };
 };
 let t7 = x("$ZodCatch", (e, t)=>{
-    to.init(e, t), j(e._zod, "optin", ()=>t.innerType._zod.optin), j(e._zod, "optout", ()=>t.innerType._zod.optout), j(e._zod, "values", ()=>t.innerType._zod.values), e._zod.parse = (e, r)=>{
+    to.init(e, t), $(e._zod, "optin", ()=>t.innerType._zod.optin), $(e._zod, "optout", ()=>t.innerType._zod.optout), $(e._zod, "values", ()=>t.innerType._zod.values), e._zod.parse = (e, r)=>{
         let n = t.innerType._zod.run(e, r);
         return n instanceof Promise ? n.then((n)=>(e.value = n.value, n.issues.length && (e.value = t.catchValue({
                 ...e,
                 error: {
-                    issues: n.issues.map((e)=>Q(e, r, O()))
+                    issues: n.issues.map((e)=>Q(e, r, S()))
                 },
                 input: e.value
             }), e.issues = []), e)) : (e.value = n.value, n.issues.length && (e.value = t.catchValue({
             ...e,
             error: {
-                issues: n.issues.map((e)=>Q(e, r, O()))
+                issues: n.issues.map((e)=>Q(e, r, S()))
             },
             input: e.value
         }), e.issues = []), e);
@@ -4190,7 +4190,7 @@ let t7 = x("$ZodCatch", (e, t)=>{
             code: "invalid_type"
         }), t);
 }, x("$ZodPipe", (e, t)=>{
-    to.init(e, t), j(e._zod, "values", ()=>t.in._zod.values), j(e._zod, "optin", ()=>t.in._zod.optin), j(e._zod, "optout", ()=>t.out._zod.optout), j(e._zod, "propValues", ()=>t.in._zod.propValues), e._zod.parse = (e, r)=>{
+    to.init(e, t), $(e._zod, "values", ()=>t.in._zod.values), $(e._zod, "optin", ()=>t.in._zod.optin), $(e._zod, "optout", ()=>t.out._zod.optout), $(e._zod, "propValues", ()=>t.in._zod.propValues), e._zod.parse = (e, r)=>{
         let n = t.in._zod.run(e, r);
         return n instanceof Promise ? n.then((e)=>re(e, t, r)) : re(n, t, r);
     };
@@ -4202,7 +4202,7 @@ function re(e, t, r) {
     }, r);
 }
 let rt = x("$ZodReadonly", (e, t)=>{
-    to.init(e, t), j(e._zod, "propValues", ()=>t.innerType._zod.propValues), j(e._zod, "values", ()=>t.innerType._zod.values), j(e._zod, "optin", ()=>t.innerType._zod.optin), j(e._zod, "optout", ()=>t.innerType._zod.optout), e._zod.parse = (e, r)=>{
+    to.init(e, t), $(e._zod, "propValues", ()=>t.innerType._zod.propValues), $(e._zod, "values", ()=>t.innerType._zod.values), $(e._zod, "optin", ()=>t.innerType._zod.optin), $(e._zod, "optout", ()=>t.innerType._zod.optout), e._zod.parse = (e, r)=>{
         let n = t.innerType._zod.run(e, r);
         return n instanceof Promise ? n.then(rr) : rr(n);
     };
@@ -4236,7 +4236,7 @@ function rr(e) {
             pattern: e._zod.pattern.source
         })), r);
 }, (e, t)=>{
-    to.init(e, t), j(e._zod, "innerType", ()=>t.getter()), j(e._zod, "pattern", ()=>e._zod.innerType._zod.pattern), j(e._zod, "propValues", ()=>e._zod.innerType._zod.propValues), j(e._zod, "optin", ()=>e._zod.innerType._zod.optin ?? void 0), j(e._zod, "optout", ()=>e._zod.innerType._zod.optout ?? void 0), e._zod.parse = (t, r)=>e._zod.innerType._zod.run(t, r);
+    to.init(e, t), $(e._zod, "innerType", ()=>t.getter()), $(e._zod, "pattern", ()=>e._zod.innerType._zod.pattern), $(e._zod, "propValues", ()=>e._zod.innerType._zod.propValues), $(e._zod, "optin", ()=>e._zod.innerType._zod.optin ?? void 0), $(e._zod, "optout", ()=>e._zod.innerType._zod.optout ?? void 0), e._zod.parse = (t, r)=>e._zod.innerType._zod.run(t, r);
 };
 let rn = x("$ZodCustom", (e, t)=>{
     eU.init(e, t), to.init(e, t), e._zod.parse = (e, t)=>e, e._zod.check = (r)=>{
@@ -4427,12 +4427,12 @@ let rg = x("ZodISODateTime", (e, t)=>{
         },
         addIssue: {
             value: (t)=>{
-                e.issues.push(t), e.message = JSON.stringify(e.issues, P, 2);
+                e.issues.push(t), e.message = JSON.stringify(e.issues, I, 2);
             }
         },
         addIssues: {
             value: (t)=>{
-                e.issues.push(...t), e.message = JSON.stringify(e.issues, P, 2);
+                e.issues.push(...t), e.message = JSON.stringify(e.issues, I, 2);
             }
         },
         isEmpty: {
@@ -4454,7 +4454,7 @@ let r_ = x("ZodError", rw, {
     }, i);
     if (o instanceof Promise) throw new k();
     if (o.issues.length) {
-        let e = new (n?.Err ?? r_)(o.issues.map((e)=>Q(e, i, O())));
+        let e = new (n?.Err ?? r_)(o.issues.map((e)=>Q(e, i, S())));
         throw D(e, n?.callee), e;
     }
     return o.value;
@@ -4468,11 +4468,11 @@ let r_ = x("ZodError", rw, {
         issues: []
     }, i);
     if (o instanceof Promise && (o = await o), o.issues.length) {
-        let e = new (n?.Err ?? r_)(o.issues.map((e)=>Q(e, i, O())));
+        let e = new (n?.Err ?? r_)(o.issues.map((e)=>Q(e, i, S())));
         throw D(e, n?.callee), e;
     }
     return o.value;
-}, rS = te(r_), rO = tr(r_), rI = x("ZodType", (e, t)=>(to.init(e, t), e.def = t, Object.defineProperty(e, "_def", {
+}, rO = te(r_), rS = tr(r_), rP = x("ZodType", (e, t)=>(to.init(e, t), e.def = t, Object.defineProperty(e, "_def", {
         value: t
     }), e.check = (...r)=>e.clone({
             ...t,
@@ -4490,9 +4490,9 @@ let r_ = x("ZodError", rw, {
             ]
         }), e.clone = (t, r)=>H(e, t, r), e.brand = ()=>e, e.register = (t, r)=>(t.add(e, r), e), e.parse = (t, r)=>rx(e, t, r, {
             callee: e.parse
-        }), e.safeParse = (t, r)=>rS(e, t, r), e.parseAsync = async (t, r)=>rk(e, t, r, {
+        }), e.safeParse = (t, r)=>rO(e, t, r), e.parseAsync = async (t, r)=>rk(e, t, r, {
             callee: e.parseAsync
-        }), e.safeParseAsync = async (t, r)=>rO(e, t, r), e.spa = e.safeParseAsync, e.refine = (t, r)=>e.check(function(e, t = {}) {
+        }), e.safeParseAsync = async (t, r)=>rS(e, t, r), e.spa = e.safeParseAsync, e.refine = (t, r)=>e.check(function(e, t = {}) {
             return new nk({
                 type: "custom",
                 check: "custom",
@@ -4559,8 +4559,8 @@ let r_ = x("ZodError", rw, {
         if (0 === t.length) return ro.get(e);
         let r = e.clone();
         return ro.add(r, t[0]), r;
-    }, e.isOptional = ()=>e.safeParse(void 0).success, e.isNullable = ()=>e.safeParse(null).success, e)), rP = x("_ZodString", (e, t)=>{
-    ta.init(e, t), rI.init(e, t);
+    }, e.isOptional = ()=>e.safeParse(void 0).success, e.isNullable = ()=>e.safeParse(null).success, e)), rI = x("_ZodString", (e, t)=>{
+    ta.init(e, t), rP.init(e, t);
     let r = e._zod.bag;
     e.format = r.format ?? null, e.minLength = r.minimum ?? null, e.maxLength = r.maximum ?? null, e.regex = (...t)=>e.check(function(e, t) {
             return new e2({
@@ -4602,7 +4602,7 @@ let r_ = x("ZodError", rw, {
             return rm((t)=>t.normalize(e));
         }(...t)), e.toLowerCase = ()=>e.check(rm((e)=>e.toLowerCase())), e.toUpperCase = ()=>e.check(rm((e)=>e.toUpperCase()));
 }), rz = x("ZodString", (e, t)=>{
-    ta.init(e, t), rP.init(e, t), e.email = (t)=>e.check(new r$({
+    ta.init(e, t), rI.init(e, t), e.email = (t)=>e.check(new rj({
             type: "string",
             format: "email",
             check: "string_format",
@@ -4626,7 +4626,7 @@ let r_ = x("ZodError", rw, {
             check: "string_format",
             abort: !1,
             ...V(t)
-        })), e.guid = (t)=>e.check(ra(rj, t)), e.uuid = (t)=>e.check(new rT({
+        })), e.guid = (t)=>e.check(ra(r$, t)), e.uuid = (t)=>e.check(new rT({
             type: "string",
             format: "uuid",
             check: "string_format",
@@ -4659,7 +4659,7 @@ let r_ = x("ZodError", rw, {
             check: "string_format",
             abort: !1,
             ...V(t)
-        })), e.guid = (t)=>e.check(ra(rj, t)), e.cuid = (t)=>e.check(new rD({
+        })), e.guid = (t)=>e.check(ra(r$, t)), e.cuid = (t)=>e.check(new rD({
             type: "string",
             format: "cuid",
             check: "string_format",
@@ -4764,10 +4764,10 @@ function rE(e) {
     });
 }
 let rN = x("ZodStringFormat", (e, t)=>{
-    ts.init(e, t), rP.init(e, t);
-}), r$ = x("ZodEmail", (e, t)=>{
+    ts.init(e, t), rI.init(e, t);
+}), rj = x("ZodEmail", (e, t)=>{
     tc.init(e, t), rN.init(e, t);
-}), rj = x("ZodGUID", (e, t)=>{
+}), r$ = x("ZodGUID", (e, t)=>{
     tl.init(e, t), rN.init(e, t);
 }), rT = x("ZodUUID", (e, t)=>{
     tu.init(e, t), rN.init(e, t);
@@ -4790,11 +4790,11 @@ let rN = x("ZodStringFormat", (e, t)=>{
 }), rR = x("ZodIPv4", (e, t)=>{
     tk.init(e, t), rN.init(e, t);
 }), rU = x("ZodIPv6", (e, t)=>{
-    tS.init(e, t), rN.init(e, t);
-}), rq = x("ZodCIDRv4", (e, t)=>{
     tO.init(e, t), rN.init(e, t);
+}), rq = x("ZodCIDRv4", (e, t)=>{
+    tS.init(e, t), rN.init(e, t);
 }), rH = x("ZodCIDRv6", (e, t)=>{
-    tI.init(e, t), rN.init(e, t);
+    tP.init(e, t), rN.init(e, t);
 }), rV = x("ZodBase64", (e, t)=>{
     tz.init(e, t), rN.init(e, t);
 }), rW = x("ZodBase64URL", (e, t)=>{
@@ -4802,9 +4802,9 @@ let rN = x("ZodStringFormat", (e, t)=>{
 }), rK = x("ZodE164", (e, t)=>{
     tN.init(e, t), rN.init(e, t);
 }), rG = x("ZodJWT", (e, t)=>{
-    t$.init(e, t), rN.init(e, t);
+    tj.init(e, t), rN.init(e, t);
 }), rY = x("ZodNumber", (e, t)=>{
-    tj.init(e, t), rI.init(e, t), e.gt = (t, r)=>e.check(ru(t, r)), e.gte = (t, r)=>e.check(rc(t, r)), e.min = (t, r)=>e.check(rc(t, r)), e.lt = (t, r)=>e.check(rs(t, r)), e.lte = (t, r)=>e.check(rl(t, r)), e.max = (t, r)=>e.check(rl(t, r)), e.int = (t)=>e.check(rQ(t)), e.safe = (t)=>e.check(rQ(t)), e.positive = (t)=>e.check(ru(0, t)), e.nonnegative = (t)=>e.check(rc(0, t)), e.negative = (t)=>e.check(rs(0, t)), e.nonpositive = (t)=>e.check(rl(0, t)), e.multipleOf = (t, r)=>e.check(rd(t, r)), e.step = (t, r)=>e.check(rd(t, r)), e.finite = ()=>e;
+    t$.init(e, t), rP.init(e, t), e.gt = (t, r)=>e.check(ru(t, r)), e.gte = (t, r)=>e.check(rc(t, r)), e.min = (t, r)=>e.check(rc(t, r)), e.lt = (t, r)=>e.check(rs(t, r)), e.lte = (t, r)=>e.check(rl(t, r)), e.max = (t, r)=>e.check(rl(t, r)), e.int = (t)=>e.check(rQ(t)), e.safe = (t)=>e.check(rQ(t)), e.positive = (t)=>e.check(ru(0, t)), e.nonnegative = (t)=>e.check(rc(0, t)), e.negative = (t)=>e.check(rs(0, t)), e.nonpositive = (t)=>e.check(rl(0, t)), e.multipleOf = (t, r)=>e.check(rd(t, r)), e.step = (t, r)=>e.check(rd(t, r)), e.finite = ()=>e;
     let r = e._zod.bag;
     e.minValue = Math.max(r.minimum ?? -1 / 0, r.exclusiveMinimum ?? -1 / 0) ?? null, e.maxValue = Math.min(r.maximum ?? 1 / 0, r.exclusiveMaximum ?? 1 / 0) ?? null, e.isInt = (r.format ?? "").includes("int") || Number.isSafeInteger(r.multipleOf ?? 0.5), e.isFinite = !0, e.format = r.format ?? null;
 });
@@ -4828,7 +4828,7 @@ function rQ(e) {
     });
 }
 let r0 = x("ZodBoolean", (e, t)=>{
-    tA.init(e, t), rI.init(e, t);
+    tA.init(e, t), rP.init(e, t);
 });
 function r1(e) {
     return new r0({
@@ -4837,14 +4837,14 @@ function r1(e) {
     });
 }
 (e, t)=>{
-    tC.init(e, t), rI.init(e, t), e.gte = (t, r)=>e.check(rc(t, r)), e.min = (t, r)=>e.check(rc(t, r)), e.gt = (t, r)=>e.check(ru(t, r)), e.gte = (t, r)=>e.check(rc(t, r)), e.min = (t, r)=>e.check(rc(t, r)), e.lt = (t, r)=>e.check(rs(t, r)), e.lte = (t, r)=>e.check(rl(t, r)), e.max = (t, r)=>e.check(rl(t, r)), e.positive = (t)=>e.check(ru(BigInt(0), t)), e.negative = (t)=>e.check(rs(BigInt(0), t)), e.nonpositive = (t)=>e.check(rl(BigInt(0), t)), e.nonnegative = (t)=>e.check(rc(BigInt(0), t)), e.multipleOf = (t, r)=>e.check(rd(t, r));
+    tC.init(e, t), rP.init(e, t), e.gte = (t, r)=>e.check(rc(t, r)), e.min = (t, r)=>e.check(rc(t, r)), e.gt = (t, r)=>e.check(ru(t, r)), e.gte = (t, r)=>e.check(rc(t, r)), e.min = (t, r)=>e.check(rc(t, r)), e.lt = (t, r)=>e.check(rs(t, r)), e.lte = (t, r)=>e.check(rl(t, r)), e.max = (t, r)=>e.check(rl(t, r)), e.positive = (t)=>e.check(ru(BigInt(0), t)), e.negative = (t)=>e.check(rs(BigInt(0), t)), e.nonpositive = (t)=>e.check(rl(BigInt(0), t)), e.nonnegative = (t)=>e.check(rc(BigInt(0), t)), e.multipleOf = (t, r)=>e.check(rd(t, r));
     let r = e._zod.bag;
     e.minValue = r.minimum ?? null, e.maxValue = r.maximum ?? null, e.format = r.format ?? null;
 };
 let r2 = x("ZodAny", (e, t)=>{
-    tM.init(e, t), rI.init(e, t);
+    tM.init(e, t), rP.init(e, t);
 }), r3 = x("ZodUnknown", (e, t)=>{
-    tD.init(e, t), rI.init(e, t);
+    tD.init(e, t), rP.init(e, t);
 });
 function r4() {
     return new r3({
@@ -4852,9 +4852,9 @@ function r4() {
     });
 }
 let r6 = x("ZodNever", (e, t)=>{
-    tB.init(e, t), rI.init(e, t);
+    tB.init(e, t), rP.init(e, t);
 }), r5 = x("ZodArray", (e, t)=>{
-    tL.init(e, t), rI.init(e, t), e.element = t.element, e.min = (t, r)=>e.check(rf(t, r)), e.nonempty = (t)=>e.check(rf(1, t)), e.max = (t, r)=>e.check(rh(t, r)), e.length = (t, r)=>e.check(rp(t, r)), e.unwrap = ()=>e.element;
+    tL.init(e, t), rP.init(e, t), e.element = t.element, e.min = (t, r)=>e.check(rf(t, r)), e.nonempty = (t)=>e.check(rf(1, t)), e.max = (t, r)=>e.check(rh(t, r)), e.length = (t, r)=>e.check(rp(t, r)), e.unwrap = ()=>e.element;
 });
 function r8(e, t) {
     return new r5({
@@ -4864,7 +4864,7 @@ function r8(e, t) {
     });
 }
 let r7 = x("ZodObject", (e, t)=>{
-    tR.init(e, t), rI.init(e, t), j(e, "shape", ()=>t.shape), e.keyof = ()=>ns(Object.keys(e._zod.def.shape)), e.catchall = (t)=>e.clone({
+    tR.init(e, t), rP.init(e, t), $(e, "shape", ()=>t.shape), e.keyof = ()=>ns(Object.keys(e._zod.def.shape)), e.catchall = (t)=>e.clone({
             ...e._zod.def,
             catchall: t
         }), e.passthrough = ()=>e.clone({
@@ -5006,7 +5006,7 @@ function ne(e, t) {
     });
 }
 let nt = x("ZodUnion", (e, t)=>{
-    tq.init(e, t), rI.init(e, t), e.options = t.options;
+    tq.init(e, t), rP.init(e, t), e.options = t.options;
 });
 function nr(e, t) {
     return new nt({
@@ -5016,9 +5016,9 @@ function nr(e, t) {
     });
 }
 let nn = x("ZodIntersection", (e, t)=>{
-    tH.init(e, t), rI.init(e, t);
+    tH.init(e, t), rP.init(e, t);
 }), ni = x("ZodRecord", (e, t)=>{
-    tK.init(e, t), rI.init(e, t), e.keyType = t.keyType, e.valueType = t.valueType;
+    tK.init(e, t), rP.init(e, t), e.keyType = t.keyType, e.valueType = t.valueType;
 });
 function no(e, t, r) {
     return new ni({
@@ -5029,7 +5029,7 @@ function no(e, t, r) {
     });
 }
 let na = x("ZodEnum", (e, t)=>{
-    tJ.init(e, t), rI.init(e, t), e.enum = t.entries, e.options = Object.values(t.entries);
+    tJ.init(e, t), rP.init(e, t), e.enum = t.entries, e.options = Object.values(t.entries);
     let r = new Set(Object.keys(t.entries));
     e.extract = (e, n)=>{
         let i = {};
@@ -5066,7 +5066,7 @@ function ns(e, t) {
     });
 }
 let nl = x("ZodLiteral", (e, t)=>{
-    tX.init(e, t), rI.init(e, t), e.values = new Set(t.values), Object.defineProperty(e, "value", {
+    tX.init(e, t), rP.init(e, t), e.values = new Set(t.values), Object.defineProperty(e, "value", {
         get () {
             if (t.values.length > 1) throw Error("This schema contains multiple valid literal values. Use `.values` instead.");
             return t.values[0];
@@ -5083,7 +5083,7 @@ function nu(e, t) {
     });
 }
 let nc = x("ZodTransform", (e, t)=>{
-    tQ.init(e, t), rI.init(e, t), e._zod.parse = (r, n)=>{
+    tQ.init(e, t), rP.init(e, t), e._zod.parse = (r, n)=>{
         r.addIssue = (n)=>{
             "string" == typeof n ? r.issues.push(er(n, r.value, t)) : (n.fatal && (n.continue = !1), n.code ?? (n.code = "custom"), n.input ?? (n.input = r.value), n.inst ?? (n.inst = e), r.issues.push(er(n)));
         };
@@ -5098,7 +5098,7 @@ function nd(e) {
     });
 }
 let nh = x("ZodOptional", (e, t)=>{
-    t1.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
+    t1.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
 });
 function nf(e) {
     return new nh({
@@ -5107,7 +5107,7 @@ function nf(e) {
     });
 }
 let np = x("ZodNullable", (e, t)=>{
-    t2.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
+    t2.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
 });
 function nm(e) {
     return new np({
@@ -5116,15 +5116,15 @@ function nm(e) {
     });
 }
 let ng = x("ZodDefault", (e, t)=>{
-    t3.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType, e.removeDefault = e.unwrap;
+    t3.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType, e.removeDefault = e.unwrap;
 }), nv = x("ZodPrefault", (e, t)=>{
-    t6.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
+    t6.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
 }), ny = x("ZodNonOptional", (e, t)=>{
-    t5.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
+    t5.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
 }), nb = x("ZodCatch", (e, t)=>{
-    t7.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType, e.removeCatch = e.unwrap;
+    t7.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType, e.removeCatch = e.unwrap;
 }), nw = x("ZodPipe", (e, t)=>{
-    t9.init(e, t), rI.init(e, t), e.in = t.in, e.out = t.out;
+    t9.init(e, t), rP.init(e, t), e.in = t.in, e.out = t.out;
 });
 function n_(e, t) {
     return new nw({
@@ -5134,10 +5134,10 @@ function n_(e, t) {
     });
 }
 let nx = x("ZodReadonly", (e, t)=>{
-    rt.init(e, t), rI.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
+    rt.init(e, t), rP.init(e, t), e.unwrap = ()=>e._zod.def.innerType;
 }), nk = x("ZodCustom", (e, t)=>{
-    rn.init(e, t), rI.init(e, t);
-}), nS = (...e)=>(function(e, t) {
+    rn.init(e, t), rP.init(e, t);
+}), nO = (...e)=>(function(e, t) {
         let r = V(t), n = r.truthy ?? [
             "true",
             "1",
@@ -5195,7 +5195,7 @@ let nx = x("ZodReadonly", (e, t)=>{
         String: rz,
         Transform: nc
     }, ...e);
-function nO(e, t, r, n, i, o, a) {
+function nS(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -5204,27 +5204,27 @@ function nO(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function nI(e) {
+function nP(e) {
     return function() {
         var t = this, r = arguments;
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                nO(o, n, i, a, s, "next", e);
+                nS(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                nO(o, n, i, a, s, "throw", e);
+                nS(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
     };
 }
-let nP = r9({
+let nI = r9({
     value: rE(),
     expiresAt: rJ()
 }), nz = new class {
     get(e) {
-        return nI(function*() {
+        return nP(function*() {
             let t = yield Widget.storage.get(e);
             if (!t) return null;
             let r = function(e, t) {
@@ -5232,13 +5232,13 @@ let nP = r9({
                 if (!r) return null;
                 let { success: n, data: i, error: o } = t.safeParse(r);
                 return n ? i : (console.warn(`Failed to parse JSON with Zod: ${e}`, o), null);
-            }(t, nP);
+            }(t, nI);
             return r ? (null == r ? void 0 : r.expiresAt) < Date.now() ? (console.warn(`Storage value for key: ${e} has expired`), this.remove(e), null) : r.value : (console.warn(`Failed to parse storage value for key: ${e}`), this.remove(e), null);
         }).call(this);
     }
     set(e, t, r) {
         var n;
-        let i = null != (n = null == r ? void 0 : r.ttl) ? n : this.defaultTTL, o = Date.now() + i, a = nP.parse({
+        let i = null != (n = null == r ? void 0 : r.ttl) ? n : this.defaultTTL, o = Date.now() + i, a = nI.parse({
             value: t,
             expiresAt: o
         });
@@ -5251,7 +5251,7 @@ let nP = r9({
         return Widget.storage.clear();
     }
     getJson(e) {
-        return nI(function*() {
+        return nP(function*() {
             let t = yield this.get(e);
             return t ? ef(t) : null;
         }).call(this);
@@ -5274,7 +5274,7 @@ l = {
     post: Widget.http.post.bind(Widget.http)
 }, eh.initializeAdapter(l), eh.initializeStorageAdapter(nz);
 var nE = v(337), nN = v.n(nE);
-class n$ {
+class nj {
     debug(e, ...t) {
         console.debug(`[${this.name}] ${e}`, ...t);
     }
@@ -5297,7 +5297,7 @@ class n$ {
         }) : this[t] = r, this.name = e;
     }
 }
-function nj(e, t, r, n, i, o, a) {
+function n$(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -5312,10 +5312,10 @@ function nT(e) {
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                nj(o, n, i, a, s, "next", e);
+                n$(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                nj(o, n, i, a, s, "throw", e);
+                n$(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
@@ -5356,7 +5356,7 @@ class nC {
         }).call(this);
     }
     constructor(e){
-        nA(this, "config", void 0), nA(this, "fetch", void 0), nA(this, "logger", void 0), this.config = e, this.fetch = new eh(), this.logger = new n$("DoubanHistory"), this.fetch.setCookie({
+        nA(this, "config", void 0), nA(this, "fetch", void 0), nA(this, "logger", void 0), this.config = e, this.fetch = new eh(), this.logger = new nj("DoubanHistory"), this.fetch.setCookie({
             dbcl2: e.dbcl2
         });
     }
@@ -5435,7 +5435,7 @@ function nB() {
                     })(r.input)}`;
                 case "invalid_value":
                     if (1 === r.values.length) return `无效输入：期望 ${W(r.values[0])}`;
-                    return `无效选项：期望以下之一 ${I(r.values, "|")}`;
+                    return `无效选项：期望以下之一 ${P(r.values, "|")}`;
                 case "too_big":
                     {
                         let t = r.inclusive ? "<=" : "<", n = e[r.origin] ?? null;
@@ -5457,7 +5457,7 @@ function nB() {
                 case "not_multiple_of":
                     return `无效数字：必须是 ${r.divisor} 的倍数`;
                 case "unrecognized_keys":
-                    return `出现未知的键(key): ${I(r.keys, ", ")}`;
+                    return `出现未知的键(key): ${P(r.keys, ", ")}`;
                 case "invalid_key":
                     return `${r.origin} 中的键(key)无效`;
                 case "invalid_union":
@@ -5485,7 +5485,7 @@ function nL(e) {
         ...V(e)
     });
 }
-p || (p = {}), O({
+p || (p = {}), S({
     localeError: (a = {
         string: {
             unit: "characters",
@@ -5549,7 +5549,7 @@ p || (p = {}), O({
                 })(e.input)}`;
             case "invalid_value":
                 if (1 === e.values.length) return `Invalid input: expected ${W(e.values[0])}`;
-                return `Invalid option: expected one of ${I(e.values, "|")}`;
+                return `Invalid option: expected one of ${P(e.values, "|")}`;
             case "too_big":
                 {
                     let t = e.inclusive ? "<=" : "<", r = a[e.origin] ?? null;
@@ -5571,7 +5571,7 @@ p || (p = {}), O({
             case "not_multiple_of":
                 return `Invalid number: must be a multiple of ${e.divisor}`;
             case "unrecognized_keys":
-                return `Unrecognized key${e.keys.length > 1 ? "s" : ""}: ${I(e.keys, ", ")}`;
+                return `Unrecognized key${e.keys.length > 1 ? "s" : ""}: ${P(e.keys, ", ")}`;
             case "invalid_key":
                 return `Invalid key in ${e.origin}`;
             case "invalid_union":
@@ -5581,7 +5581,7 @@ p || (p = {}), O({
                 return `Invalid value in ${e.origin}`;
         }
     })
-}), O(nB()), parseInt("ffffff", 16);
+}), S(nB()), parseInt("ffffff", 16);
 let nZ = {
     tencent: "腾讯视频",
     iqiyi: "爱奇艺",
@@ -5605,9 +5605,9 @@ let nZ = {
         "never",
         "auto"
     ]).catch("auto").optional().default("auto"),
-    qihooSearch: nS().catch(!1).optional().default(!1)
+    qihooSearch: nO().catch(!1).optional().default(!1)
 }), nU = "__empty__";
-O(nB());
+S(nB());
 var nq = ((u = {}).Movie = "movie", u.TV = "tv", u);
 let nH = "ffffff", nV = parseInt(nH, 16), nW = r9({
     tmdbId: nF().optional(),
@@ -5625,7 +5625,7 @@ let nH = "ffffff", nV = parseInt(nH, 16), nW = r9({
         "never",
         "auto"
     ]).catch("auto").optional().default("auto"),
-    qihooSearch: nS().catch(!1).optional().default(!1)
+    qihooSearch: nO().catch(!1).optional().default(!1)
 });
 class nK {
     debug(e, ...t) {
@@ -6249,8 +6249,8 @@ let i_ = /^[-+]?0x[a-fA-F0-9]+$/, ix = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/, ik 
     leadingZeros: !0,
     decimalPoint: "\.",
     eNotation: !0
-}, iS = /^([-+])?(0*)(\d*(\.\d*)?[eE][-\+]?\d+)$/;
-class iO {
+}, iO = /^([-+])?(0*)(\d*(\.\d*)?[eE][-\+]?\d+)$/;
+class iS {
     constructor(e){
         var t;
         this.options = e, this.currentNode = null, this.tagsNodeStack = [], this.docTypeEntities = {}, this.lastEntities = {
@@ -6314,12 +6314,12 @@ class iO {
                 regex: /&#x([0-9a-fA-F]{1,6});/g,
                 val: (e, t)=>String.fromCodePoint(Number.parseInt(t, 16))
             }
-        }, this.addExternalEntities = iI, this.parseXml = i$, this.parseTextData = iP, this.resolveNameSpace = iz, this.buildAttributesMap = iN, this.isItStopNode = iC, this.replaceEntitiesValue = iT, this.readStopNodeData = iB, this.saveTextToParentTag = iA, this.addChild = ij, this.ignoreAttributesFn = 'function' == typeof (t = this.options.ignoreAttributes) ? t : Array.isArray(t) ? (e)=>{
+        }, this.addExternalEntities = iP, this.parseXml = ij, this.parseTextData = iI, this.resolveNameSpace = iz, this.buildAttributesMap = iN, this.isItStopNode = iC, this.replaceEntitiesValue = iT, this.readStopNodeData = iB, this.saveTextToParentTag = iA, this.addChild = i$, this.ignoreAttributesFn = 'function' == typeof (t = this.options.ignoreAttributes) ? t : Array.isArray(t) ? (e)=>{
             for (let r of t)if ('string' == typeof r && e === r || r instanceof RegExp && r.test(e)) return !0;
         } : ()=>!1;
     }
 }
-function iI(e) {
+function iP(e) {
     let t = Object.keys(e);
     for(let r = 0; r < t.length; r++){
         let n = t[r];
@@ -6329,7 +6329,7 @@ function iI(e) {
         };
     }
 }
-function iP(e, t, r, n, i, o, a) {
+function iI(e, t, r, n, i, o, a) {
     if (void 0 !== e && (this.options.trimValues && !n && (e = e.trim()), e.length > 0)) {
         a || (e = this.replaceEntitiesValue(e));
         let n = this.options.tagValueProcessor(t, e, r, i, o);
@@ -6367,7 +6367,7 @@ function iN(e, t, r) {
         }
     }
 }
-let i$ = function(e) {
+let ij = function(e) {
     e = e.replace(/\r\n?/g, "\n");
     let t = new ig('!xml'), r = t, n = "", i = "";
     for(let o = 0; o < e.length; o++)if ('<' === e[o]) if ('/' === e[o + 1]) {
@@ -6524,7 +6524,7 @@ let i$ = function(e) {
     else n += e[o];
     return t.child;
 };
-function ij(e, t, r, n) {
+function i$(e, t, r, n) {
     this.options.captureMetaData || (n = void 0);
     let i = this.options.updateTag(t.tagname, r, t[":@"]);
     !1 === i || ("string" == typeof i && (t.tagname = i), e.addChild(t, n));
@@ -6634,7 +6634,7 @@ function iF(e, t, r) {
                 }
                 if (-1 !== r.search(/.+[eE].+/)) return function(e, t, r) {
                     if (!r.eNotation) return e;
-                    let n = t.match(iS);
+                    let n = t.match(iO);
                     if (!n) return e;
                     {
                         let i = n[1] || "", o = -1 === n[3].indexOf("e") ? "E" : "e", a = n[2], s = i ? e[a.length + 1] === o : e[a.length] === o;
@@ -6845,7 +6845,7 @@ class iY {
             }(e, t);
             if (!0 !== r) throw Error(`${r.err.msg}:${r.err.line}:${r.err.col}`);
         }
-        let r = new iO(this.options);
+        let r = new iS(this.options);
         r.addExternalEntities(this.externalEntities);
         let n = r.parseXml(e);
         return this.options.preserveOrder || void 0 === n ? n : function e(t, r, n) {
@@ -8153,7 +8153,7 @@ let ok = (e, t)=>{
                 width: "full"
             });
     }
-}, oS = (e, t)=>{
+}, oO = (e, t)=>{
     switch(e){
         case "p":
             return t.time({
@@ -8172,8 +8172,8 @@ let ok = (e, t)=>{
                 width: "full"
             });
     }
-}, oO = {
-    p: oS,
+}, oS = {
+    p: oO,
     P: (e, t)=>{
         let r, n = e.match(/(P+)(p+)?/) || [], i = n[1], o = n[2];
         if (!o) return ok(e, t);
@@ -8198,14 +8198,14 @@ let ok = (e, t)=>{
                     width: "full"
                 });
         }
-        return r.replace("{{date}}", ok(i, t)).replace("{{time}}", oS(o, t));
+        return r.replace("{{date}}", ok(i, t)).replace("{{time}}", oO(o, t));
     }
-}, oI = /^D+$/, oP = /^Y+$/, oz = [
+}, oP = /^D+$/, oI = /^Y+$/, oz = [
     "D",
     "DD",
     "YY",
     "YYYY"
-], oE = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g, oN = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g, o$ = /^'([^]*?)'?$/, oj = /''/g, oT = /[a-zA-Z]/, oA = r9({
+], oE = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g, oN = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g, oj = /^'([^]*?)'?$/, o$ = /''/g, oT = /[a-zA-Z]/, oA = r9({
     dramaId: rE(),
     videoId: rE().optional()
 }), oC = r9({
@@ -9120,13 +9120,39 @@ let av = class extends n4 {
 }, ab = class extends n4 {
     parseProviderUrl(e) {
         return i7(function*() {
-            var t, r;
+            var t, r, n;
             if (!e.hostname.includes("iqiyi.com")) return null;
-            let n = null != (r = null != (t = e.searchParams.get("entityId")) ? t : e.searchParams.get("tvid")) ? r : void 0;
-            return n ? {
-                entityId: n
+            let i = null != (n = e.searchParams.get("entityId")) ? n : e.searchParams.get("tvid");
+            if (i) return {
+                entityId: i
+            };
+            let o = null == (t = e.pathname.match(/^\/v_([^/.]+)\.html$/)) ? void 0 : t[1];
+            if (o) {
+                let e = this.videoIdToEntityId(o);
+                return e ? {
+                    entityId: e
+                } : null;
+            }
+            if (!(null == (r = e.pathname.match(/^\/a_([^/.]+)\.html$/)) ? void 0 : r[1])) return null;
+            let a = yield this.fetch.get(e.toString()), s = this.extractVideoIdFromIqiyiHtml(a.data);
+            if (!s) return null;
+            let l = this.videoIdToEntityId(s);
+            return l ? {
+                entityId: l
             } : null;
-        })();
+        }).call(this);
+    }
+    videoIdToEntityId(e) {
+        try {
+            let t = parseInt(e, 36), r = BigInt(t) ^ BigInt(0x75706971676c);
+            return (r < BigInt(9e5) ? BigInt(100) * (r + BigInt(9e5)) : r).toString();
+        } catch (t) {
+            return this.logger.error("将 video_id '", e, "' 转换为 entity_id 时出错：", t), null;
+        }
+    }
+    extractVideoIdFromIqiyiHtml(e) {
+        var t, r;
+        return null != (r = null == (t = e.match(/v_([^"'?#\s<>/]+)\.html/)) ? void 0 : t[1]) ? r : null;
     }
     getEpisodes(e, t) {
         return i7(function*() {
@@ -9217,14 +9243,6 @@ let av = class extends n4 {
                 return this.logger.error("获取分集时发生错误：", e), [];
             }
         }).call(this);
-    }
-    videoIdToEntityId(e) {
-        try {
-            let t = parseInt(e, 36), r = BigInt(t) ^ BigInt(0x75706971676c);
-            return (r < BigInt(9e5) ? BigInt(100) * (r + BigInt(9e5)) : r).toString();
-        } catch (t) {
-            return this.logger.error("将 video_id '", e, "' 转换为 entity_id 时出错：", t), null;
-        }
     }
     createSign(e) {
         let t = Object.keys(e).filter((e)=>"sign" !== e).sort().map((t)=>{
@@ -9532,7 +9550,7 @@ let av = class extends n4 {
                     if (!(a instanceof Date || "object" == typeof a && "[object Date]" === Object.prototype.toString.call(a)) && "number" != typeof a || isNaN(+oc(a))) throw RangeError("Invalid time value");
                     let s = t.match(oN).map((e)=>{
                         let t = e[0];
-                        return "p" === t || "P" === t ? (0, oO[t])(e, n.formatLong) : e;
+                        return "p" === t || "P" === t ? (0, oS[t])(e, n.formatLong) : e;
                     }).join("").match(oE).map((e)=>{
                         if ("''" === e) return {
                             isToken: !1,
@@ -9544,7 +9562,7 @@ let av = class extends n4 {
                             let t;
                             return {
                                 isToken: !1,
-                                value: (t = (r = e).match(o$)) ? t[1].replace(oj, "'") : r
+                                value: (t = (r = e).match(oj)) ? t[1].replace(o$, "'") : r
                             };
                         }
                         if (ob[t]) return {
@@ -9566,7 +9584,7 @@ let av = class extends n4 {
                     return s.map((r)=>{
                         if (!r.isToken) return r.value;
                         let i = r.value;
-                        return (oP.test(i) || oI.test(i)) && function(e, t, r) {
+                        return (oI.test(i) || oP.test(i)) && function(e, t, r) {
                             var n, i, o;
                             let a, s = (n = e, i = t, o = r, a = "Y" === n[0] ? "years" : "days of the month", `Use \`${n.toLowerCase()}\` instead of \`${n}\` (in \`${i}\`) for formatting ${a} to the input \`${o}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`);
                             if (console.warn(s), oz.includes(e)) throw RangeError(s);
@@ -9874,7 +9892,7 @@ function ak(e = {}) {
         scraperMap: t
     };
 }
-function aS(e, t, r, n, i, o, a) {
+function aO(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -9883,159 +9901,46 @@ function aS(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function aO(e) {
+function aS(e) {
     return function() {
         var t = this, r = arguments;
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                aS(o, n, i, a, s, "next", e);
+                aO(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                aS(o, n, i, a, s, "throw", e);
+                aO(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
     };
 }
-function aI(e, t) {
-    return t.flatMap((t)=>{
-        let r = e[t];
-        return null == r || "" === r ? [] : `${t}=${r}`;
-    }).join("&");
-}
 ak().scraperMap;
-let aP = {
-    bilibili: (e)=>aO(function*() {
-            if ("www.bilibili.com" !== e.hostname && "bilibili.com" !== e.hostname) return null;
-            let t = e.pathname.match(/^\/bangumi\/play\/ss(\d+)$/);
-            if (t) return {
-                seasonId: t[1]
-            };
-            let r = e.pathname.match(/^\/bangumi\/play\/ep(\d+)\/?$/);
-            if (r) {
-                var n;
-                return n = r[1], aO(function*() {
-                    var e, t;
-                    let r = new eh({
-                        headers: {
-                            Referer: "https://www.bilibili.com/"
-                        }
-                    }), i = null == (t = (yield r.get("https://api.bilibili.com/pgc/view/web/season", {
-                        params: {
-                            ep_id: n
-                        },
-                        cache: {
-                            cacheKey: `bilibili:season:${n}`
-                        }
-                    })).data) || null == (e = t.result) ? void 0 : e.season_id;
-                    return null == i || "" === i ? null : {
-                        seasonId: i.toString()
-                    };
-                })();
-            }
-            return null;
-        })(),
-    iqiyi (e) {
-        var t, r;
-        if (!e.hostname.includes("iqiyi.com")) return null;
-        let n = null != (r = null != (t = e.searchParams.get("entityId")) ? t : e.searchParams.get("tvid")) ? r : void 0;
-        return n ? {
-            entityId: n
-        } : null;
-    },
-    mgtv (e) {
-        if ("www.mgtv.com" !== e.hostname && "mgtv.com" !== e.hostname) return null;
-        let t = e.pathname.match(/^\/h\/([^/.]+)\.html$/);
-        if (t) return {
-            dramaId: t[1]
-        };
-        let r = e.pathname.match(/^\/b\/([^/]+)\/([^/.]+)\.html$/);
-        return r ? {
-            dramaId: r[1],
-            videoId: r[2]
-        } : null;
-    },
-    renren: ()=>null,
-    tencent (e) {
-        var t, r;
-        if ("v.qq.com" !== e.hostname) return null;
-        let n = e.pathname.match(/^\/x\/cover\/([^/]+)\/([^/.]+)\.html$/);
-        if (n) return {
-            cid: n[1],
-            vid: n[2]
-        };
-        let i = e.pathname.match(/^\/x\/cover\/([^/.]+)\.html$/);
-        if (i) return {
-            cid: i[1]
-        };
-        let o = null != (t = e.searchParams.get("cid")) ? t : void 0, a = null != (r = e.searchParams.get("vid")) ? r : void 0;
-        return o ? {
-            cid: o,
-            vid: a || void 0
-        } : null;
-    },
-    youku (e) {
-        var t, r;
-        if (!e.hostname.includes("youku.com")) return null;
-        let n = null != (t = e.searchParams.get("showid")) ? t : void 0, i = null != (r = e.searchParams.get("vid")) ? r : void 0;
-        return n || i ? {
-            showId: n,
-            vid: i
-        } : null;
-    }
-};
-function az(e) {
-    return aO(function*() {
+let aP = ak().scraperMap;
+function aI(e) {
+    return aS(function*() {
         for (let t of nM){
             let r = yield function(e, t) {
-                return aO(function*() {
-                    let r;
+                return aS(function*() {
+                    var r;
+                    let n;
                     if (!nD.has(e)) return null;
                     try {
-                        r = new URL(t);
+                        n = new URL(t);
                     } catch (e) {
                         return null;
                     }
-                    let n = aP[e], i = yield n(r);
-                    return i ? {
-                        id: i,
-                        idString: function(e, t) {
-                            switch(e){
-                                case "tencent":
-                                    return aI(t, [
-                                        "cid",
-                                        "vid"
-                                    ]);
-                                case "youku":
-                                    return aI(t, [
-                                        "showId",
-                                        "vid"
-                                    ]);
-                                case "iqiyi":
-                                    return aI(t, [
-                                        "entityId"
-                                    ]);
-                                case "bilibili":
-                                    return aI(t, [
-                                        "seasonId",
-                                        "aid",
-                                        "cid"
-                                    ]);
-                                case "mgtv":
-                                    return aI(t, [
-                                        "dramaId",
-                                        "videoId"
-                                    ]);
-                                case "renren":
-                                    return aI(t, [
-                                        "dramaId",
-                                        "episodeId"
-                                    ]);
-                            }
-                        }(e, i),
-                        url: t
-                    } : null;
+                    return r = n, aS(function*() {
+                        let n = aP[e], i = yield n.parseProviderUrl(r);
+                        if (!i) return null;
+                        let o = n.generateIdString(i);
+                        return {
+                            id: n.parseProviderIdString(o),
+                            idString: o,
+                            url: t
+                        };
+                    })();
                 })();
             }(t, e);
             if (r) return function(e) {
@@ -10061,14 +9966,14 @@ function az(e) {
         return null;
     })();
 }
-let aE = r9({
-    "global.content.aggregation": nS().catch(!0),
+let az = r9({
+    "global.content.aggregation": nO().catch(!0),
     "global.content.conversion": ns([
         "original",
         "tc2sc",
         "sc2tc"
     ]).catch("original"),
-    "global.experimental.doubanHistory.enabled": nS().catch(!1),
+    "global.experimental.doubanHistory.enabled": nO().catch(!1),
     "global.experimental.doubanHistory.dbcl2": rE().catch(""),
     "global.experimental.doubanHistory.customComment": rE().catch("自豪的使用 Forward"),
     "provider.renren.mode": ns([
@@ -10095,15 +10000,15 @@ let aE = r9({
             }
         }
     }));
-function aN(e) {
+function aE(e) {
     return Object.getOwnPropertySymbols(e).filter((t)=>Object.prototype.propertyIsEnumerable.call(e, t));
 }
-function a$(e) {
+function aN(e) {
     return null == e ? void 0 === e ? '[object Undefined]' : '[object Null]' : Object.prototype.toString.call(e);
 }
-let aj = '[object Arguments]', aT = '[object Object]';
-function aA() {}
-function aC(e, t) {
+let aj = '[object Arguments]', a$ = '[object Object]';
+function aT() {}
+function aA(e, t) {
     return function e(t, r, n, i, o, a, s) {
         let l = s(t, r, n, i, o, a);
         if (void 0 !== l) return l;
@@ -10120,8 +10025,8 @@ function aC(e, t) {
         }
         return function t(r, n, i, o) {
             if (Object.is(r, n)) return !0;
-            let a = a$(r), s = a$(n);
-            if (a === aj && (a = aT), s === aj && (s = aT), a !== s) return !1;
+            let a = aN(r), s = aN(n);
+            if (a === aj && (a = a$), s === aj && (s = a$), a !== s) return !1;
             switch(a){
                 case '[object String]':
                     return r.toString() === n.toString();
@@ -10182,15 +10087,15 @@ function aC(e, t) {
                         return t(new Uint8Array(r), new Uint8Array(n), i, o);
                     case '[object Error]':
                         return r.name === n.name && r.message === n.message;
-                    case aT:
+                    case a$:
                         {
                             if (!(t(r.constructor, n.constructor, i, o) || b(r) && b(n))) return !1;
                             let a = [
                                 ...Object.keys(r),
-                                ...aN(r)
+                                ...aE(r)
                             ], s = [
                                 ...Object.keys(n),
-                                ...aN(n)
+                                ...aE(n)
                             ];
                             if (a.length !== s.length) return !1;
                             for(let t = 0; t < a.length; t++){
@@ -10208,9 +10113,9 @@ function aC(e, t) {
                 i.delete(r), i.delete(n);
             }
         }(t, r, a, s);
-    }(e, t, void 0, void 0, void 0, void 0, aA);
+    }(e, t, void 0, void 0, void 0, void 0, aT);
 }
-function aM(e, t, r, n, i, o, a) {
+function aC(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -10219,7 +10124,7 @@ function aM(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function aD(e, t, r) {
+function aM(e, t, r) {
     return t in e ? Object.defineProperty(e, t, {
         value: r,
         enumerable: !0,
@@ -10227,7 +10132,7 @@ function aD(e, t, r) {
         writable: !0
     }) : e[t] = r, e;
 }
-let aB = r9({
+let aD = r9({
     data: r9({
         longData: r9({
             rows: r8(r4().transform((e)=>{
@@ -10249,7 +10154,7 @@ let aB = r9({
         })
     })
 }).transform((e)=>e.data.longData.rows);
-class aF {
+class aB {
     getEpisodeParams(e) {
         var t;
         return (t = function*() {
@@ -10267,7 +10172,7 @@ class aF {
                     v_ap: "1",
                     tab: "all"
                 },
-                schema: aB
+                schema: aD
             });
             if (!(null == (t = f.data) ? void 0 : t.length)) return [];
             let p = [];
@@ -10289,17 +10194,17 @@ class aF {
                     continue;
                 }
                 if (e.playlinks.qq) {
-                    let t = yield az(e.playlinks.qq);
+                    let t = yield aI(e.playlinks.qq);
                     if ((null == t ? void 0 : t.provider) === "tencent") p.push({
                         provider: "tencent",
-                        idString: aU.scraperMap.tencent.generateIdString(t.id),
+                        idString: aR.scraperMap.tencent.generateIdString(t.id),
                         episodeNumber: h
                     });
                     else {
                         let t = null == (r = e.playlinks.qq.match(/\/cover\/([^/]+?)(\/|.html|$)/)) ? void 0 : r[1];
                         t && p.push({
                             provider: "tencent",
-                            idString: aU.scraperMap.tencent.generateIdString({
+                            idString: aR.scraperMap.tencent.generateIdString({
                                 cid: t
                             }),
                             episodeNumber: h
@@ -10307,17 +10212,17 @@ class aF {
                     }
                 }
                 if (e.playlinks.youku) {
-                    let t = yield az(e.playlinks.youku);
+                    let t = yield aI(e.playlinks.youku);
                     if ((null == t ? void 0 : t.provider) === "youku") p.push({
                         provider: "youku",
-                        idString: aU.scraperMap.youku.generateIdString(t.id),
+                        idString: aR.scraperMap.youku.generateIdString(t.id),
                         episodeNumber: h
                     });
                     else {
                         let { vid: t, showid: r } = nN()(e.playlinks.youku, !0).query;
                         (t || r) && p.push({
                             provider: "youku",
-                            idString: aU.scraperMap.youku.generateIdString({
+                            idString: aR.scraperMap.youku.generateIdString({
                                 vid: t,
                                 showId: r
                             }),
@@ -10326,10 +10231,10 @@ class aF {
                     }
                 }
                 if (e.playlinks.qiyi) {
-                    let t = null == (n = e.playlinks.qiyi.match(/\/v_([^/]+?)(\/|.html|$)/)) ? void 0 : n[1], r = t ? aU.scraperMap.iqiyi.videoIdToEntityId(t) : void 0;
+                    let t = null == (n = e.playlinks.qiyi.match(/\/v_([^/]+?)(\/|.html|$)/)) ? void 0 : n[1], r = t ? aR.scraperMap.iqiyi.videoIdToEntityId(t) : void 0;
                     r && p.push({
                         provider: "iqiyi",
-                        idString: aU.scraperMap.iqiyi.generateIdString({
+                        idString: aR.scraperMap.iqiyi.generateIdString({
                             entityId: r
                         }),
                         episodeNumber: h
@@ -10341,24 +10246,24 @@ class aF {
                     })).data.match(/"season_id":(\d+)/)) ? void 0 : i[1];
                     t && p.push({
                         provider: "bilibili",
-                        idString: aU.scraperMap.bilibili.generateIdString({
+                        idString: aR.scraperMap.bilibili.generateIdString({
                             seasonId: t
                         }),
                         episodeNumber: h
                     });
                 }
                 if (e.playlinks.imgo) {
-                    let t = yield az(e.playlinks.imgo);
+                    let t = yield aI(e.playlinks.imgo);
                     if ((null == t ? void 0 : t.provider) === "mgtv") p.push({
                         provider: "mgtv",
-                        idString: aU.scraperMap.mgtv.generateIdString(t.id),
+                        idString: aR.scraperMap.mgtv.generateIdString(t.id),
                         episodeNumber: h
                     });
                     else {
                         let t = null == (o = e.playlinks.imgo.match(/\/b\/([^/]+)\//)) ? void 0 : o[1];
                         t && p.push({
                             provider: "mgtv",
-                            idString: aU.scraperMap.mgtv.generateIdString({
+                            idString: aR.scraperMap.mgtv.generateIdString({
                                 dramaId: t
                             }),
                             episodeNumber: h
@@ -10372,20 +10277,20 @@ class aF {
             return new Promise(function(n, i) {
                 var o = t.apply(e, r);
                 function a(e) {
-                    aM(o, n, i, a, s, "next", e);
+                    aC(o, n, i, a, s, "next", e);
                 }
                 function s(e) {
-                    aM(o, n, i, a, s, "throw", e);
+                    aC(o, n, i, a, s, "throw", e);
                 }
                 a(void 0);
             });
         }).call(this);
     }
     constructor(){
-        aD(this, "logger", new n$("360")), aD(this, "fetch", new eh()), aD(this, "BASE_API", "https://api.so.360kan.com");
+        aM(this, "logger", new nj("360")), aM(this, "fetch", new eh()), aM(this, "BASE_API", "https://api.so.360kan.com");
     }
 }
-function aL(e, t, r, n, i, o, a) {
+function aF(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -10394,22 +10299,22 @@ function aL(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function aZ(e) {
+function aL(e) {
     return function() {
         var t = this, r = arguments;
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                aL(o, n, i, a, s, "next", e);
+                aF(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                aL(o, n, i, a, s, "throw", e);
+                aF(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
     };
 }
-function aR(e, t, r) {
+function aZ(e, t, r) {
     return t in e ? Object.defineProperty(e, t, {
         value: r,
         enumerable: !0,
@@ -10417,7 +10322,7 @@ function aR(e, t, r) {
         writable: !0
     }) : e[t] = r, e;
 }
-let aU = new class {
+let aR = new class {
     get conversionConverter() {
         {
             let e = v(466), t = this.globalParams.global.content.conversion;
@@ -10434,7 +10339,7 @@ let aU = new class {
         return this._scraperMap;
     }
     getSegmentsByProvider(e, t) {
-        return aZ(function*() {
+        return aL(function*() {
             var r, n;
             let i = this.scraperMap[e];
             if (!i) return [];
@@ -10465,8 +10370,8 @@ let aU = new class {
         return o < 0 ? null : null != (r = e[o]) ? r : null;
     }
     getSegmentWithTime(e = 0, ...t) {
-        return aZ(function*() {
-            let r = this.conversionConverter, n = t.map(({ provider: t, idString: r })=>aZ(function*() {
+        return aL(function*() {
+            let r = this.conversionConverter, n = t.map(({ provider: t, idString: r })=>aL(function*() {
                     try {
                         let n = yield this.getSegmentsByProvider(t, r);
                         if (!n.length) return null;
@@ -10524,7 +10429,7 @@ let aU = new class {
         return this.getSegmentWithTime(t, ...r);
     }
     getEpisodes(...e) {
-        return aZ(function*() {
+        return aL(function*() {
             let t = [];
             for (let { provider: r, idString: n, episodeNumber: i } of function(e, t) {
                 let r = [];
@@ -10533,7 +10438,7 @@ let aU = new class {
                     r.every((e)=>!t(e, i)) && r.push(i);
                 }
                 return r;
-            }(e, aC)){
+            }(e, aA)){
                 let e = this.scraperMap[r];
                 e && t.push(e.getEpisodes(n, i).catch((e)=>(console.error(e), [])));
             }
@@ -10545,7 +10450,7 @@ let aU = new class {
                         "function" == typeof Object.getOwnPropertySymbols && (n = n.concat(Object.getOwnPropertySymbols(r).filter(function(e) {
                             return Object.getOwnPropertyDescriptor(r, e).enumerable;
                         }))), n.forEach(function(t) {
-                            aR(e, t, r[t]);
+                            aZ(e, t, r[t]);
                         });
                     }
                     return e;
@@ -10568,7 +10473,7 @@ let aU = new class {
         if ("tv" === e && t) return parseInt(t, 10);
     }
     getDetailWithAnimeId(e, t, r) {
-        return aZ(function*() {
+        return aL(function*() {
             let [n, i] = e.split(":");
             return yield this.getEpisodes({
                 provider: n,
@@ -10578,7 +10483,7 @@ let aU = new class {
         }).call(this);
     }
     getEpisodeParams(e) {
-        return aZ(function*() {
+        return aL(function*() {
             let t = [];
             for (let r of this.scrapers)r.search && t.push(r.search(e).catch((e)=>(console.error(e), [])));
             let r = (yield Promise.all(t)).flat();
@@ -10598,7 +10503,7 @@ let aU = new class {
             } catch (e) {}
             try {
                 if ("true" === e.qihooSearch) {
-                    let t = new aF(), r = yield t.getEpisodeParams(e);
+                    let t = new aB(), r = yield t.getEpisodeParams(e);
                     i.push(...r);
                 }
             } catch (e) {}
@@ -10606,18 +10511,18 @@ let aU = new class {
         }).call(this);
     }
     setGlobalParams(e) {
-        let { success: t, data: r } = aE.safeParse(e);
+        let { success: t, data: r } = az.safeParse(e);
         return t && (this.globalParams = r, this.scrapers.forEach((e)=>{
             e.providerConfig = r.provider;
         })), r;
     }
     constructor(){
-        aR(this, "scrapers", []), aR(this, "globalParams", {}), aR(this, "_scraperMap", void 0);
+        aZ(this, "scrapers", []), aZ(this, "globalParams", {}), aZ(this, "_scraperMap", void 0);
         let e = ak();
         this.scrapers = e.scrapers, this._scraperMap = e.scraperMap;
     }
 }();
-function aq(e, t, r, n, i, o, a) {
+function aU(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -10626,31 +10531,31 @@ function aq(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function aH(e) {
+function aq(e) {
     return function() {
         var t = this, r = arguments;
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                aq(o, n, i, a, s, "next", e);
+                aU(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                aq(o, n, i, a, s, "throw", e);
+                aU(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
     };
 }
-let aV = r9({
+let aH = r9({
     season: nL().optional().default(1),
     pageSize: nL().optional().default(20),
     pageToken: rE().optional()
-}), aW = "https://api.imdbapi.dev";
-class aK {
+}), aV = "https://api.imdbapi.dev";
+class aW {
     getImdbEpisodes(e, t) {
-        return aH(function*() {
-            let { season: r, pageSize: n, pageToken: i } = aV.parse(null != t ? t : {});
-            return (yield this.fetch.get(`${aW}/titles/${e}/episodes`, {
+        return aq(function*() {
+            let { season: r, pageSize: n, pageToken: i } = aH.parse(null != t ? t : {});
+            return (yield this.fetch.get(`${aV}/titles/${e}/episodes`, {
                 params: {
                     season: r,
                     pageSize: n,
@@ -10682,8 +10587,8 @@ class aK {
         }).call(this);
     }
     getImdbSeasons(e) {
-        return aH(function*() {
-            return (yield this.fetch.get(`${aW}/titles/${e}/seasons`, {
+        return aq(function*() {
+            return (yield this.fetch.get(`${aV}/titles/${e}/seasons`, {
                 cache: {
                     cacheKey: [
                         "imdb:seasons",
@@ -10709,7 +10614,7 @@ class aK {
         }) : this[e] = t;
     }
 }
-function aG(e, t, r, n, i, o, a) {
+function aK(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -10718,7 +10623,7 @@ function aG(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-class aY {
+class aG {
     getExternalIds(e, t) {
         var r;
         return (r = function*() {
@@ -10731,17 +10636,17 @@ class aY {
             return new Promise(function(n, i) {
                 var o = r.apply(e, t);
                 function a(e) {
-                    aG(o, n, i, a, s, "next", e);
+                    aK(o, n, i, a, s, "next", e);
                 }
                 function s(e) {
-                    aG(o, n, i, a, s, "throw", e);
+                    aK(o, n, i, a, s, "throw", e);
                 }
                 a(void 0);
             });
         })();
     }
 }
-function aJ(e, t, r, n, i, o, a) {
+function aY(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -10750,22 +10655,22 @@ function aJ(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function aX(e) {
+function aJ(e) {
     return function() {
         var t = this, r = arguments;
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                aJ(o, n, i, a, s, "next", e);
+                aY(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                aJ(o, n, i, a, s, "throw", e);
+                aY(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
     };
 }
-function aQ(e, t, r) {
+function aX(e, t, r) {
     return t in e ? Object.defineProperty(e, t, {
         value: r,
         enumerable: !0,
@@ -10773,14 +10678,14 @@ function aQ(e, t, r) {
         writable: !0
     }) : e[t] = r, e;
 }
-class a0 {
+class aQ {
     getDoubanInfoByImdbId(e, t) {
-        return aX(function*() {
+        return aJ(function*() {
             var r, n, i, o, a, s;
             let l = e;
             if (t && "1" !== t.toString()) {
                 let r = yield this.imdbMatcher.getImdbSeasons(e);
-                if (!r || parseInt(t.toString()) > r.seasons.length) return null;
+                if (!r || parseInt(t.toString(), 10) > r.seasons.length) return null;
                 let n = yield this.imdbMatcher.getImdbEpisodes(e, {
                     season: t
                 });
@@ -10812,14 +10717,14 @@ class a0 {
         }).call(this);
     }
     getDoubanInfoByTmdbId(e, t, r) {
-        return aX(function*() {
+        return aJ(function*() {
             if (!t) return null;
             let n = yield this.tmdbMatcher.getExternalIds(e, t);
             return (this.logger.info("Get external ids by tmdb id", n), n.imdb_id) ? this.getDoubanInfoByImdbId(n.imdb_id, r) : null;
         }).call(this);
     }
     searchDoubanInfoByName(e) {
-        return aX(function*() {
+        return aJ(function*() {
             var t, r;
             return e && null != (r = null == (t = (yield this.fetch.get("https://m.douban.com/rexxar/api/v2/search", {
                 params: {
@@ -10859,7 +10764,7 @@ class a0 {
         }).call(this);
     }
     getVideoPlatformInfoByDoubanId(e) {
-        return aX(function*() {
+        return aJ(function*() {
             var t, r;
             this.logger.info("获取视频平台信息", e);
             let n = yield this.fetch.get(`https://m.douban.com/rexxar/api/v2/movie/${e}?for_mobile=1`, {
@@ -10888,18 +10793,18 @@ class a0 {
             }), i = [];
             for (let e of null != (r = null == (t = n.data) ? void 0 : t.vendors) ? r : []){
                 if (!e) continue;
-                let t = yield az(e.uri), r = nN()(e.uri, !0);
+                let t = yield aI(e.uri), r = nN()(e.uri, !0);
                 switch(e.id){
                     case "qq":
                         if ((null == t ? void 0 : t.provider) === "tencent") i.push({
                             provider: "tencent",
-                            idString: aU.scraperMap.tencent.generateIdString(t.id)
+                            idString: aR.scraperMap.tencent.generateIdString(t.id)
                         });
                         else {
                             let { cid: e, vid: t } = r.query;
                             e && i.push({
                                 provider: "tencent",
-                                idString: aU.scraperMap.tencent.generateIdString({
+                                idString: aR.scraperMap.tencent.generateIdString({
                                     cid: e,
                                     vid: t
                                 })
@@ -10909,13 +10814,13 @@ class a0 {
                     case "iqiyi":
                         if ((null == t ? void 0 : t.provider) === "iqiyi") i.push({
                             provider: "iqiyi",
-                            idString: aU.scraperMap.iqiyi.generateIdString(t.id)
+                            idString: aR.scraperMap.iqiyi.generateIdString(t.id)
                         });
                         else {
                             let { tvid: e } = r.query;
                             e && i.push({
                                 provider: "iqiyi",
-                                idString: aU.scraperMap.iqiyi.generateIdString({
+                                idString: aR.scraperMap.iqiyi.generateIdString({
                                     entityId: e
                                 })
                             });
@@ -10924,13 +10829,13 @@ class a0 {
                     case "youku":
                         if ((null == t ? void 0 : t.provider) === "youku") i.push({
                             provider: "youku",
-                            idString: aU.scraperMap.youku.generateIdString(t.id)
+                            idString: aR.scraperMap.youku.generateIdString(t.id)
                         });
                         else {
                             let { showid: e, vid: t } = r.query;
                             (e || t) && i.push({
                                 provider: "youku",
-                                idString: aU.scraperMap.youku.generateIdString({
+                                idString: aR.scraperMap.youku.generateIdString({
                                     showId: e,
                                     vid: t
                                 })
@@ -10940,13 +10845,13 @@ class a0 {
                     case "bilibili":
                         if ((null == t ? void 0 : t.provider) === "bilibili") i.push({
                             provider: "bilibili",
-                            idString: aU.scraperMap.bilibili.generateIdString(t.id)
+                            idString: aR.scraperMap.bilibili.generateIdString(t.id)
                         });
                         else {
                             let e = r.pathname.split("/").pop();
                             e && /\d+/.test(e) && i.push({
                                 provider: "bilibili",
-                                idString: aU.scraperMap.bilibili.generateIdString({
+                                idString: aR.scraperMap.bilibili.generateIdString({
                                     seasonId: e
                                 })
                             });
@@ -10957,7 +10862,7 @@ class a0 {
         }).call(this);
     }
     getDoubanIds(e) {
-        return aX(function*() {
+        return aJ(function*() {
             let t = new Set(), { tmdbId: r, type: n, seriesName: i, season: o, fuzzyMatch: a } = nR.parse(e);
             try {
                 let e = yield this.getDoubanInfoByTmdbId(n, r, o);
@@ -10967,7 +10872,7 @@ class a0 {
             }
             if ("always" === a || "auto" === a && !t.size) try {
                 let e = i;
-                for (let r of (o && parseInt(o.toString()) > 1 && (e += o.toString()), yield this.searchDoubanInfoByName(e)))t.add(r.target_id);
+                for (let r of (o && parseInt(o.toString(), 10) > 1 && (e += o.toString()), yield this.searchDoubanInfoByName(e)))t.add(r.target_id);
             } catch (e) {
                 this.logger.error("Error searching douban info by name", e);
             }
@@ -10975,7 +10880,7 @@ class a0 {
         }).call(this);
     }
     getEpisodeParams(e) {
-        return aX(function*() {
+        return aJ(function*() {
             let t = yield this.getDoubanIds(e);
             this.logger.info("获取到豆瓣ID", t);
             let r = [];
@@ -10990,28 +10895,36 @@ class a0 {
         }).call(this);
     }
     constructor(){
-        aQ(this, "logger", new n$("豆瓣")), aQ(this, "tmdbMatcher", new aY()), aQ(this, "imdbMatcher", new aK()), aQ(this, "fetch", new eh()), aQ(this, "DOUBAN_API_KEY", "0ac44ae016490db2204ce0a042db2916");
+        aX(this, "logger", new nj("豆瓣")), aX(this, "tmdbMatcher", new aG()), aX(this, "imdbMatcher", new aW()), aX(this, "fetch", new eh()), aX(this, "DOUBAN_API_KEY", "0ac44ae016490db2204ce0a042db2916");
     }
 }
-let a1 = {}, a2 = {
-    97199: {
-        6: [
-            {
-                provider: "mgtv",
-                idString: "dramaId=860862"
-            }
-        ]
-    },
-    282136: {
-        series: [
-            {
-                provider: "bilibili",
-                idString: "seasonId=45962"
-            }
-        ]
-    }
+let a0 = {}, a1 = {
+    97199: [
+        {
+            provider: "mgtv",
+            idString: "dramaId=860862",
+            season: 6,
+            epOffset: 0
+        }
+    ],
+    282136: [
+        {
+            provider: "bilibili",
+            idString: "seasonId=45962",
+            season: 1,
+            epOffset: 0
+        }
+    ],
+    282158: [
+        {
+            provider: "iqiyi",
+            idString: "entityId=2349242958520400",
+            season: 1,
+            epOffset: 0
+        }
+    ]
 };
-function a3(e, t, r, n, i, o, a) {
+function a2(e, t, r, n, i, o, a) {
     try {
         var s = e[o](a), l = s.value;
     } catch (e) {
@@ -11020,16 +10933,16 @@ function a3(e, t, r, n, i, o, a) {
     }
     s.done ? t(l) : Promise.resolve(l).then(n, i);
 }
-function a4(e) {
+function a3(e) {
     return function() {
         var t = this, r = arguments;
         return new Promise(function(n, i) {
             var o = e.apply(t, r);
             function a(e) {
-                a3(o, n, i, a, s, "next", e);
+                a2(o, n, i, a, s, "next", e);
             }
             function s(e) {
-                a3(o, n, i, a, s, "throw", e);
+                a2(o, n, i, a, s, "throw", e);
             }
             a(void 0);
         });
@@ -11040,7 +10953,7 @@ WidgetMetadata = {
     title: "通用弹幕",
     description: "通用弹幕插件，支持腾讯、优酷、爱奇艺、哔哩哔哩、人人视频等平台",
     author: "Baran",
-    version: "0.15.4",
+    version: "0.15.5",
     site: "https://github.com/baranwang/forward-widget/tree/main/apps/danmu-universe",
     requiredVersion: "0.0.2",
     globalParams: [
@@ -11239,9 +11152,9 @@ WidgetMetadata = {
             description: "获取弹幕切片"
         }
     ]
-}, searchDanmu = (e)=>a4(function*() {
-        let t, r = aU.setGlobalParams(e), { fuzzyMatch: n = "auto", type: i, episode: o } = e, a = (e)=>a4(function*() {
-                let t = yield aU.getEpisodes(..."tv" !== i ? e : e.map((e)=>{
+}, searchDanmu = (e)=>a3(function*() {
+        let t, r = aR.setGlobalParams(e), { fuzzyMatch: n = "auto", type: i, episode: o } = e, a = (e, t = !0)=>a3(function*() {
+                let r = yield aR.getEpisodes(...t ? "tv" !== i ? e : e.map((e)=>{
                     var t, r;
                     return t = function(e) {
                         for(var t = 1; t < arguments.length; t++){
@@ -11271,8 +11184,8 @@ WidgetMetadata = {
                     })(Object(r)).forEach(function(e) {
                         Object.defineProperty(t, e, Object.getOwnPropertyDescriptor(r, e));
                     }), t;
-                }));
-                return "tv" === i && o && (t = t.filter((e)=>e.episodeNumber === parseInt(o, 10))), t;
+                }) : e);
+                return t && "tv" === i && o && (r = r.filter((e)=>e.episodeNumber === parseInt(o, 10))), r;
             })(), s = (e)=>({
                 animes: e.map((e)=>{
                     let t = `[${nZ[e.provider]}] `;
@@ -11281,17 +11194,58 @@ WidgetMetadata = {
                         animeTitle: t
                     };
                 })
-            }), l = e.tmdbId ? Number(e.tmdbId) : NaN, u = "tv" === i && void 0 !== e.season ? Number(e.season) : null, c = Number.isInteger(l) ? (t = (({ type: e, tmdbId: t, season: r })=>{
-            var n, i, o, a;
+            }), l = e.tmdbId ? Number(e.tmdbId) : NaN, u = "tv" === i && void 0 !== e.season ? Number(e.season) : null, c = Number.isInteger(l) ? (t = (({ type: e, tmdbId: t, season: r, episode: n })=>{
             if (!Number.isInteger(t) || t < 0) return null;
-            let s = String(t);
-            if ("movie" === e) return null != (n = a1[s]) ? n : null;
-            let l = a2[s];
-            return l ? null == r ? null != (i = l.series) ? i : null : null != (a = null != (o = l[r]) ? o : l.series) ? a : null : null;
+            let i = String(t);
+            if ("movie" === e) {
+                var o;
+                return null != (o = a0[i]) ? o : null;
+            }
+            let a = a1[i];
+            if (!a || null == r) return null;
+            let s = a.filter((e)=>e.season === r);
+            if (null == n) return s.length ? s : null;
+            let l = s.flatMap((e)=>{
+                var t, r;
+                if (e.epRange && (n < e.epRange[0] || n > e.epRange[1])) return [];
+                let i = n + e.epOffset;
+                return !Number.isInteger(i) || i < 0 ? [] : [
+                    (t = function(e) {
+                        for(var t = 1; t < arguments.length; t++){
+                            var r = null != arguments[t] ? arguments[t] : {}, n = Object.keys(r);
+                            "function" == typeof Object.getOwnPropertySymbols && (n = n.concat(Object.getOwnPropertySymbols(r).filter(function(e) {
+                                return Object.getOwnPropertyDescriptor(r, e).enumerable;
+                            }))), n.forEach(function(t) {
+                                var n;
+                                n = r[t], t in e ? Object.defineProperty(e, t, {
+                                    value: n,
+                                    enumerable: !0,
+                                    configurable: !0,
+                                    writable: !0
+                                }) : e[t] = n;
+                            });
+                        }
+                        return e;
+                    }({}, e), r = r = {
+                        episodeNumber: i
+                    }, Object.getOwnPropertyDescriptors ? Object.defineProperties(t, Object.getOwnPropertyDescriptors(r)) : (function(e, t) {
+                        var r = Object.keys(e);
+                        if (Object.getOwnPropertySymbols) {
+                            var n = Object.getOwnPropertySymbols(e);
+                            r.push.apply(r, n);
+                        }
+                        return r;
+                    })(Object(r)).forEach(function(e) {
+                        Object.defineProperty(t, e, Object.getOwnPropertyDescriptor(r, e));
+                    }), t)
+                ];
+            });
+            return l.length ? l : null;
         })({
             type: i,
             tmdbId: l,
-            season: u
+            season: u,
+            episode: void 0 === o ? void 0 : Number(o)
         })) ? t.map(({ provider: e, idString: t, episodeNumber: r })=>void 0 === r ? {
                 provider: e,
                 idString: t
@@ -11300,11 +11254,11 @@ WidgetMetadata = {
                 idString: t,
                 episodeNumber: r
             }) : [] : [];
-        if (console.log("localEpisodeParams", c), c.length) {
-            let e = yield a(c);
+        if (c.length) {
+            let e = yield a(c, !1);
             if (e.length) return s(e);
         }
-        let d = [], h = new a0(), { doubanIds: f, videoPlatformInfo: p } = yield h.getEpisodeParams(e);
+        let d = [], h = new aQ(), { doubanIds: f, videoPlatformInfo: p } = yield h.getEpisodeParams(e);
         d = d.concat(p);
         try {
             if ((null == r ? void 0 : r.global.experimental.doubanHistory.enabled) && (null == r ? void 0 : r.global.experimental.doubanHistory.dbcl2)) {
@@ -11315,11 +11269,11 @@ WidgetMetadata = {
             console.error(e);
         }
         if (!(null == d ? void 0 : d.length) && "auto" === n || "always" === n) {
-            let t = yield aU.getEpisodeParams(e);
+            let t = yield aR.getEpisodeParams(e);
             d = d.concat(t);
         }
         let m = yield a(d);
-        return !m.length && nS().catch(!0).parse(e.emptyAnimeTitle) ? {
+        return !m.length && nO().catch(!0).parse(e.emptyAnimeTitle) ? {
             animes: [
                 {
                     animeId: nU,
@@ -11327,15 +11281,15 @@ WidgetMetadata = {
                 }
             ]
         } : s(m);
-    })(), getDetail = (e)=>a4(function*() {
-        aU.setGlobalParams(e);
+    })(), getDetail = (e)=>a3(function*() {
+        aR.setGlobalParams(e);
         let { animeId: t, type: r, episode: n } = e;
-        return t && t !== nU ? aU.getDetailWithAnimeId(t.toString(), r, n) : null;
-    })(), getComments = (e)=>a4(function*() {
-        aU.setGlobalParams(e);
+        return t && t !== nU ? aR.getDetailWithAnimeId(t.toString(), r, n) : null;
+    })(), getComments = (e)=>a3(function*() {
+        aR.setGlobalParams(e);
         let { animeId: t, commentId: r, segmentTime: n } = e, i = null != r ? r : t;
         if (i === nU) return null;
-        let o = yield aU.getDanmuWithSegmentTimeByVideoId(i.toString(), n);
+        let o = yield aR.getDanmuWithSegmentTimeByVideoId(i.toString(), n);
         return {
             comments: o,
             count: o.length
