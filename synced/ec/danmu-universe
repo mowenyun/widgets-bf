@@ -8617,7 +8617,7 @@ function aa(e, t, r) {
 let { qs: as } = nE, al = r9({
     showId: rE().optional(),
     vid: rE().optional()
-}), au = nX("^(.*?)(抢先(版|篇)?|加更(版|篇)?|花絮|预告|特辑|彩蛋|专访|幕后(故事|花絮)?|直播|纯享|未播|衍生|番外|会员(专属|加长)?|片花|精华|看点|速览|解读|reaction|影评)(.*?)$"), ac = r9({
+}), au = nX("^(.*?)(抢先(版|篇)?|加更(版|篇)?|花絮|预告|特辑|彩蛋|专访|幕后(故事|花絮)?|直播|纯享|未播|衍生|会员(专属|加长)?|片花|精华|看点|速览|解读|reaction|影评)(.*?)$"), ac = r9({
     id: rE(),
     show_id: rE().optional(),
     title: rE().refine((e)=>!au.test(e)),
@@ -8664,7 +8664,7 @@ let { qs: as } = nE, al = r9({
     }), t;
 }), ad = r9({
     total: rJ().or(rE().transform((e)=>parseInt(e, 10))),
-    videos: r8(ac)
+    videos: r8(r4().transform((e)=>ac.safeParse(e).data)).transform((e)=>e.filter((e)=>null !== e))
 }), ah = r9({
     id: rJ(),
     content: rE(),
@@ -8886,12 +8886,23 @@ let av = class extends n4 {
         return am(function*() {
             var t, r;
             if (!e.hostname.includes("youku.com")) return null;
-            let n = null != (t = e.searchParams.get("showid")) ? t : void 0, i = null != (r = e.searchParams.get("vid")) ? r : void 0;
-            return n || i ? {
-                showId: n,
+            let n = e.searchParams.get("showid") || e.searchParams.get("showId") || e.searchParams.get("s") || void 0, i = e.searchParams.get("vid") || (null == (t = e.pathname.match(/\/v_show\/id_(.+)\.html$/)) ? void 0 : t[1]) || void 0;
+            return n || i ? (!n && i && (n = (null == (r = yield this.getVideoInfo(i)) ? void 0 : r.show_id) || void 0), function(e) {
+                for(var t = 1; t < arguments.length; t++){
+                    var r = null != arguments[t] ? arguments[t] : {}, n = Object.keys(r);
+                    "function" == typeof Object.getOwnPropertySymbols && (n = n.concat(Object.getOwnPropertySymbols(r).filter(function(e) {
+                        return Object.getOwnPropertyDescriptor(r, e).enumerable;
+                    }))), n.forEach(function(t) {
+                        ag(e, t, r[t]);
+                    });
+                }
+                return e;
+            }({}, n ? {
+                showId: n
+            } : {}, i ? {
                 vid: i
-            } : null;
-        })();
+            } : {})) : null;
+        }).call(this);
     }
     get token() {
         var e, t;
@@ -10899,11 +10910,55 @@ class aQ {
     }
 }
 let a0 = {}, a1 = {
+    91097: [
+        {
+            provider: "bilibili",
+            idString: "seasonId=22088",
+            season: 1,
+            epOffset: 0
+        },
+        {
+            provider: "bilibili",
+            idString: "seasonId=46585",
+            season: 2,
+            epOffset: 0
+        }
+    ],
+    95479: [
+        {
+            provider: "bilibili",
+            idString: "seasonId=34430",
+            season: 1,
+            epRange: [
+                1,
+                24
+            ],
+            epOffset: 0
+        },
+        {
+            provider: "bilibili",
+            idString: "seasonId=45574",
+            season: 1,
+            epRange: [
+                25,
+                47
+            ],
+            epOffset: -24
+        }
+    ],
     97199: [
         {
             provider: "mgtv",
             idString: "dramaId=860862",
             season: 6,
+            epOffset: 0
+        }
+    ],
+    229192: [
+        {
+            provider: "youku",
+            idString: "showId=adaec02f09f9469ab8d8&vid=XNTk3MzA5NzgzMg%3D%3D",
+            season: 1,
             epOffset: 0
         }
     ],
@@ -10953,7 +11008,7 @@ WidgetMetadata = {
     title: "通用弹幕",
     description: "通用弹幕插件，支持腾讯、优酷、爱奇艺、哔哩哔哩、人人视频等平台",
     author: "Baran",
-    version: "0.15.5",
+    version: "0.15.6",
     site: "https://github.com/baranwang/forward-widget/tree/main/apps/danmu-universe",
     requiredVersion: "0.0.2",
     globalParams: [
@@ -11153,7 +11208,9 @@ WidgetMetadata = {
         }
     ]
 }, searchDanmu = (e)=>a3(function*() {
-        let t, r = aR.setGlobalParams(e), { fuzzyMatch: n = "auto", type: i, episode: o } = e, a = (e, t = !0)=>a3(function*() {
+        let t;
+        console.log("searchDanmu params", e);
+        let r = aR.setGlobalParams(e), { fuzzyMatch: n = "auto", type: i, episode: o } = e, a = (e, t = !0)=>a3(function*() {
                 let r = yield aR.getEpisodes(...t ? "tv" !== i ? e : e.map((e)=>{
                     var t, r;
                     return t = function(e) {
@@ -11255,6 +11312,7 @@ WidgetMetadata = {
                 episodeNumber: r
             }) : [] : [];
         if (c.length) {
+            console.log("Found local episode params", c);
             let e = yield a(c, !1);
             if (e.length) return s(e);
         }
