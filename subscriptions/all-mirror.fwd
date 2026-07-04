@@ -21,6 +21,15 @@
       "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/trakt.js"
     },
     {
+      "id": "simkl",
+      "title": "SIMKL我看&追剧日历",
+      "description": "解析SIMKL想看、在看、看过以及动漫/剧集/电影追剧日历【30% off code：CHEAP】",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "huangxd",
+      "url": "https://raw.githubusercontent.com/mowenyun/widgets-bf/main/synced/huangxd/simkl.js"
+    },
+    {
       "id": "live",
       "title": "直播(电视+网络)",
       "description": "解析直播订阅链接【30% off code：CHEAP】",
