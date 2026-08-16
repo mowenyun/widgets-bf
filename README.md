@@ -16,11 +16,6 @@
 
 ## 当前来源
 
-### huangxd Widgets (`huangxd`)
-- 来源：`https://raw.githubusercontent.com/huangxd-/ForwardWidgets/refs/heads/main/widgets.fwd`
-- Widgets：`9`
-- 成功镜像 js：`8`
-
 ### ec Widgets (`ec`)
 - 来源：`https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/Widgets.fwd`
 - Widgets：`14`
@@ -47,8 +42,8 @@
 
 ## 统计
 
-- 聚合原地址版总数：`48`
-- 聚合镜像版总数：`48`
+- 聚合原地址版总数：`39`
+- 聚合镜像版总数：`39`
 
 ## 跳过记录
 
