@@ -6269,7 +6269,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.21.5",
+  VERSION: "1.21.6",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -6366,7 +6366,10 @@ var Globals = {
       } else if (conf.startsWith("animeko@") && (hostname.includes("animeko") || hostname.includes("bgm.tv"))) {
         specificProxy = conf.substring(8);
         break;
-      } else conf.startsWith("@") && !universalProxy ? universalProxy = conf.substring(1) : !conf.includes("@") && !forwardProxy && (forwardProxy = conf);
+      } else if (conf.startsWith("aiyifan@") && /(^|\.)(tripdata\.app|yfsp\.tv)$/.test(hostname)) {
+        specificProxy = conf.substring(8);
+        break;
+      } else conf.startsWith("@") && !universalProxy ? universalProxy = conf.substring(1) : /^https?:\/\//i.test(conf) && !forwardProxy && (forwardProxy = conf);
     if (specificProxy)
       try {
         let proxyObj = new URL(specificProxy);
@@ -6946,15 +6949,22 @@ function sm3Bytes(input) {
 }
 function parseDanmakuBase64(base64) {
   let bytes = base64ToBytes(base64), elems = [], offset = 0;
-  for (; offset < bytes.length && bytes[offset++] === 10; ) {
+  for (; offset < bytes.length; ) {
+    let [key, afterKey] = readVarint(bytes, offset), fieldNumber = key >>> 3, wireType = key & 7;
+    if (offset = afterKey, fieldNumber !== 1 || wireType !== 2) {
+      let skipped = skipField(bytes, offset, wireType);
+      if (skipped <= offset) break;
+      offset = skipped;
+      continue;
+    }
     let [msgBytes, nextOffset] = readLengthDelimited(bytes, offset);
     offset = nextOffset;
     let innerOffset = 0, elem = {};
     for (; innerOffset < msgBytes.length; ) {
-      let tag = msgBytes[innerOffset++], fieldNumber = tag >> 3, wireType = tag & 7;
-      if (wireType === 0) {
+      let [tag, afterTag] = readVarint(msgBytes, innerOffset), fieldNumber2 = tag >>> 3, wireType2 = tag & 7;
+      if (innerOffset = afterTag, wireType2 === 0) {
         let [val, innerNext] = readVarint(msgBytes, innerOffset);
-        switch (innerOffset = innerNext, fieldNumber) {
+        switch (innerOffset = innerNext, fieldNumber2) {
           case 1:
             elem.id = val;
             break;
@@ -6989,9 +6999,9 @@ function parseDanmakuBase64(base64) {
             elem.dm_type_v2 = val;
             break;
         }
-      } else if (wireType === 2) {
+      } else if (wireType2 === 2) {
         let [valBytes, innerNext] = readLengthDelimited(msgBytes, innerOffset);
-        switch (innerOffset = innerNext, fieldNumber) {
+        switch (innerOffset = innerNext, fieldNumber2) {
           case 6:
             elem.midHash = utf8BytesToString(valBytes);
             break;
@@ -7012,17 +7022,32 @@ function parseDanmakuBase64(base64) {
             break;
         }
       } else {
-        let [_, innerNext] = readVarint(msgBytes, innerOffset);
-        innerOffset = innerNext;
+        let skipped = skipField(msgBytes, innerOffset, wireType2);
+        if (skipped <= innerOffset) break;
+        innerOffset = skipped;
       }
     }
     elems.push(elem);
   }
   return elems;
 }
+function skipField(bytes, offset, wireType) {
+  switch (wireType) {
+    case 0:
+      return readVarint(bytes, offset)[1];
+    case 1:
+      return offset + 8;
+    case 2:
+      return readLengthDelimited(bytes, offset)[1];
+    case 5:
+      return offset + 4;
+    default:
+      return -1;
+  }
+}
 function readVarint(bytes, offset) {
   let result = 0n, shift = 0n, pos = offset;
-  for (; ; ) {
+  for (; pos < bytes.length; ) {
     let b = bytes[pos++];
     if (result |= BigInt(b & 127) << shift, (b & 128) === 0) break;
     shift += 7n;
@@ -8463,7 +8488,7 @@ function groupDanmusByMinute(filteredDanmus, n, isMultiSource = !1) {
     return filteredDanmus.map((danmu) => ({
       ...danmu,
       t: danmu.t !== void 0 ? danmu.t : parseFloat(danmu.p.split(",")[0])
-    }));
+    })).sort((a, b) => a.t - b.t);
   let groupedByTime = filteredDanmus.reduce((acc, danmu) => {
     let time = danmu.t !== void 0 ? danmu.t : parseFloat(danmu.p.split(",")[0]), groupKey = n === 0 ? time.toFixed(2) : Math.floor(time / (n * 60));
     return acc[groupKey] || (acc[groupKey] = []), acc[groupKey].push({ ...danmu, t: time }), acc;
@@ -9188,6 +9213,8 @@ var LANG_CN_MANDARIN = "\u666E\u901A[\u8BDD\u8A71]|[\u56FD\u570B][\u8BED\u8A9E]|
     INFO_STRONG: /(?:season|s|第)\s*[0-9一二三四五六七八九十]+\s*(?:季|期|部(?!分))?/gi,
     PART_INFO_STRONG: /(?:part|p|第)\s*\d+\s*(?:部分)?/gi,
     PART_ANY: /(?:part|p)\s*\d+/gi,
+    PART_MARKER_CN: /第\s*([0-9]+|[一二三四五六七八九十]+)(?:\s*&\s*第\s*([0-9]+|[一二三四五六七八九十]+))?\s*(?:赛段|季|期|部|部分)/g,
+    PART_MARKER_LATIN: /(?:season|stage|part|s)\s*\.?\s*(\d+)/g,
     CN_STRUCTURE: /(?:^|\s|×\d+\s?)(承|转|结)(?=$|[\s\(\（\[【])/i,
     SUFFIX_AMBIGUOUS: /(?:[\s\u4e00-\u9fa5]|^)(S|T|R|II|III|IV)(?=$|[\s\(\（\[【])/i,
     SUFFIX_SEQUEL: /(?:续篇|续集|The Sequel)/i
@@ -9451,6 +9478,14 @@ function getSeasonNumber(title, typeDesc = "", aliases = []) {
     }
   return maxSeason;
 }
+function getPartMarkers(title) {
+  let markers = /* @__PURE__ */ new Set(), text = simplized(String(title || "")).toLowerCase();
+  for (let m of text.matchAll(RegexStore.Season.PART_MARKER_CN))
+    markers.add(String(parseInt(convertChineseNumber(m[1]), 10))), m[2] && markers.add(String(parseInt(convertChineseNumber(m[2]), 10)));
+  for (let m of text.matchAll(RegexStore.Season.PART_MARKER_LATIN))
+    markers.add(String(parseInt(m[1], 10)));
+  return markers;
+}
 function getStrictMediaType(title, typeDesc) {
   let fullText = (title + " " + (typeDesc || "")).toLowerCase(), hasMovie = fullText.includes("\u7535\u5F71"), hasTV = fullText.includes("\u7535\u89C6\u5267");
   return hasMovie && !hasTV ? "MOVIE" : hasTV && !hasMovie ? "TV" : null;
@@ -9692,7 +9727,7 @@ function findBestAlignmentOffset(primaryLinks, secondaryLinks, seriesLangA = "Un
   }), sInfos.forEach(({ info }) => {
     info.num !== null && !info.isSpecial && info.num % 1 === 0 && (minNormalB = minNormalB === null ? info.num : Math.min(minNormalB, info.num));
   });
-  let seasonShift = minNormalA !== null && minNormalB !== null ? minNormalA - minNormalB : null, sharesEpisodeBase = seasonShift === 0, baseRange = 15, targetShift = seasonShift !== null ? -seasonShift : 0, safeMin = Math.max(Math.min(-baseRange, targetShift - baseRange), -Math.max(primaryLinks.length, secondaryLinks.length)), safeMax = Math.min(Math.max(baseRange, targetShift + baseRange), Math.max(primaryLinks.length, secondaryLinks.length)), bestOffset = 0, maxScore = -9999;
+  let seasonShift = minNormalA !== null && minNormalB !== null ? minNormalA - minNormalB : null, sharesEpisodeBase = seasonShift !== null && Math.abs(seasonShift) <= 1, baseRange = 15, targetShift = seasonShift !== null ? -seasonShift : 0, safeMin = Math.max(Math.min(-baseRange, targetShift - baseRange), -Math.max(primaryLinks.length, secondaryLinks.length)), safeMax = Math.min(Math.max(baseRange, targetShift + baseRange), Math.max(primaryLinks.length, secondaryLinks.length)), bestOffset = 0, maxScore = -9999;
   for (let offset = safeMin; offset <= safeMax; offset++) {
     let totalTextScore = 0, rawTextScoreSum = 0, matchCount = 0, numericDiffs = /* @__PURE__ */ new Map(), hasSeasonShiftMatch = !1, lastPNumLocal = null;
     for (let i = 0; i < secondaryLinks.length; i++) {
@@ -9901,15 +9936,21 @@ function getMatchingCustomRule(pAnime, sAnime) {
       target: stripNonTitleChars(cleanAnime).replace(/\s+/g, ""),
       rule: stripNonTitleChars(cleanRule).replace(/\s+/g, "")
     };
-  };
+  }, pPartMarkers = getPartMarkers(pAnime.animeTitle), sPartMarkers = getPartMarkers(sAnime.animeTitle), countSharedMarkers = (targetMarkers, ruleTitle) => {
+    let count = 0;
+    for (let marker of getPartMarkers(ruleTitle)) targetMarkers.has(marker) && count++;
+    return count;
+  }, firstMatch = null, bestMatch = null, bestScore = 0;
   for (let rule of rules) {
     let getBaseSource = (src) => String(src).split(DISPLAY_CONNECTOR)[0], rulePBaseSource = getBaseSource(rule.primary.source), ruleSBaseSource = getBaseSource(rule.secondary.source), pSources = String(pAnime.source).split(DISPLAY_CONNECTOR), sSources = String(sAnime.source).split(DISPLAY_CONNECTOR);
     if (!pSources.includes(rulePBaseSource) || !sSources.includes(ruleSBaseSource)) continue;
     let pComp = buildComparable(pAnime.animeTitle, rule.primary.title), sComp = buildComparable(sAnime.animeTitle, rule.secondary.title), isPTitleMatch = pComp.target === pComp.rule, isSTitleMatch = sComp.target === sComp.rule;
-    if (!(!isPTitleMatch || !isSTitleMatch) && !(rule.primary.season !== null && (pSeason || 1) !== rule.primary.season) && !(rule.secondary.season !== null && (sSeason || 1) !== rule.secondary.season))
-      return rule;
+    if (!isPTitleMatch || !isSTitleMatch || rule.primary.season !== null && (pSeason || 1) !== rule.primary.season || rule.secondary.season !== null && (sSeason || 1) !== rule.secondary.season) continue;
+    firstMatch === null && (firstMatch = rule);
+    let score = countSharedMarkers(pPartMarkers, rule.primary.title) + countSharedMarkers(sPartMarkers, rule.secondary.title);
+    score > bestScore && (bestMatch = rule, bestScore = score);
   }
-  return null;
+  return bestScore > 0 ? bestMatch : firstMatch;
 }
 function findSecondaryMatches(primaryAnime, secondaryList, collectionAnimeIds = /* @__PURE__ */ new Set(), baseSecondaries = []) {
   if (!secondaryList || secondaryList.length === 0) return [];
@@ -13976,6 +14017,53 @@ var TencentSource = class extends BaseSource {
   buildChapterPageContext(cid, chapterName, pageNum) {
     return `lid=&cid=${cid}&page_num=${pageNum}&page_size=30&id_type=1&req_type=6&req_from=web_vsite&req_from_second_type=&detail_page_type=1&year=&tab_type=4&chapter_name=${chapterName}&is_nocopyright=false`;
   }
+  // 从分集接口的 item_params 中提取标题相关字段，供 buildEpisodeTitle 统一组装。
+  // 腾讯各字段含义：
+  //   play_title     —— 展示用标题，连续剧为「兰香如故 第01集」，综艺为「第1期：xxx」
+  //   video_subtitle —— 该集副标题（如「寒山图解生存厄 寒舍三人盼新生」），电影/综艺常为空
+  //   union_title    —— 内部标题，连续剧多为「兰香如故_01」（不含集标题），仅作兜底
+  //   c_title_output / title —— 纯集号（如 "01" / "1"），或在综艺中与 union_title 相同
+  extractEpisodeMeta(itemParams) {
+    let p = itemParams || {};
+    return {
+      vid: p.vid,
+      title: p.title,
+      unionTitle: p.union_title || p.title,
+      playTitle: p.play_title || "",
+      videoSubtitle: p.video_subtitle || "",
+      cTitleOutput: p.c_title_output || ""
+    };
+  }
+  // 「兰香如故_01」->「兰香如故 第1集」；兼容纯数字集号（如 "01"）
+  normalizeUnionTitle(unionTitle) {
+    if (unionTitle == null) return "";
+    let value = String(unionTitle).trim();
+    if (!value) return "";
+    let m = value.match(/^(.*?)_0*(\d+)$/);
+    return m && m[1] ? `${m[1]} \u7B2C${m[2]}\u96C6` : this.formatEpisodeNumber(value);
+  }
+  // 纯数字集号统一补成「第N集」，非纯数字标题原样返回
+  formatEpisodeNumber(value) {
+    if (value == null) return "";
+    let text = String(value).trim();
+    return /^\d+$/.test(text) ? `\u7B2C${Number.parseInt(text, 10)}\u96C6` : text;
+  }
+  /**
+   * 组装分集显示标题，与 iqiyi/youku 源保持一致的「集数 + 标题」形态。
+   *
+   * 原先仅取 union_title，连续剧只能显示「兰香如故_01」——只有集号、没有集标题，
+   * 与 iqiyi 的「南部档案第1集 你俩掉进邪神洞」差距明显。改为：
+   *   主标题 play_title（自带剧名与集数）> union_title 规范化 > c_title_output > title
+   *   再追加 video_subtitle 作为集标题（已包含时跳过）
+   *
+   * @param {object} ep allEpisodes 中的分集对象
+   * @returns {string} 组装后的标题，全部字段缺失时返回空串
+   */
+  buildEpisodeTitle(ep) {
+    if (!ep) return "";
+    let playTitle = typeof ep.playTitle == "string" ? ep.playTitle.trim() : "", subtitle = typeof ep.videoSubtitle == "string" ? ep.videoSubtitle.trim() : "", cTitleOutput = typeof ep.cTitleOutput == "string" ? ep.cTitleOutput.trim() : "", title = typeof ep.title == "string" ? ep.title.trim() : "", base = playTitle || this.normalizeUnionTitle(ep.unionTitle) || this.formatEpisodeNumber(cTitleOutput) || this.formatEpisodeNumber(title);
+    return base ? (base = base.replace(/第0+(\d+)([集话回期])/g, "\u7B2C$1$2"), subtitle && !base.includes(subtitle) && (base = `${base} ${subtitle}`), base) : "";
+  }
   async getEpisodes(id, chapterContexts = []) {
     try {
       log("info", `[tencent] \u83B7\u53D6\u5206\u96C6\u5217\u8868: cid=${id}`);
@@ -14027,11 +14115,7 @@ var TencentSource = class extends BaseSource {
             for (let moduleData of moduleListData.module_datas)
               if (moduleData.item_data_lists && moduleData.item_data_lists.item_datas)
                 for (let item of moduleData.item_data_lists.item_datas)
-                  item.item_params && item.item_params.vid && item.item_params.is_trailer !== "1" && (seenVids.has(item.item_params.vid) || (seenVids.add(item.item_params.vid), allEpisodes.push({
-                    vid: item.item_params.vid,
-                    title: item.item_params.title,
-                    unionTitle: item.item_params.union_title || item.item_params.title
-                  })));
+                  item.item_params && item.item_params.vid && item.item_params.is_trailer !== "1" && (seenVids.has(item.item_params.vid) || (seenVids.add(item.item_params.vid), allEpisodes.push(this.extractEpisodeMeta(item.item_params))));
         }
         if (chapterContexts.length > 0) {
           let zhengpianChapters = chapterContexts.filter((ch) => this.isZhengpianChapter(ch)), targetChapters = zhengpianChapters.length > 0 ? zhengpianChapters : chapterContexts, orderedChapters = zhengpianChapters.length > 0 ? targetChapters : targetChapters.slice().sort((a, b) => this.seasonOrderKey(a.title) - this.seasonOrderKey(b.title));
@@ -14067,9 +14151,7 @@ var TencentSource = class extends BaseSource {
                       if ((hasNextFlag === !0 || hasNextFlag === "true") && (hasNext = !0), moduleData.item_data_lists && moduleData.item_data_lists.item_datas)
                         for (let item of moduleData.item_data_lists.item_datas)
                           item.item_params && item.item_params.vid && item.item_params.is_trailer !== "1" && (pageItemCount++, seasonEpisodes.push({
-                            vid: item.item_params.vid,
-                            title: item.item_params.title,
-                            unionTitle: item.item_params.union_title || item.item_params.title,
+                            ...this.extractEpisodeMeta(item.item_params),
                             order: parseInt(item.item_params.episode_on_chapter, 10) || 0
                           }));
                     }
@@ -14077,12 +14159,12 @@ var TencentSource = class extends BaseSource {
                 pageNum++;
               }
               seasonEpisodes.sort((a, b) => a.order - b.order);
-              for (let ep of seasonEpisodes)
-                seenVids.has(ep.vid) || (seenVids.add(ep.vid), allEpisodes.push({
-                  vid: ep.vid,
-                  title: ep.title,
-                  unionTitle: ep.unionTitle
-                }));
+              for (let ep of seasonEpisodes) {
+                if (seenVids.has(ep.vid)) continue;
+                seenVids.add(ep.vid);
+                let { order, ...epMeta } = ep;
+                allEpisodes.push(epMeta);
+              }
             } catch (error) {
               log("error", `[tencent] \u5206\u5B63\u5206\u96C6\u8BF7\u6C42\u5931\u8D25: ${error.message}`);
             }
@@ -14117,11 +14199,7 @@ var TencentSource = class extends BaseSource {
               for (let moduleData of moduleListData.module_datas)
                 if (moduleData.item_data_lists && moduleData.item_data_lists.item_datas)
                   for (let item of moduleData.item_data_lists.item_datas)
-                    item.item_params && item.item_params.vid && item.item_params.is_trailer !== "1" && allEpisodes.push({
-                      vid: item.item_params.vid,
-                      title: item.item_params.title,
-                      unionTitle: item.item_params.union_title || item.item_params.title
-                    });
+                    item.item_params && item.item_params.vid && item.item_params.is_trailer !== "1" && allEpisodes.push(this.extractEpisodeMeta(item.item_params));
           }
         }
       }
@@ -14155,7 +14233,7 @@ var TencentSource = class extends BaseSource {
         try {
           let eps = await this.getEpisodes(anime.mediaId, anime.chapterContexts), links = [];
           for (let i = 0; i < eps.length; i++) {
-            let ep = eps[i], epTitle = ep.unionTitle || ep.title || `\u7B2C${i + 1}\u96C6`, fullUrl = `https://v.qq.com/x/cover/${anime.mediaId}/${ep.vid}.html`;
+            let ep = eps[i], epTitle = this.buildEpisodeTitle(ep) || `\u7B2C${i + 1}\u96C6`, fullUrl = `https://v.qq.com/x/cover/${anime.mediaId}/${ep.vid}.html`;
             links.push({
               name: (i + 1).toString(),
               url: fullUrl,
@@ -14163,7 +14241,7 @@ var TencentSource = class extends BaseSource {
             });
           }
           if (links.length > 0) {
-            let firstEpTitle = eps[0].unionTitle || eps[0].title || "\u7B2C1\u96C6", displayTitle = anime.title, versionMatch = firstEpTitle.match(/\[.+版\]/);
+            let firstEpTitle = [eps[0].playTitle, eps[0].unionTitle, eps[0].title].filter(Boolean).join(" ") || "\u7B2C1\u96C6", displayTitle = anime.title, versionMatch = firstEpTitle.match(/\[.+版\]/);
             versionMatch && firstEpTitle.includes(anime.title) && (displayTitle = `${anime.title}${versionMatch[0]}`);
             let transformedAnime = {
               animeId: convertToAsciiSum(anime.mediaId),
@@ -14219,7 +14297,7 @@ var TencentSource = class extends BaseSource {
     }
     let titleMatch = res.data.match(/<title[^>]*>(.*?)<\/title>/i), title = titleMatch ? titleMatch[1].split("_")[0] : "\u672A\u77E5\u6807\u9898";
     log("info", `[tencent] \u6807\u9898: ${title}`);
-    let segmentResult = await this.getEpisodeDanmuSegments(id);
+    let segmentResult = await this.getEpisodeDanmuSegments(id, !1);
     if (!segmentResult || !segmentResult.segmentList || segmentResult.segmentList.length === 0)
       return [];
     let segmentList = segmentResult.segmentList;
@@ -14245,11 +14323,47 @@ var TencentSource = class extends BaseSource {
     }
     return printFirst200Chars(contents), contents;
   }
-  async getEpisodeDanmuSegments(id) {
+  /**
+   * 获取视频真实时长（秒）
+   *
+   * 腾讯弹幕分片接口(base)只提供按 30s 对齐的分片边界，末段 segment_end 是分片桶的
+   * 上边界（会把片尾广告/占位时长也算进去），并非正片真实时长。
+   * vv.video.qq.com/getinfo 的 vl.vi[0].td 才是权威的视频总时长。
+   *
+   * @param {string} vid - 视频 vid
+   * @returns {Promise<number>} 视频时长（秒），拿不到时返回 0
+   */
+  async getVideoDuration(vid) {
+    if (!vid) return 0;
+    try {
+      let infoUrl = `https://vv.video.qq.com/getinfo?vids=${encodeURIComponent(vid)}&platform=101001&charge=0&otype=json&defn=shd&defaultfmt=auto&defnpayver=0&spsrt=1`, res = await Widget.http.get(infoUrl, {
+        // 时长是可选信息，超时后直接回落到分片边界，避免拖慢弹幕请求
+        timeout: 3e3,
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://v.qq.com",
+          Referer: `https://v.qq.com/x/cover/${vid}.html`,
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+      });
+      if (!res || !res.data) return 0;
+      let data = res.data;
+      if (typeof res.data == "string") {
+        let braceIndex = res.data.indexOf("{");
+        if (braceIndex === -1) return 0;
+        data = JSON.parse(res.data.slice(braceIndex).replace(/;?\s*$/, ""));
+      }
+      let td = Number(data?.vl?.vi?.[0]?.td);
+      return !Number.isFinite(td) || td <= 0 ? (log("info", `[tencent] getinfo \u672A\u8FD4\u56DE\u6709\u6548 td \u5B57\u6BB5: ${data?.vl?.vi?.[0]?.td}`), 0) : (log("info", `[tencent] \u89C6\u9891\u771F\u5B9E\u65F6\u957F(td): ${td}s`), td);
+    } catch (error) {
+      return log("error", "[tencent] \u83B7\u53D6\u89C6\u9891\u771F\u5B9E\u65F6\u957F\u5931\u8D25:", error.message), 0;
+    }
+  }
+  async getEpisodeDanmuSegments(id, includeDuration = !0) {
     log("info", "[tencent] \u83B7\u53D6\u817E\u8BAF\u89C6\u9891\u5F39\u5E55\u5206\u6BB5\u5217\u8868...", id);
     let api_danmaku_base = "https://dm.video.qq.com/barrage/base/", api_danmaku_segment = "https://dm.video.qq.com/barrage/segment/", vid = this.extractVid(id);
     log("info", `[tencent] \u83B7\u53D6\u5F39\u5E55\u5206\u6BB5\u5217\u8868 - vid: ${vid}`);
-    let res;
+    let durationPromise = includeDuration ? this.getVideoDuration(vid) : null, res;
     try {
       res = await Widget.http.get(api_danmaku_base + vid, {
         headers: {
@@ -14274,8 +14388,10 @@ var TencentSource = class extends BaseSource {
         segment_end: (Number(item.segment_name.split("/").pop()) || 0) / 1e3,
         url: `${api_danmaku_segment}${vid}/${item.segment_name}`
       });
+    let videoDuration = durationPromise ? await durationPromise : 0;
     return new SegmentListResponse({
       type: "qq",
+      duration: videoDuration,
       segmentList
     });
   }
@@ -14363,7 +14479,7 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
           bypassCache
         });
         return !resp || !resp.data ? null : typeof resp.data == "string" ? JSON.parse(resp.data) : resp.data;
-      }, MAX_RETRIES = 2, data = await doSearch();
+      }, MAX_RETRIES = 3, data = await doSearch();
       for (let attempt = 0; attempt < MAX_RETRIES && (!data || data.code === "-1"); attempt++) {
         let reason = data ? `\u641C\u7D22\u63A5\u53E3\u98CE\u63A7 (code=${data.code})` : "\u641C\u7D22\u54CD\u5E94\u4E3A\u7A7A";
         log("info", `[iqiyi] ${reason}\uFF0C\u7B49\u5F85 3 \u79D2\u540E\u91CD\u8BD5 (${attempt + 1}/${MAX_RETRIES})`), await new Promise((r) => setTimeout(r, 3e3)), data = await doSearch(!0);
@@ -14519,9 +14635,7 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
                     if (epData.content_type !== 1) continue;
                     let tvidMatch = (epData.play_url || "").match(/tvid=(\d+)/);
                     if (!tvidMatch) continue;
-                    let tvid = tvidMatch[1], title = epData.short_display_name || epData.title || "\u672A\u77E5\u5206\u96C6", subtitle = epData.subtitle;
-                    subtitle && !title.includes(subtitle) && (title = `${title} ${subtitle}`);
-                    let order = epData.album_order, pageUrl = epData.page_url;
+                    let tvid = tvidMatch[1], title = this._buildEpisodeTitle(epData), order = epData.album_order, pageUrl = epData.page_url;
                     tvid && title && pageUrl && allEpisodes.push({
                       id: tvid,
                       title,
@@ -14565,9 +14679,7 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
                   if (epData.content_type !== 1) continue;
                   let tvidMatch = (epData.play_url || "").match(/tvid=(\d+)/);
                   if (!tvidMatch) continue;
-                  let tvid = tvidMatch[1], title = epData.short_display_name || epData.title || "\u672A\u77E5\u5206\u96C6", subtitle = epData.subtitle;
-                  subtitle && !title.includes(subtitle) && (title = `${title} ${subtitle}`);
-                  let order = epData.album_order, pageUrl = epData.page_url;
+                  let tvid = tvidMatch[1], title = this._buildEpisodeTitle(epData), order = epData.album_order, pageUrl = epData.page_url;
                   tvid && title && order && pageUrl && allEpisodes.push({
                     id: tvid,
                     title,
@@ -14630,6 +14742,27 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
     for (let attempt = 0; attempt < MAX_EPISODE_RETRIES && (!data || data.status_code !== 0 || !data.data || !data.data.template); attempt++)
       log("info", `[iqiyi] \u5206\u96C6\u63A5\u53E3\u8FD4\u56DE\u5F02\u5E38${data ? ` (status_code: ${data.status_code})` : " (\u54CD\u5E94\u4E3A\u7A7A\u6216\u89E3\u6790\u5931\u8D25)"}\uFF0C\u7B49\u5F85 3 \u79D2\u540E\u91CD\u8BD5 (${attempt + 1}/${MAX_EPISODE_RETRIES})`), await new Promise((r) => setTimeout(r, 3e3)), data = await fetchEpisodeData(!0);
     return !data || data.status_code !== 0 || !data.data || !data.data.template ? (log("error", `[iqiyi] \u83B7\u53D6\u5206\u96C6\u5217\u8868\u5931\u8D25: ${data ? `status_code: ${data.status_code}` : "\u54CD\u5E94\u4E3A\u7A7A\u6216\u89E3\u6790\u5931\u8D25"}`), null) : data;
+  }
+  /**
+   * 组装分集标题：取接口的分集名，并在标题末尾补上副标题
+   * @param {object} epData - 分集原始数据
+   * @returns {string} 分集标题
+   */
+  _buildEpisodeTitle(epData) {
+    let title = epData.short_display_name || epData.title || "\u672A\u77E5\u5206\u96C6", subtitle = epData.subtitle;
+    return subtitle && !title.includes(subtitle) && (title = `${title} ${subtitle}`), title;
+  }
+  /**
+   * 补齐分集标题缺失的集数，集数置于作品名后面，与接口自带集数的分集保持同一格式
+   * @param {string} title - 分集标题
+   * @param {string} animeTitle - 所属作品名
+   * @param {number} order - 分集序号
+   * @returns {string} 含集数的分集标题
+   */
+  _ensureEpisodeNumber(title, animeTitle, order) {
+    if (extractEpisodeNumberFromTitle(title) !== null || order == null || order === "") return title;
+    let animeName = extractAnimeTitle(animeTitle || ""), prefix = animeName && title.startsWith(animeName) ? animeName : "", rest = prefix ? title.slice(prefix.length).trim() : title;
+    return prefix ? `${prefix} \u7B2C${order}\u96C6 ${rest}`.trim() : `\u7B2C${order}\u96C6 ${rest}`.trim();
   }
   /**
    * 全季搜索时统一拉取各结果的分集列表，收集其中以内联方式返回的季 album_id；
@@ -14787,7 +14920,7 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
             links.push({
               name: ep.order.toString(),
               url: fullUrl,
-              title: `\u3010qiyi\u3011 ${ep.title}`
+              title: `\u3010qiyi\u3011 ${this._ensureEpisodeNumber(ep.title, anime.title, ep.order)}`
             });
           }
           if (links.length > 0) {
@@ -21807,7 +21940,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = "1.21.5";
+var wv = "1.21.6";
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
