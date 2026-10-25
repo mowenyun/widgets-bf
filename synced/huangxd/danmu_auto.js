@@ -6002,6 +6002,8 @@ var _Envs = class _Envs {
       BILIBILI_COOKIE: { category: "source", type: "text", description: "B\u7AD9Cookie" },
       DOUBAN_COOKIE: { category: "source", type: "text", description: "\u8C46\u74E3Cookie" },
       YOUKU_CONCURRENCY: { category: "source", type: "number", description: "\u4F18\u9177\u5E76\u53D1\u914D\u7F6E\uFF0C\u9ED8\u8BA48", min: 1, max: 16 },
+      TENCENT_CONCURRENCY: { category: "source", type: "number", description: "\u817E\u8BAF\u5F39\u5E55\u5206\u7247\u5E76\u53D1\u914D\u7F6E\uFF0C\u9ED8\u8BA4100", min: 1, max: 200 },
+      IQIYI_CONCURRENCY: { category: "source", type: "number", description: "\u7231\u5947\u827A\u5F39\u5E55\u5206\u7247\u5E76\u53D1\u914D\u7F6E\uFF0C\u9ED8\u8BA4100", min: 1, max: 200 },
       DANDANPLAY_ACCOUNT: { category: "source", type: "text", description: `\u5F39\u5F39play\u8D26\u53F7\uFF08dandan \u6E90\u4F7F\u7528\uFF09\u3002
 \u4E0E\u5BC6\u7801\u540C\u65F6\u586B\u5199\u540E\u5F00\u542F NipaPlay \u4E2D\u8F6C\u5F39\u5F39play\u8F85\u52A9\u670D\u52A1\uFF0C\u4F7F\u7528 NipaPlay \u83B7\u53D6\u5F39\u5E55\u4E0E\u515C\u5E95\uFF0C\u89E3\u51B3\u9ED8\u8BA4\u670D\u52A1\u7AEF\u65E0\u5F39\u5E55\u4E0E\u66F4\u65B0\u7F13\u6162\u7684\u95EE\u9898\uFF0C\u5E76\u5F00\u542F\u5F39\u5F39\u805A\u5408\u5F39\u5E55\u5B9E\u65F6\u62C9\u53D6\u529F\u80FD
 \uFF08\u5B9E\u65F6\u62C9\u53D6\u6CE8\u610F\uFF1A\u9700\u5148\u5F00\u542F\u5BF9\u5E94\u6E90\uFF1B\u6307\u5411\u7684\u5E73\u53F0\u89C6\u9891\u82E5\u5DF2\u4E0B\u67B6\u5C06\u65E0\u6CD5\u83B7\u53D6\uFF1B\u542B\u5DF4\u54C8\u59C6\u7279\u5E73\u53F0\u65F6\u9700\u786E\u4FDD\u80FD\u591F\u8FDE\u901A\u5DF4\u54C8\uFF09\u3002` },
@@ -6103,6 +6105,10 @@ var _Envs = class _Envs {
       // 豆瓣cookie
       youkuConcurrency: Math.min(this.get("YOUKU_CONCURRENCY", 8, "number"), 16),
       // 优酷并发配置
+      tencentConcurrency: Math.max(1, Math.min(this.get("TENCENT_CONCURRENCY", 100, "number"), 200)),
+      // 腾讯弹幕分片并发配置
+      iqiyiConcurrency: Math.max(1, Math.min(this.get("IQIYI_CONCURRENCY", 100, "number"), 200)),
+      // 爱奇艺弹幕分片并发配置
       dandanplayAccount: this.get("DANDANPLAY_ACCOUNT", "", "string", !0),
       // 弹弹play账号，dandan 源使用
       dandanplayPassword: this.get("DANDANPLAY_PASSWORD", "", "string", !0),
@@ -6269,7 +6275,7 @@ var Globals = {
   originalEnvVars: {},
   accessedEnvVars: {},
   // 静态常量
-  VERSION: "1.21.6",
+  VERSION: "1.21.7",
   MAX_LOGS: 1e3,
   // 日志存储，最多保存 1000 行
   MAX_RECORDS: 100,
@@ -14302,26 +14308,26 @@ var TencentSource = class extends BaseSource {
       return [];
     let segmentList = segmentResult.segmentList;
     log("info", `[tencent] \u5F39\u5E55\u5206\u6BB5\u6570\u91CF: ${segmentList.length}`);
-    let promises = [];
-    for (let segment of segmentList)
-      promises.push(
-        Widget.http.get(segment.url, {
+    let concurrency = Math.max(1, Number(globals.tencentConcurrency) || 100), contents = [], fulfilledCount = 0;
+    for (let batchStart = 0; batchStart < segmentList.length; batchStart += concurrency) {
+      let batch = segmentList.slice(batchStart, batchStart + concurrency), batchPromises = batch.map(async (segment) => {
+        let response = await Widget.http.get(segment.url, {
           headers: {
             "Content-Type": "application/json",
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
           },
           retries: 1
-        })
-      );
-    let contents = [];
-    try {
-      (await Promise.allSettled(promises)).filter((result) => result.status === "fulfilled").map((result) => result.value && result.value.data ? result.value.data : null).filter((data) => data !== null).forEach((data) => {
-        data = typeof data == "string" ? JSON.parse(data) : data, contents.push(...data.barrage_list);
-      });
-    } catch (error) {
-      return log("error", "[tencent] \u89E3\u6790\u5F39\u5E55\u6570\u636E\u5931\u8D25:", error), [];
+        });
+        if (!response || !response.data) return [];
+        let data = typeof response.data == "string" ? JSON.parse(response.data) : response.data;
+        return Array.isArray(data?.barrage_list) ? data.barrage_list : [];
+      }), batchResults = await Promise.allSettled(batchPromises);
+      for (let batchIndex = 0; batchIndex < batch.length; batchIndex++) {
+        let result = batchResults[batchIndex], segment = batch[batchIndex], segmentIndex = batchStart + batchIndex + 1;
+        result.status === "fulfilled" ? (fulfilledCount++, contents.push(...result.value)) : log("warn", `[tencent] \u7B2C ${segmentIndex} \u4E2A\u5206\u7247\u8BF7\u6C42\u5931\u8D25: ${result.reason?.message || result.reason}\uFF08${segment.segment_start}-${segment.segment_end}s\uFF09`);
+      }
     }
-    return printFirst200Chars(contents), contents;
+    return log("info", `[tencent] \u5206\u6BB5\u4E0B\u8F7D\u5B8C\u6210: ${fulfilledCount}/${segmentList.length}` + (fulfilledCount < segmentList.length ? `\uFF0C\u5931\u8D25 ${segmentList.length - fulfilledCount} \u6BB5` : "")), printFirst200Chars(contents), contents;
   }
   /**
    * 获取视频真实时长（秒）
@@ -14966,18 +14972,17 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
       return [];
     let segmentList = segmentResult.segmentList;
     log("info", `[iqiyi] \u5F39\u5E55\u5206\u6BB5\u6570\u91CF: ${segmentList.length}`);
-    let promises = [];
-    for (let segment of segmentList)
-      promises.push(this.getEpisodeSegmentDanmu(segment));
-    let contents = [];
-    try {
-      (await Promise.allSettled(promises)).filter((result) => result.status === "fulfilled").map((result) => result.value).filter((data) => data !== null).forEach((data) => {
-        contents.push(...data);
-      });
-    } catch (error) {
-      return log("error", "[iqiyi] \u89E3\u6790\u5F39\u5E55\u6570\u636E\u5931\u8D25:", error), [];
+    let concurrency = Math.max(1, Number(globals.iqiyiConcurrency) || 100), contents = [], fulfilledCount = 0;
+    for (let batchStart = 0; batchStart < segmentList.length; batchStart += concurrency) {
+      let batch = segmentList.slice(batchStart, batchStart + concurrency), batchResults = await Promise.allSettled(
+        batch.map((segment) => this.getEpisodeSegmentDanmu(segment, { throwOnError: !0 }))
+      );
+      for (let batchIndex = 0; batchIndex < batch.length; batchIndex++) {
+        let result = batchResults[batchIndex], segment = batch[batchIndex], segmentIndex = batchStart + batchIndex + 1;
+        result.status === "fulfilled" ? (fulfilledCount++, contents.push(...result.value)) : log("warn", `[iqiyi] \u7B2C ${segmentIndex} \u4E2A\u5206\u7247\u8BF7\u6C42\u5931\u8D25: ${result.reason?.message || result.reason}\uFF08${segment.segment_start}-${segment.segment_end}s\uFF09`);
+      }
     }
-    return printFirst200Chars(contents), contents;
+    return log("info", `[iqiyi] \u5206\u6BB5\u4E0B\u8F7D\u5B8C\u6210: ${fulfilledCount}/${segmentList.length}` + (fulfilledCount < segmentList.length ? `\uFF0C\u5931\u8D25 ${segmentList.length - fulfilledCount} \u6BB5` : "")), printFirst200Chars(contents), contents;
   }
   async getEpisodeDanmuSegments(id) {
     log("info", "[iqiyi] \u83B7\u53D6\u7231\u5947\u827A\u89C6\u9891\u5F39\u5E55\u5206\u6BB5\u5217\u8868...", id);
@@ -15059,7 +15064,7 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
       segmentList
     });
   }
-  async getEpisodeSegmentDanmu(segment) {
+  async getEpisodeSegmentDanmu(segment, options = {}) {
     try {
       let response = await Widget.http.get(segment.url, {
         headers: {
@@ -15076,7 +15081,8 @@ var _IqiyiSource = class _IqiyiSource extends BaseSource {
       let compressed = base64ToBytes(response.data), payload = await this._decompressBrotli(compressed);
       return payload[0] === 60 ? this._parseIqiyiXmlDanmu(utf8BytesToString(payload)) : this._parseIqiyiProtoDanmu(payload);
     } catch (error) {
-      return log("error", "[iqiyi] \u8BF7\u6C42\u5206\u7247\u5F39\u5E55\u5931\u8D25:", error), [];
+      if (log("error", "[iqiyi] \u8BF7\u6C42\u5206\u7247\u5F39\u5E55\u5931\u8D25:", error), options.throwOnError) throw error;
+      return [];
     }
   }
   async _decompressBrotli(bytes) {
@@ -19560,6 +19566,31 @@ function parseWebSearchResults(html) {
     return [];
   }
 }
+function normalizeWebSearchItem(item) {
+  if (!item || typeof item != "object") return null;
+  let data = item.video_data || {}, seriesId = String(data.series_id || item.keyword || ""), name = String(data.series_name || data.series_title || item.name || "").trim(), episodeCount = Number(data.episode_cnt) || 0;
+  return !seriesId || !name || episodeCount <= 0 ? null : {
+    seriesId,
+    name,
+    episodeCount,
+    score: "",
+    year: extractYearFromTimestamp(data.create_time),
+    imageUrl: extractImageUrl(data.series_cover)
+  };
+}
+function parseWebSearchApi(payload) {
+  let result = payload;
+  if (typeof result == "string") {
+    let text = result.trim();
+    if (!text) return [];
+    try {
+      result = JSON.parse(text);
+    } catch {
+      return [];
+    }
+  }
+  return (result && Array.isArray(result.searchList) ? result.searchList : Array.isArray(result) ? result : []).map(normalizeWebSearchItem).filter(Boolean);
+}
 function parseWebSeriesDetail(html) {
   let marker = '"seriesDetail":', start = html.indexOf(marker);
   if (start < 0) return null;
@@ -20074,13 +20105,23 @@ var HongguoSource = class extends BaseSource {
   }
   async search(keyword) {
     try {
-      let response = await Widget.http.get(`${WEB_ORIGIN}/search/${encodeURIComponent(keyword)}`, { headers: { accept: "text/html" }, timeout: 3e4 }), items = parseWebSearchResults(typeof response.data == "string" ? response.data : "");
-      if (items.length) return items.map((item) => {
-        let data = item.video_data || {};
-        return { seriesId: String(data.series_id || item.keyword || ""), name: String(data.series_name || data.series_title || item.name || ""), episodeCount: Number(data.episode_cnt) || 0, score: "", year: extractYearFromTimestamp(data.create_time), imageUrl: extractImageUrl(data.series_cover) };
-      }).filter((item) => item.seriesId && item.name && item.episodeCount > 0).slice(0, MAX_SEARCH_ITEMS);
+      let results = [], seen = /* @__PURE__ */ new Set();
+      for (let page = 1; page <= 3 && results.length < MAX_SEARCH_ITEMS; page++) {
+        let url = `${WEB_ORIGIN}/api/search/result/?query=${encodeURIComponent(keyword)}&page=${page}`, response = await Widget.http.get(url, { headers: { accept: "application/json" }, timeout: 3e4 }), items = parseWebSearchApi(response.data);
+        for (let item of items)
+          if (!seen.has(item.seriesId) && (seen.add(item.seriesId), results.push(item), results.length >= MAX_SEARCH_ITEMS))
+            break;
+        if (items.length === 0) break;
+      }
+      if (results.length) return results;
     } catch (error) {
       log("warn", `[Hongguo] web search unavailable: ${error.message}`);
+    }
+    try {
+      let response = await Widget.http.get(`${WEB_ORIGIN}/search/${encodeURIComponent(keyword)}`, { headers: { accept: "text/html" }, timeout: 3e4 }), items = parseWebSearchResults(typeof response.data == "string" ? response.data : "").map(normalizeWebSearchItem).filter(Boolean);
+      if (items.length) return items.slice(0, MAX_SEARCH_ITEMS);
+    } catch (error) {
+      log("warn", `[Hongguo] web search SSR unavailable: ${error.message}`);
     }
     try {
       let results = [], seen = /* @__PURE__ */ new Set(), offset = 0, passback = "", searchId = "";
@@ -21940,7 +21981,7 @@ async function getSegmentComment(segment, queryFormat) {
 }
 
 // forward/forward-widget.js
-var wv = "1.21.6";
+var wv = "1.21.7";
 WidgetMetadata = {
   id: "forward.auto.danmu2",
   title: "\u81EA\u52A8\u94FE\u63A5\u5F39\u5E55v2",
